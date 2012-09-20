@@ -1,0 +1,27 @@
+{
+  "name": "trifocal",
+  "version": "0.0.1",
+  "description": "Graphing library built on top of d3",
+  "main": "bin/trifocal.js",
+  "bin": {
+    "trifocal": "trifocal.js"
+  },
+  "directories": {
+    "doc": "docs"
+  },
+  "dependencies": {
+    "grunt-requirejs": "~0.2.11"
+  },
+  "devDependencies": {},
+  "scripts": {
+    "test": "grunt test"
+  },
+  "repository": "",
+  "keywords": [
+    "d3",
+    "graph",
+    "visualization"
+  ],
+  "author": "Ed Rooth",
+  "license": "BSD"
+}
