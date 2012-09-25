@@ -1,0 +1,11 @@
+  // force synchronous load
+  var focal = require('focal');
+
+  // CommonJS support
+  if (typeof module !== 'undefined' && module.exports) {
+    module.exports = focal;
+  } else {
+    global['focal'] = focal;
+  }
+
+}(this));

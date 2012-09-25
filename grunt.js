@@ -16,11 +16,55 @@ module.exports = function(grunt) {
       test: 'test/unit/**/*.js'
     },
     requirejs: {
-      baseUrl: 'src',
-      name: 'main',
-      mainConfigFile: 'src/main.js',
-      out: 'build/focal.min.js',
-      preserveLicenseComments: false
+      standalone: {
+
+        almond: true,
+        baseUrl: 'src',
+        include: ['focal'],
+        //insertRequire: ['focal'],
+        //wrap: true,
+        out: 'build/focal.js',
+
+        wrap: {
+          startFile: 'src/wrap.start',
+          endFile: 'src/wrap.end'
+        },
+        optimize: 'none',
+        preserveLicenseComments: false,
+        skipModuleInsertion: false,
+        optimizeAllPluginResources: true,
+        findNestedDependencies: true,
+        paths: {
+          'd3': '../lib/d3'
+        },
+        // Shim modules that don't natively support AMD.
+        shim: {
+          'd3': {
+            exports: 'd3'
+          }
+        }
+      },
+      amd: {
+        // source code root
+        appDir: 'src',
+        // relative path to appDir for module resolution
+        baseUrl: '.',
+        // output directory for optimizations etc
+        dir: 'build',
+        modules: [{ name: 'focal' }],
+        preserveLicenseComments: false,
+        optimizeAllPluginResources: true,
+        findNestedDependencies: true,
+        paths: {
+          'd3': '../lib/d3'
+        },
+        // Shim modules that don't natively support AMD.
+        shim: {
+          'd3': {
+            exports: 'd3'
+          }
+        }
+      }
     },
     mochaphantom: {
       src: 'test/unit/**/*.spec.js',
@@ -68,7 +112,9 @@ module.exports = function(grunt) {
         globals: {}
       },
       test: {
-        options: {},
+        options: {
+          expr: true
+        },
         globals: {
           describe: true,
           it: true,
@@ -84,7 +130,8 @@ module.exports = function(grunt) {
     uglify: {}
   });
 
-  grunt.registerTask('compile', 'requirejs');
+  grunt.registerTask('compile', 'requirejs:standalone');
+  grunt.registerTask('compile-amd', 'requirejs:amd');
   grunt.registerTask('test', 'server mochaphantom');
   grunt.registerTask('default', 'lint compile');
   grunt.registerTask('release', 'lint test compile');

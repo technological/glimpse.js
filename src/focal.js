@@ -1,13 +1,12 @@
-define([
-  'd3'
-],
-function() {
+define(
+'focal',
+['core/core', 'util/math'],
+function (core, math) {
   'use strict';
 
-  var Focal = {
-    version: '0.0.1'
-  };
+  var focal = core;
+  focal.version = '0.0.1';
+  focal.math = math;
 
-  //console.log('Focal loaded');
-  return Focal;
+  return focal;
 });
