@@ -1,11 +1,11 @@
   // force synchronous load
-  var focal = require('focal');
+  var glimpse = require('glimpse');
 
   // CommonJS support
   if (typeof module !== 'undefined' && module.exports) {
-    module.exports = focal;
+    module.exports = glimpse;
   } else {
-    global['focal'] = focal;
+    global['glimpse'] = glimpse;
   }
 
 }(this));

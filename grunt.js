@@ -16,14 +16,14 @@ module.exports = function(grunt) {
       test: 'test/unit/**/*.js'
     },
     requirejs: {
-      standalone: {
+      staticBuild: {
 
         almond: true,
         baseUrl: 'src',
-        include: ['focal'],
-        //insertRequire: ['focal'],
+        include: ['glimpse'],
+        //insertRequire: ['glimpse'],
         //wrap: true,
-        out: 'build/focal.js',
+        out: 'build/glimpse.js',
 
         wrap: {
           startFile: 'src/wrap.start',
@@ -44,14 +44,14 @@ module.exports = function(grunt) {
           }
         }
       },
-      amd: {
+      amdBuild: {
         // source code root
         appDir: 'src',
         // relative path to appDir for module resolution
         baseUrl: '.',
         // output directory for optimizations etc
         dir: 'build',
-        modules: [{ name: 'focal' }],
+        modules: [{ name: 'glimpse' }],
         preserveLicenseComments: false,
         optimizeAllPluginResources: true,
         findNestedDependencies: true,
@@ -130,8 +130,8 @@ module.exports = function(grunt) {
     uglify: {}
   });
 
-  grunt.registerTask('compile', 'requirejs:standalone');
-  grunt.registerTask('compile-amd', 'requirejs:amd');
+  grunt.registerTask('compile', 'requirejs:amdBuild');
+  grunt.registerTask('compile-static', 'requirejs:staticBuild');
   grunt.registerTask('test', 'server mochaphantom');
   grunt.registerTask('default', 'lint compile');
   grunt.registerTask('release', 'lint test compile');

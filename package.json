@@ -1,10 +1,10 @@
 {
-  "name": "trifocal",
+  "name": "glimpse",
   "version": "0.0.1",
   "description": "Graphing library built on top of d3",
-  "main": "bin/trifocal.js",
+  "main": "bin/glimpse.js",
   "bin": {
-    "trifocal": "trifocal.js"
+    "glimpse": "glimpse.js"
   },
   "directories": {
     "doc": "docs"
@@ -22,6 +22,6 @@
     "graph",
     "visualization"
   ],
-  "author": "Ed Rooth",
+  "author": "Rackspace - Ed Rooth",
   "license": "BSD"
 }
