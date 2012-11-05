@@ -1,8 +1,11 @@
 /*global module:false*/
+
 module.exports = function(grunt) {
   'use strict';
 
-  // Load external grunt tasks
+  /**
+   * Load external grunt tasks.
+   */
   grunt.loadNpmTasks('grunt-requirejs');
   grunt.loadNpmTasks('grunt-contrib-clean');
   grunt.loadTasks('grunt/tasks');
@@ -12,24 +15,33 @@ module.exports = function(grunt) {
   grunt.initConfig({
     pkg: '<json:package.json>',
 
+    /**
+     * Specify which files to lint.
+     */
     lint: {
       grunt: 'grunt.js',
       src: 'src/**/*.js',
       test: 'test/unit/**/*.js'
     },
 
+    /**
+     * Cleans out the "build" directory.
+     */
     clean: ['build/**'],
 
+    /**
+     * Compilation configuration.
+     */
     requirejs: {
+      /**
+       * Config for the static build which generates a single static JS file.
+       * This uses Almond.js as a shim for fake module loading.
+       */
       staticBuild: {
-
         almond: true,
         baseUrl: 'src',
         include: ['glimpse'],
-        //insertRequire: ['glimpse'],
-        //wrap: true,
         out: 'build/glimpse.js',
-
         wrap: {
           startFile: 'src/wrap.start',
           endFile: 'src/wrap.end'
@@ -49,6 +61,9 @@ module.exports = function(grunt) {
           }
         }
       },
+      /**
+       * Config for the default multi-file AMD build.
+       */
       amdBuild: {
         // source code root
         appDir: 'src',
