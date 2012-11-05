@@ -4,17 +4,22 @@ module.exports = function(grunt) {
 
   // Load external grunt tasks
   grunt.loadNpmTasks('grunt-requirejs');
+  grunt.loadNpmTasks('grunt-contrib-clean');
   grunt.loadTasks('grunt/tasks');
   grunt.loadTasks('grunt/helpers');
 
   // Project configuration.
   grunt.initConfig({
     pkg: '<json:package.json>',
+
     lint: {
       grunt: 'grunt.js',
       src: 'src/**/*.js',
       test: 'test/unit/**/*.js'
     },
+
+    clean: ['build/**'],
+
     requirejs: {
       staticBuild: {
 
@@ -66,6 +71,7 @@ module.exports = function(grunt) {
         }
       }
     },
+
     mochaphantom: {
       src: 'test/unit/**/*.spec.js',
       testRunnerPath: 'test/testrunner',
@@ -73,16 +79,19 @@ module.exports = function(grunt) {
       // The port here must match the one used below in the server config
       testRunnerUrl: 'http://127.0.0.1:3002/test/testrunner/index.html'
     },
+
     server: {
       port: 3002,
       base: '.'
     },
+
     watch: {
       lint: {
         files: ['<config:lint.src>', '<config:lint.test>'],
         tasks: 'lint'
       }
     },
+
     jshint: {
       // Defaults
       options: {
@@ -126,12 +135,11 @@ module.exports = function(grunt) {
           setFixtures: true
         }
       }
-    },
-    uglify: {}
+    }
   });
 
-  grunt.registerTask('compile', 'requirejs:amdBuild');
-  grunt.registerTask('compile-static', 'requirejs:staticBuild');
+  grunt.registerTask('compile', 'clean requirejs:amdBuild');
+  grunt.registerTask('compile-static', 'clean requirejs:staticBuild');
   grunt.registerTask('test', 'server mochaphantom');
   grunt.registerTask('default', 'lint compile');
   grunt.registerTask('release', 'lint test compile');
