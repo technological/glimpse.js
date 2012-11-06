@@ -4,12 +4,13 @@ module.exports = function(grunt) {
   'use strict';
 
   /**
-   * Load external grunt tasks.
+   * Load external grunt helpers & tasks.
    */
   grunt.loadNpmTasks('grunt-requirejs');
   grunt.loadNpmTasks('grunt-contrib-clean');
+  grunt.loadNpmTasks('grunt-exec');
+  //grunt.loadTasks('grunt/helpers');
   grunt.loadTasks('grunt/tasks');
-  grunt.loadTasks('grunt/helpers');
 
   // Project configuration.
   grunt.initConfig({
@@ -87,17 +88,22 @@ module.exports = function(grunt) {
       }
     },
 
-    mochaphantom: {
+    /**
+     * Generate unit test dependencies for the test runner.
+     */
+    depsGenerator: {
       src: 'test/unit/**/*.spec.js',
-      testRunnerPath: 'test/testrunner',
-      requirejsConfig: '',
-      // The port here must match the one used below in the server config
-      testRunnerUrl: 'http://127.0.0.1:3002/test/testrunner/index.html'
+      out: 'test/deps.js'
     },
 
-    server: {
-      port: 3002,
-      base: '.'
+    /**
+     * Run the unit tests from the command line.
+     */
+    exec: {
+      mochaPhantomJS: {
+        command: 'mocha-phantomjs -R spec test/testrunner.html',
+        stdout: true
+      }
     },
 
     watch: {
@@ -153,9 +159,10 @@ module.exports = function(grunt) {
     }
   });
 
+  grunt.registerTask('test-deps', 'depsGenerator');
   grunt.registerTask('compile', 'clean requirejs:amdBuild');
   grunt.registerTask('compile-static', 'clean requirejs:staticBuild');
-  grunt.registerTask('test', 'server mochaphantom');
-  grunt.registerTask('default', 'lint compile');
+  grunt.registerTask('test', 'test-deps exec:mochaPhantomJS');
   grunt.registerTask('release', 'lint test compile');
+  grunt.registerTask('default', 'lint compile');
 };

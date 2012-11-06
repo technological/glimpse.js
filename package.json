@@ -10,7 +10,9 @@
     "doc": "docs"
   },
   "dependencies": {
-    "grunt-requirejs": "~0.2.11"
+    "grunt-requirejs": "~0.2.11",
+    "grunt-exec": "~0.3.0",
+    "grunt-contrib-clean": "~0.3.1"
   },
   "devDependencies": {},
   "scripts": {
