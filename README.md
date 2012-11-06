@@ -1,13 +1,9 @@
-## Usage Dependencies
-- d3js
-- requirejs/almondjs
+Graphing library that wraps d3
 
-## Dev Dependencies
-- phantomjs
-- node/npm
-- grunt
-- mocha
-- chai
+
+## Dependencies
+- d3js
+- requirejs or almondjs
 
 ## Features TODO
 - modular src(amd)
@@ -27,21 +23,29 @@
 - support for users passing in images for things
 - support for users passing in absolutely positioned html for rendering tooltips etc?
 - awesome loading states and error states (spinners!!!)
-- 
+
+## Contribute / Custom Build
+
+Install the build tools
+
+- Install [nodejs](http://nodejs.org)
+- Install [PhantomJS](http://phantomjs.org)
+- Install [grunt](http://gruntjs.com)   
+  `npm install -g grunt'
+- Install [mocha-phantomjs](http://metaskills.net/mocha-phantomjs)   
+  `npm install -g mochaPhantomJS`
+- Install other build dependencies   
+  `npm install`
+
+Writing Unit Tests
+
+- Write unit tests in `/test/unit/` using [mocha](http://visionmedia.github.com/mocha/) and [chai](http://chaijs.com/)
+- Run tests from the command line: `grunt test`
+- Run tests from the browser: `grunt test-deps`, then open `/test/testrunner.html`
 
 
-### potential namespaces:
-- classes
-- util
-- math
-- event
-- error handling
+## License
 
-## possible names:
-iris.js
-trifocal
-focalpoint
-focal
-optics.js
-axease
-axeeze
+
+
+

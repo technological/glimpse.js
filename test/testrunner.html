@@ -8,6 +8,11 @@
   <body>
     If tests dont load, try running "grunt test-deps"
     <div id="mocha"></div>
-    <script data-main="testrunner" src="../lib/require.js"></script>
+
+    <script src="../lib/require.js"></script>
+    <script src="../config.js"></script>
+    <script>
+      require(['../test/testrunner']);
+    </script>
   </body>
 </html>

@@ -32,6 +32,8 @@ module.exports = function(grunt) {
 
     /**
      * Compilation configuration.
+     * In v0.4 consider replacing with:
+     *    https://github.com/gruntjs/grunt-contrib-requirejs
      */
     requirejs: {
       /**
