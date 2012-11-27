@@ -1,28 +1,28 @@
-Graphing library that wraps d3
+Graphing library that wraps d3 and provides some standard graphs.   
+
+DO NOT USE THIS. It is a work in progress.   
 
 
 ## Dependencies
 - d3js
 - requirejs or almondjs
 
-## Features TODO
-- modular src(amd)
-- custom builds
-- gallery of all independent widgets
-- travis ci integration
-- registered npm module support
-- unit tests
-- browser support?
+## Features
+- Modular source with AMD support
+- Use as AMD or build a single static script
+- Includes D3 and provides direct access to it
 - d3 plugin support
-- library support for plugins
-- clearly defined update interface for polling apps
+
+## TODO
+
 - lightweight exportable event system
 - user settings to decide how to show errors
 - standardized lifecycle management (init, render, update, destroy, etc)
 - look into shims for Web Components?
-- support for users passing in images for things
-- support for users passing in absolutely positioned html for rendering tooltips etc?
-- awesome loading states and error states (spinners!!!)
+- support for user defined images
+- support for user defined absolutely positioned html for rendering tooltips etc?
+- custom loading states and error states (spinners!!!)
+
 
 ## Contribute / Custom Build
 
