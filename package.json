@@ -1,5 +1,5 @@
 {
-  "name": "glimpse",
+  "name": "glimpse.js",
   "version": "0.0.1",
   "description": "Graphing library built on top of d3",
   "main": "bin/glimpse.js",
