@@ -1,12 +1,12 @@
-define(
-'glimpse',
-['core/core', 'util/math'],
-function (core, math) {
+define('glimpse', [
+  'd3',
+  'core/core'
+],
+function (d3, core) {
   'use strict';
 
   var glimpse = core;
-  glimpse.version = '0.0.1';
-  glimpse.math = math;
+  glimpse.d3 = d3;
 
   return glimpse;
 });

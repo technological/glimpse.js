@@ -1,11 +1,9 @@
 define(
-['d3'],
-function (d3) {
+function () {
   'use strict';
 
   var core = {
-    d3: d3,
-    foo: 'bar'
+    version: '0.0.1'
   };
 
   return core;

@@ -4,9 +4,9 @@ define([
 function (glimpse) {
   'use strict';
 
-  describe('glimpse', function () {
-    it('should have a version', function () {
-      expect(glimpse.version).to.exist;
+  describe('d3', function () {
+    it('should load d3', function () {
+      expect(glimpse.d3).to.exist;
     });
   });
 
