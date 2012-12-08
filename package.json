@@ -9,21 +9,27 @@
   "directories": {
     "doc": "docs"
   },
-  "dependencies": {
-    "grunt-requirejs": "~0.2.11",
+  "dependencies": {},
+  "devDependencies": {
+    "grunt": "~0.4.0",
+    "grunt-contrib-clean": "~0.4.0a",
+    "grunt-contrib-jshint": "~0.1.0",
+    "grunt-contrib-requirejs": "~0.3.4",
     "grunt-exec": "~0.3.0",
-    "grunt-contrib-clean": "~0.3.1"
+    "uglify-js2": ">=2.1.11",
+    "grunt-contrib-watch": "~0.1.4"
   },
-  "devDependencies": {},
   "scripts": {
     "test": "grunt test"
   },
-  "repository": "",
+  "repository": "git@github.com:racker/glimpse.js.git",
   "keywords": [
     "d3",
     "graph",
-    "visualization"
+    "chart",
+    "visualization",
+    "rackspace"
   ],
   "author": "Rackspace - Ed Rooth",
-  "license": "BSD"
+  "license": "?"
 }
