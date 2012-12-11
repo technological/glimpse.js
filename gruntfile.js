@@ -100,8 +100,12 @@ module.exports = function(grunt) {
      * Run the unit tests from the command line.
      */
     exec: {
-      mochaPhantomJS: {
+      mochaPhantomHtml: {
         command: 'mocha-phantomjs -R spec test/testrunner.html',
+        stdout: true
+      },
+      mochaPhantomJson: {
+        command: 'mocha-phantomjs -R json test/testrunner.html > test/coverage.json',
         stdout: true
       }
     },
@@ -168,7 +172,8 @@ module.exports = function(grunt) {
   grunt.registerTask('test-deps', 'depsGenerator');
   grunt.registerTask('compile-static', ['clean', 'requirejs:staticBuild']);
   grunt.registerTask('compile', ['clean', 'requirejs:amdBuild']);
-  grunt.registerTask('test', ['test-deps', 'exec:mochaPhantomJS']);
+  grunt.registerTask('test', ['test-deps', 'exec:mochaPhantomHtml']);
+  grunt.registerTask('test-json', ['test-deps', 'exec:mochaPhantomJson']);
   grunt.registerTask('release', ['jshint', 'test', 'compile']);
   grunt.registerTask('default', ['jshint', 'compile']);
 };
