@@ -11,7 +11,7 @@
   },
   "devDependencies": {
     "grunt": "~0.4.0",
-    "grunt-contrib-clean": "~0.4.0a",
+    "grunt-contrib-clean": "~0.4.0rc5",
     "grunt-contrib-jshint": "~0.1.0",
     "grunt-contrib-requirejs": "~0.3.4",
     "uglify-js2": ">=2.1.11",

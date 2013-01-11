@@ -20,7 +20,9 @@ module.exports = function(grunt) {
     /**
      * Cleans out the "build" directory.
      */
-    clean: ['build/'],
+    clean: {
+      build: ['build/']
+    },
 
     /**
      * Compilation configuration.
@@ -164,8 +166,9 @@ module.exports = function(grunt) {
 
   grunt.registerTask('testwatch', 'exec:testWatch');
   grunt.registerTask('test', 'exec:test');
-  grunt.registerTask('compile-static', ['clean', 'requirejs:staticBuild']);
-  grunt.registerTask('compile', ['clean', 'requirejs:amdBuild']);
+  grunt.registerTask('compile-static',
+    ['clean:build', 'requirejs:staticBuild']);
+  grunt.registerTask('compile', ['clean:build', 'requirejs:amdBuild']);
   grunt.registerTask('release', ['jshint', 'test', 'compile']);
   grunt.registerTask('default', ['jshint', 'compile']);
 };
