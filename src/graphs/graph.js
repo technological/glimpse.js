@@ -22,7 +22,7 @@ function (obj, config, array, components) {
       defaults_ = {
         marginTop: 10,
         marginRight: 0,
-        marginBottom: 20,
+        marginBottom: 30,
         marginLeft: 0,
         xScale: null,
         yScale: null
@@ -34,7 +34,6 @@ function (obj, config, array, components) {
       panel_,
       legend_,
       svg_;
-
 
     /**
      * Private functions
@@ -125,61 +124,112 @@ function (obj, config, array, components) {
       });
       config_.xScale.rangeRound([0, getFrameWidth()])
         .domain(d3.extent(xExtents));
-      config_.yScale.rangeRound([0, getFrameHeight()])
-        .domain(d3.extent(yExtents));
+      config_.yScale.rangeRound([getFrameHeight(), 0])
+        .domain([0, d3.max(yExtents)]);
+    }
+
+    function updateLegend() {
+      var legendConfig = [];
+      components_.forEach(function (c) {
+        if (c.config('showInLegend')) {
+          legendConfig.push({color: c.config('color'), title: 'foo' });
+        }
+      });
+      legend_.config({keys: legendConfig})
+        .update();
+    }
+
+    function defaultXaccessor (d) {
+      return d.x;
+    }
+
+    function defaultYaccessor (d) {
+      return d.y;
+    }
+
+    function update() {
+      updateScales();
+      updateLegend();
+    }
+
+    function addComponent(component) {
+      if (component.data) {
+        component.data(data_);
+      }
+      if (component.xScale) {
+        component.xScale(config_.xScale);
+      }
+      if (component.yScale) {
+        component.yScale(config_.yScale);
+      }
+      components_.push(component);
     }
 
     function graph() {
       obj.extend(config_, defaults_);
       components_ = [];
+      data_ = [];
       config_.xScale = d3.time.scale();
       config_.yScale = d3.scale.linear();
+      legend_ = components.legend();
+      xAxis_ = components.axis().config({
+        type: 'x',
+        orient: 'bottom',
+        scale: config_.xScale
+      });
+      yAxis_ = components.axis().config({
+        type: 'y',
+        orient: 'right',
+        scale: config_.yScale
+      });
+      addComponent(legend_);
+      addComponent(xAxis_);
+      addComponent(yAxis_);
 
       return graph;
     }
 
+    // TODO: maybe add common data thing as
     graph.data = function (data) {
       if (data) {
         // TODO: loop thru each data config and apply default X/Y
         // accessor functions
-        data_ = data;
+        if (Array.isArray(data)) {
+          data_ = data_.concat(data);
+        } else {
+          data_.push(data);
+        }
         return graph;
       }
       return data_;
     };
 
     graph.component = function (componentConfig) {
-      var component = components[componentConfig.type]();
-      component.config(componentConfig);
-      if (typeof component === 'string') {
+      var component;
+      if (typeof componentConfig === 'string') {
         return array.find(components_, function (c) {
           return c.id === component;
         });
       }
-      if (component.data) {
-        component.data(data_);
-      }
-      components_.unshift(component);
-      updateScales();
-      component.config({
-        xScale: config_.xScale,
-        yScale: config_.yScale
-      });
-      //if (component.config('dataId')) {
-        //legend_.addKey(
-          //component.config('label') || component.config('dataId'),
-          //component.config('color'));
-      //}
+      component = components[componentConfig.type]();
+      component.config(componentConfig);
+      addComponent(component);
       return graph;
     };
 
     graph.update = function () {
+      update();
+      components_.forEach(function (component) {
+        component.update();
+      });
       return graph;
     };
 
+    // NOTE: render() should only be called once
     graph.render = function (selector) {
       var selection = d3.select(selector);
       renderPanel(selection);
+      update();
       renderComponents(selection);
       return graph;
     };

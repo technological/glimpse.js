@@ -1,13 +1,15 @@
 define([
   'components/line',
-  'components/legend'
+  'components/legend',
+  'components/axis'
 ],
-function (line, legend) {
+function (line, legend, axis) {
   'use strict';
 
   return {
     line: line,
-    legend: legend
+    legend: legend,
+    axis: axis
   };
 
 });

@@ -11,10 +11,13 @@ function (obj, array, config) {
     var config_ = {},
       defaults_ = {
         isFramed: true,
-        strokeWidth: 1
+        strokeWidth: 1,
+        color: 'steelBlue',
+        showInLegend: true
       },
       lineGenerator_,
-      data_;
+      data_,
+      root_;
 
     function line() {
       obj.extend(config_, defaults_);
@@ -22,6 +25,8 @@ function (obj, array, config) {
       return line;
     }
 
+    // TODO: this will be the same for all components
+    // put this func somehwere else and apply as needed
     line.data = function (data) {
       if (data) {
         data_ = data;
@@ -32,11 +37,26 @@ function (obj, array, config) {
       });
     };
 
-    line.render = function (selection) {
-      var lineGroup,
-          dataConfig = line.data();
+    line.update = function () {
+      var dataConfig = line.data();
 
-       lineGroup = selection.append('g')
+      root_.select('.line')
+        .datum(dataConfig.data)
+        .attr({
+          'stroke-width': config_.strokeWidth,
+          'stroke': dataConfig.color,
+          'fill': 'none',
+          'opacity': 1,
+          'd': lineGenerator_
+        });
+
+      return line;
+    };
+
+    line.render = function (selection) {
+      var dataConfig = line.data();
+
+       root_ = selection.append('g')
         .attr({
           'class': 'component line-chart'
         });
@@ -51,21 +71,15 @@ function (obj, array, config) {
         })
         .interpolate(config_.interpolate);
 
-      lineGroup.append('path')
-        .datum(dataConfig.data)
-        .attr({
-          'class': 'line',
-          'stroke-width': config_.strokeWidth,
-          'stroke': dataConfig.color,
-          'fill': 'none',
-          'opacity': 1,
-          'd': lineGenerator_
-        });
+      root_.append('path')
+        .attr('class', 'line');
+
+      line.update();
 
       return line;
     };
 
-    obj.extend(line, config(line, config_, []));
+    obj.extend(line, config(line, config_, ['xScale', 'yScale']));
     return line();
   };
 
