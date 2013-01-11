@@ -29,11 +29,10 @@ DO NOT USE THIS. It is a work in progress.
 Install the build tools
 
 - Install [nodejs](http://nodejs.org)
-- Install [PhantomJS](http://phantomjs.org)
 - Install [grunt](http://gruntjs.com)   
-  `npm install -g grunt'
-- Install [mocha-phantomjs](http://metaskills.net/mocha-phantomjs)   
-  `npm install -g mochaPhantomJS`
+  `npm install -g grunt-cli'
+- Install [testacular](http://vojtajina.github.com/testacular/)   
+  `npm install -g testacular@0.5.7`
 - Install other build dependencies   
   `npm install`
 
