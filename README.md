@@ -30,7 +30,7 @@ Install the build tools
 
 - Install [nodejs](http://nodejs.org)
 - Install [grunt](http://gruntjs.com)   
-  `npm install -g grunt-cli'
+  `npm install -g grunt-cli`
 - Install [testacular](http://vojtajina.github.com/testacular/)   
   `npm install -g testacular@0.5.7`
 - Install other build dependencies   
