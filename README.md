@@ -11,31 +11,36 @@ Interactive time-series graphs can be created in as little as 2-3 lines of code.
 
 
 ## Features
-- Includes D3 and provides direct access to it
+- Includes a custom subset build of d3 (for a smaller footprint - we only include what we use)
+- Can optionally omit d3 from being bundled if you already include it in your page
 - d3 plugin support
 
 
 ## Dependencies
-- d3js (comes bundled)
+- d3 (comes bundled)
 
 
 ## Contribute
 
-Install the build tools
+**Install the build tools**
 
 - Install [nodejs](http://nodejs.org)
 - Install [grunt](http://gruntjs.com) `npm install -g grunt-cli`
-- Install [testacular](http://vojtajina.github.com/testacular/) `npm install -g testacular@0.5.7`
+- Install [Testacular](http://vojtajina.github.com/testacular/) `npm install -g testacular@0.5.7`
 - Install other build dependencies `npm install`
 
-Writing Unit Tests
+**Writing Unit Tests**
 
 - Write unit tests in `/test/unit/`
 - Run tests from the command line: `grunt test`
+- Optionally run `testacular start` to auto-run tests when any file changes
+- See [Testacular](http://vojtajina.github.com/testacular/) and [Jasmine](http://pivotal.github.com/jasmine/) for more details.
 
-Style Guide
+**Style Guide**
 
-- See [Idiomatic.js](https://github.com/rwldrn/idiomatic.js/)
+- JavaScript code should follow the [Idiomatic.js style guide](https://github.com/rwldrn/idiomatic.js/)
+- Commit messages should follow the [Angular JS convention](https://docs.google.com/document/d/1QrDFcIiPjSLDn3EL15IJygNPiHORgU1_OOAqWjiDU5Y/edit?pli=1#)
+- JSDocs should follow [???TBD???]()
 
 
 ## License
