@@ -30,7 +30,16 @@ function (obj, array) {
     }
 
     /**
-     * The main multi-property config function.
+     * @desc A multi-property config function.
+     * All uses that don't specificially return a value will return the context.
+     *
+     * Uses:
+     *  - Call with single object to set multiple config options.
+     *  - Call with string to get a single config option.
+     *    NOTE: if value is a function it will be executed.
+     *  - Call with string and value to set a single config option.
+     *  - Call with 0 args to get the object containing all config options.
+     *    NOTE: this is the live object and should not be mutated.
      */
     mixin.config = function () {
       var args = array.convertArgs(arguments),
@@ -38,7 +47,8 @@ function (obj, array) {
           firstArg;
 
       if (argCount === 0) {
-        return undefined;
+        // TODO: Might want to core.object.clone() this.
+        return configObj;
       }
       firstArg = args[0];
       if (argCount === 1) {

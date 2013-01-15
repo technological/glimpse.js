@@ -1,7 +1,8 @@
 define([
+  'd3',
   'core/config'
 ],
-function (config) {
+function (d3, config) {
   'use strict';
 
   describe('core.config', function () {
@@ -16,6 +17,8 @@ function (config) {
 
       beforeEach(function () {
         result = config(target, configObj);
+        // simulate mixin
+        target.config = result.config;
       });
 
       it('adds a config() method', function () {
@@ -43,15 +46,21 @@ function (config) {
       });
 
       it('executes a function if config value is function', function () {
-        var fn = function () { return 10; };
-        result.config('foo', fn);
+        result.config('foo', d3.functor(10));
         expect(result.config('foo')).toBe(10);
       });
 
       it('provides a context arg for function configs', function () {
-        var fn = function (ctx) { return ctx.config('foo'); };
-        result.config({ 'foo': 10, 'bar': fn });
-        expect(result.config('bar')).toBe(10);
+        var fn = function (ctx) {
+          return ctx.config('foo') + 1; };
+        result.config({ 'foo': 1, 'bar': fn });
+        expect(result.config('bar')).toBe(2);
+      });
+
+      it('returns all config options when no args provided', function () {
+        var cnf = { 'foo': 'bar', 'biz': 'bang' };
+        result.config(cnf);
+        expect(result.config()).toEqual(cnf);
       });
 
     });
@@ -73,13 +82,6 @@ function (config) {
       });
 
     });
-
-    // TODO: need object.clone to implement this
-    //it('returns all config options with', function () {
-      //var cnf = { 'foo': 'bar', 'biz': 'bang' };
-      //result.config(cnf);
-      //expect(result.config()).toEqual(cnf);
-    //});
 
   });
 
