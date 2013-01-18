@@ -36,6 +36,13 @@ beforeEach(function() {
         }
       }
       return true;
+    },
+
+    toHaveAttr: function (attrName, attrValue) {
+      if (attrValue) {
+        return this.actual.getAttribute(attrName) === attrValue.toString();
+      }
+      return this.actual.hasAttribute(attrName);
     }
 
   });
