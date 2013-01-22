@@ -93,6 +93,24 @@ beforeEach(function() {
       };
 
       return actual !== null;
+    },
+
+    /**
+     * Tests an expression against a DOM node's computed property.
+     */
+    toBeComputedStyle: function(node, property) {
+      var actual = this.actual,
+        expected = window.getComputedStyle(node)[property];
+
+      this.message = function() {
+        return [
+          'Expected "' + actual + '" to match computed style (' +
+            property + ') of "' + expected + '"',
+          'Expected "' + actual + '" not to match computed style (' +
+            property + ') of "' + expected + '"'
+        ];
+      };
+      return actual === expected;
     }
 
   });
