@@ -19,9 +19,9 @@ function (d3, object, components) {
       ]
     }];
 
-    function setData() {
-      testLine.config({'dataId': 'fakeData'});
-      testLine.data(data);
+    function setData(d, id) {
+      testLine.config({'dataId': id || 'fakeData'});
+      testLine.data(d || data);
     }
 
     function setScales() {
@@ -44,9 +44,7 @@ function (d3, object, components) {
         'xScale',
         'yScale',
         'data',
-        'lineGenerator',
-        'x',
-        'y'
+        'lineGenerator'
       );
     });
 
@@ -94,6 +92,59 @@ function (d3, object, components) {
       it('sets/gets the data on the line', function () {
         setData();
         expect(testLine.data()).toBe(data[0]);
+      });
+
+    });
+
+    describe('line generator', function() {
+      var lineGenerator,
+        mockScale,
+        dataConfig,
+        selection,
+        accessor;
+
+      beforeEach(function() {
+        selection = jasmine.svgFixture();
+        lineGenerator = testLine.lineGenerator();
+        accessor = {
+          x: function(d) { return d; },
+          y: function(d) { return d + 2; }
+        };
+        mockScale = function(d) { return d; };
+        dataConfig = {
+          id: 'fakeData',
+          data: [{ x: 100, y: 200 }]
+        };
+        setData([dataConfig]);
+        testLine.xScale(mockScale);
+        testLine.yScale(mockScale);
+        spyOn(accessor, 'x').andCallThrough();
+        spyOn(accessor, 'y').andCallThrough();
+        testLine.render(selection);
+      });
+
+      it('applies the default X accessor fn', function() {
+        lineGenerator.x(1);
+        expect(accessor.x).not.toHaveBeenCalled();
+      });
+
+      it('applies the data config X accessor fn when present', function() {
+        dataConfig.x = accessor.x;
+        testLine.update();
+        lineGenerator.x(1);
+        expect(accessor.x).toHaveBeenCalled();
+      });
+
+      it('applies the default Y accessor fn', function() {
+        lineGenerator.y(1);
+        expect(accessor.y).not.toHaveBeenCalled();
+      });
+
+      it('applies the data config X accessor fn when present', function() {
+        dataConfig.y = accessor.y;
+        testLine.update();
+        lineGenerator.y(1);
+        expect(accessor.y).toHaveBeenCalled();
       });
 
     });
