@@ -119,46 +119,21 @@ module.exports = function(grunt) {
     jshint: {
       // Defaults
       options: {
-        curly: true,
-        eqeqeq: true,
-        immed: true,
-        latedef: true,
-        newcap: true,
-        noarg: true,
-        sub: true,
-        undef: true,
-        boss: true,
-        eqnull: true,
-        strict: true,
-        es5: true,
-        trailing: true,
-        maxlen: 80,
-        browser: true,
-        globals: {
-          define: true,
-          require: true,
-          d3: true
-        }
+        jshintrc: '.jshintrc'
       },
-      uses_defaults: ['src/**/*.js'],
-      with_overrides: {
+      glimpse: ['src/**/*.js'],
+      // gruntfile.js
+      grunt: {
+        options: { node: true },
+        files: { src: ['gruntfile.js'] }
+      },
+      // Unit test related.
+      tests: {
         options: {
-          expr: true,
-          globals: {
-            jasmine: true,
-            describe: true,
-            it: true,
-            expect: true,
-            spyOn: true,
-            beforeEach: true,
-            afterEach: true,
-            define: true,
-            require: true,
-            d3: true
-          }
+          jshintrc: 'test/.jshintrc'
         },
         files: {
-          src: ['gruntfile.js', 'test/*.js', 'test/unit/**/*.js']
+          src: ['test/*.js', 'test/unit/**/*.js', '!test/testacular.conf.js']
         }
       }
     }
