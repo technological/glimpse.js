@@ -10,7 +10,7 @@ module.exports = function(grunt) {
   grunt.loadNpmTasks('grunt-contrib-clean');
   grunt.loadNpmTasks('grunt-contrib-jshint');
   grunt.loadNpmTasks('grunt-contrib-watch');
-  //grunt.loadNpmTasks('grunt-exec');
+  grunt.loadNpmTasks('grunt-exec');
   grunt.loadTasks('grunt/tasks');
 
   // Project configuration.
@@ -25,9 +25,7 @@ module.exports = function(grunt) {
     },
 
     /**
-     * Compilation configuration.
-     * In v0.4 consider replacing with:
-     *    https://github.com/gruntjs/grunt-contrib-requirejs
+     * RequireJS compilation configuration.
      */
     requirejs: {
       /**
@@ -50,15 +48,7 @@ module.exports = function(grunt) {
           skipModuleInsertion: false,
           optimizeAllPluginResources: true,
           findNestedDependencies: true,
-          paths: {
-            'd3': '../lib/d3'
-          },
-          // Shim modules that don't natively support AMD.
-          shim: {
-            'd3': {
-              exports: 'd3'
-            }
-          }
+          mainConfigFile: 'requirejs.conf.js'
         }
       },
       /**
@@ -77,15 +67,7 @@ module.exports = function(grunt) {
           optimizeAllPluginResources: true,
           findNestedDependencies: true,
           optimize: 'uglify2',
-          paths: {
-            'd3': '../lib/d3'
-          },
-          // Shim modules that don't natively support AMD.
-          shim: {
-            'd3': {
-              exports: 'd3'
-            }
-          }
+          mainConfigFile: 'requirejs.conf.js'
         }
       }
     },
