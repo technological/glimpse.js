@@ -10,7 +10,7 @@ module.exports = function(grunt) {
   grunt.loadNpmTasks('grunt-contrib-clean');
   grunt.loadNpmTasks('grunt-contrib-jshint');
   grunt.loadNpmTasks('grunt-contrib-watch');
-  grunt.loadNpmTasks('grunt-exec');
+  //grunt.loadNpmTasks('grunt-exec');
   grunt.loadTasks('grunt/tasks');
 
   // Project configuration.
@@ -21,7 +21,7 @@ module.exports = function(grunt) {
      * Cleans out the "build" directory.
      */
     clean: {
-      build: ['build/']
+      build: ['build/*']
     },
 
     /**
@@ -104,7 +104,6 @@ module.exports = function(grunt) {
       }
     },
 
-
     // TODO: replace sources with refs to jshint config
     watch: {
       src: {
@@ -112,7 +111,7 @@ module.exports = function(grunt) {
         tasks: ['jshint']
       },
       test: {
-        files: ['Gruntfile.js', 'test/unit/**/*.js'],
+        files: ['gruntfile.js', 'test/unit/**/*.js'],
         tasks: ['jshint']
       }
     },
@@ -159,17 +158,16 @@ module.exports = function(grunt) {
           }
         },
         files: {
-          src: ['Gruntfile.js', 'test/*.js', 'test/unit/**/*.js']
+          src: ['gruntfile.js', 'test/*.js', 'test/unit/**/*.js']
         }
       }
     }
   });
 
-  grunt.registerTask('testwatch', 'exec:testWatch');
   grunt.registerTask('test', 'exec:test');
-  grunt.registerTask('compile-static',
-    ['clean:build', 'requirejs:staticBuild']);
-  grunt.registerTask('compile', ['clean:build', 'requirejs:amdBuild']);
+  grunt.registerTask('compile-static',['clean:build', 'requirejs:staticBuild']);
+  grunt.registerTask('compile-amd', ['clean:build', 'requirejs:amdBuild']);
+  grunt.registerTask('compile', 'compile-static');
   grunt.registerTask('release', ['jshint', 'test', 'compile']);
-  grunt.registerTask('default', ['jshint', 'compile']);
+  grunt.registerTask('default', ['jshint', 'test']);
 };
