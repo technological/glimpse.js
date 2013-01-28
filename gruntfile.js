@@ -81,7 +81,7 @@ module.exports = function(grunt) {
         stdout: true
       },
       test: {
-        command: 'testacular start test/testacular.conf.js --singleRun=true',
+        command: 'testacular start test/testacular.conf.js --browsers="Chrome,Firefox,PhantomJS,Safari" --singleRun=true',
         stdout: true
       }
     },
