@@ -13,10 +13,12 @@ function (d3, object, components) {
     data = [{
       id:'fakeData',
       data: [
-        {'x':13,'y':106},
-        {'x':15,'y':56},
-        {'x':17,'y':100}
-      ]
+        {"x":13,"y":106},
+        {"x":15,"y":56},
+        {"x":17,"y":100}
+      ],
+      x: function (d) { return d.x + 1; },
+      y: function (d) { return d.y + 1; },
     }];
 
     function setData(d, id) {
@@ -53,7 +55,7 @@ function (d3, object, components) {
 
       defaults = {
         isFramed: true,
-        strokeWidth: 1,
+        strokeWidth: 2,
         color: 'steelBlue',
         showInLegend: true,
         lineGenerator: d3.svg.line(),
@@ -99,7 +101,6 @@ function (d3, object, components) {
     describe('line generator', function() {
       var lineGenerator,
         mockScale,
-        dataConfig,
         selection,
         accessor;
 
@@ -111,33 +112,17 @@ function (d3, object, components) {
           y: function(d) { return d.y + 1; }
         };
         mockScale = function(d) { return d; };
-        dataConfig = {
-          id: 'fakeData',
-          data: [{ x: 100, y: 200 }]
-        };
-        setData([dataConfig]);
+        setData();
         testLine.xScale(mockScale);
         testLine.yScale(mockScale);
         testLine.render(selection);
       });
 
-      it('applies the default X accessor fn', function() {
-        expect(lineGenerator.x()({ x: 1 })).toBe(1);
-      });
-
-      it('applies the data config X accessor fn when present', function() {
-        dataConfig.x = accessor.x;
-        testLine.update();
+      it('applies the data config X accessor fn', function() {
         expect(lineGenerator.x()({ x: 1 })).toBe(2);
       });
 
-      it('applies the default Y accessor fn', function() {
-        expect(lineGenerator.y()({ y: 1 })).toBe(1);
-      });
-
-      it('applies the data config X accessor fn when present', function() {
-        dataConfig.y = accessor.y;
-        testLine.update();
+      it('applies the data config Y accessor', function() {
         expect(lineGenerator.y()({ y: 1 })).toBe(2);
       });
 

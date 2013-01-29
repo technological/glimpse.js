@@ -37,7 +37,8 @@
           var lineGraph = glimpse.graph()
             .config({
               width: 700,
-              height: 250
+              height: 250,
+              forceY: [0]
             })
             .data([
               { id: 'latencyDfw',
