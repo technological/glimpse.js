@@ -123,6 +123,7 @@ module.exports = function(grunt) {
     }
   });
 
+  grunt.registerTask('testwatch', 'exec:testWatch');
   grunt.registerTask('test', 'exec:test');
   grunt.registerTask('compile-static',['clean:build', 'requirejs:staticBuild']);
   grunt.registerTask('compile-amd', ['clean:build', 'requirejs:amdBuild']);
