@@ -96,6 +96,49 @@ beforeEach(function() {
       };
 
       return actual !== null;
+    },
+
+    toHaveBeenCalledOnce: function () {
+      this.message = function () {
+        return [
+          'Expected function ' + jasmine.pp(this.actual) +
+            ' to have been called exactly once, but was called ' +
+            this.actual.callCount + ' times',
+          'Expected function ' + jasmine.pp(this.actual) +
+            ' not to have been called exactly once'
+        ];
+      };
+
+      return this.actual.callCount === 1;
+    },
+
+    toBeSelectionLength: function(expectedLength) {
+      var actualLength = this.actual[0].length;
+      this.message = function () {
+        return [
+          'Expected selection length to be: ' + expectedLength +
+          ' but was: ' + actualLength,
+          'Expected selection length not to be: ' + expectedLength +
+          ' but was: ' + actualLength
+        ];
+      };
+
+      return actualLength === expectedLength;
+    },
+
+    toHaveStyle: function (property, expectedValue) {
+      var actualValue = d3.select(this.actual).style(property);
+      this.message = function () {
+        return [
+          'Expected element to have style: ' +
+          property + '=' + expectedValue +
+          ' but was: ' + actualValue,
+          'Expected element not to have style: ' +
+          property + '=' + expectedValue +
+          ' but was: ' + actualValue
+        ];
+      };
+      return actualValue === expectedValue;
     }
 
   });
