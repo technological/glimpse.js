@@ -14,7 +14,7 @@ function (assetLoader) {
 
     describe('loadAll()', function() {
 
-      it('adds a div to the body', function() {
+      it('adds a the main dom node to the body', function() {
         expect(selection).toBeSelectionLength(1);
       });
 

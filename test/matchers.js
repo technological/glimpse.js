@@ -126,6 +126,19 @@ beforeEach(function() {
       return actualLength === expectedLength;
     },
 
+    toBeEmptySelection: function() {
+      var actual= this.actual,
+        len = actual[0].length;
+      this.message = function () {
+        return [
+          'Expected selection to be empty but was ' + len,
+          'Expected selection not to be empty'
+        ];
+      };
+
+      return len === 0;
+    },
+
     toHaveStyle: function (property, expectedValue) {
       var actualValue = d3.select(this.actual).style(property);
       this.message = function () {
