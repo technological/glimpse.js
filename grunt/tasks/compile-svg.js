@@ -1,10 +1,11 @@
+/*global module:false*/
 /**
  * @fileOverview
  * A custom grunt task for compiling together numerous svg assets into a single
  * file.
  * Removes <?xml?> headers and DOCTYPE.
  * Also optionally removes any tags/attributes added to the ignore list
- * specified in the options. 
+ * specified in the options.
  */
 var fs = require('fs'),
     sax = require('sax');
@@ -47,7 +48,7 @@ module.exports = function(grunt) {
         '\'  <defs>\' +\n';
       stream.write(
         'define(function() {\n' +
-        '  \'use strict\';\n\n' + 
+        '  \'use strict\';\n\n' +
         '  var assets = \'' + svgStart
       );
     }
@@ -57,7 +58,7 @@ module.exports = function(grunt) {
       stream.write(
         svgEnd +
         '\'\';\n' +
-        '  return assets;\n' + 
+        '  return assets;\n' +
         '});'
       );
     }
@@ -84,11 +85,11 @@ module.exports = function(grunt) {
               { normalize: true, lowercase: true }),
             indent = 2;
 
-        saxStream.on('error', function(e) {
+        saxStream.on('error', function() {
           grunt.log.error('Error parsing SVG file.');
         });
 
-        saxStream.on('end', function(e) {
+        saxStream.on('end', function() {
           fileReadCount += 1;
           if (fileCount === fileReadCount) {
             wrapEnd(writeStream);
@@ -98,7 +99,6 @@ module.exports = function(grunt) {
 
         // Write out open tags and attrs if not ignored.
         saxStream.on('opentag', function(node) {
-          var attr;
           if (ignoreTag(node.name)) {
             return;
           }

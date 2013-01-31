@@ -10,6 +10,7 @@ function puts(error, stdout, stderr) {
   exec('git stash pop -q');
   if (error) {
     sys.puts('grunt failed, aborting commit.');
+    sys.puts(stderr);
     process.exit(1);
   } else {
     process.exit(0);

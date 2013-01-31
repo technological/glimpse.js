@@ -86,6 +86,12 @@ module.exports = function(grunt) {
                  '--browsers="Chrome,Firefox,PhantomJS,Safari" ' +
                  '--singleRun=true',
         stdout: true
+      },
+      testPhantomOnly: {
+        command: 'testacular start test/testacular.conf.js ' +
+                 '--browsers="PhantomJS" ' +
+                 '--singleRun=true',
+        stdout: true
       }
     },
 
@@ -101,7 +107,7 @@ module.exports = function(grunt) {
       }
     },
 
-    "compile-svg": {
+    'compile-svg': {
       assets: {
         src: ['src/assets/*.svg'],
         dest: 'src/assets/assets.js',
@@ -149,5 +155,5 @@ module.exports = function(grunt) {
     'requirejs:amdBuild']);
   grunt.registerTask('compile', 'compile-static');
   grunt.registerTask('release', ['jshint', 'assets', 'test', 'compile']);
-  grunt.registerTask('default', ['jshint', 'assets', 'test']);
+  grunt.registerTask('default', ['jshint', 'assets', 'exec:testPhantomOnly']);
 };
