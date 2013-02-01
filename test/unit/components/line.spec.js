@@ -1,9 +1,9 @@
 define([
   'd3',
   'core/object',
-  'components/component'
+  'components/line'
 ],
-function (d3, object, components) {
+function (d3, object, line) {
   'use strict';
 
   describe('components.line', function () {
@@ -13,9 +13,9 @@ function (d3, object, components) {
     data = [{
       id:'fakeData',
       data: [
-        {"x":13,"y":106},
-        {"x":15,"y":56},
-        {"x":17,"y":100}
+        { x: 13, y: 106},
+        { x: 15, y: 56},
+        { x: 17, y: 100}
       ],
       x: function (d) { return d.x + 1; },
       y: function (d) { return d.y + 1; },
@@ -33,7 +33,7 @@ function (d3, object, components) {
 
     beforeEach(function (){
       spyOn(object, 'extend').andCallThrough();
-      testLine = components.line();
+      testLine = line();
     });
 
     afterEach(function (){
@@ -101,11 +101,9 @@ function (d3, object, components) {
     describe('line generator', function() {
       var lineGenerator,
         mockScale,
-        selection,
         accessor;
 
       beforeEach(function() {
-        selection = jasmine.svgFixture();
         lineGenerator = testLine.lineGenerator();
         accessor = {
           x: function(d) { return d.x + 1; },
@@ -115,7 +113,7 @@ function (d3, object, components) {
         setData();
         testLine.xScale(mockScale);
         testLine.yScale(mockScale);
-        testLine.render(selection);
+        testLine.render('#svg-fixture');
       });
 
       it('applies the data config X accessor fn', function() {
@@ -155,7 +153,7 @@ function (d3, object, components) {
         selection = jasmine.svgFixture();
         setData();
         setScales();
-        testLine.render(selection);
+        testLine.render('#svg-fixture');
         testLine.update();
         path = selection.select('path').node();
       });
@@ -193,30 +191,29 @@ function (d3, object, components) {
     });
 
     describe('render()', function () {
-
       var selection;
 
       beforeEach(function () {
         selection = jasmine.svgFixture();
         setData();
         spyOn(testLine, 'update');
-        testLine.render(selection);
+        testLine.render('#svg-fixture');
       });
 
-      it('appends svg:group element to the selection', function () {
+      it('appends group element to the selection', function () {
         var group = selection.select('g').node();
         expect(group.nodeName.toLowerCase()).toBe('g');
       });
 
-      it('appends svg:path to the root element', function () {
+      it('appends path to the root element', function () {
           var path = selection.select('path').node();
           expect(path).not.toBeNull();
         }
       );
 
-      it('sets a class on svg:path to the root element', function () {
+      it('sets a class on path to the root element', function () {
           var path = selection.select('path').node();
-          expect(path).toHaveClasses('gl-line');
+          expect(path).toHaveClasses('gl-path');
         }
       );
 

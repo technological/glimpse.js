@@ -12,6 +12,7 @@ define([
   'components/component'
 ],
 function (obj, config, array, assetLoader, components) {
+
   'use strict';
 
   return function () {
@@ -180,8 +181,16 @@ function (obj, config, array, assetLoader, components) {
      * @param  {d3.selection} selection
      */
     renderDefs_ = function (selection) {
-
-      return selection.append('defs');
+      var defs = selection.append('defs')
+                  .append('clipPath')
+                  .attr(
+                    {
+                      'id': 'clip',
+                      'width': config_.width,
+                      'height': config_.height
+                    }
+                  );
+      return defs;
     };
 
     /**
@@ -422,19 +431,22 @@ function (obj, config, array, assetLoader, components) {
     /**
      * Append data to an existing data object
      * @param  {string} id
-     * @param  {Array|Object} data
+     * @param  {Array|Object} dataToAppend
      * @return {graphs.graph}
      */
-    graph.concatData = function (id, data) {
+    graph.appendData = function (id, dataToAppend) {
+
       var index = array.findIndex(data_, function (d) {
         return d.id === id;
       });
 
       if (index !== -1) {
-        if (Array.isArray(data)) {
-          data_[index].data = data_[index].data.concat(data);
+        if (Array.isArray(dataToAppend)) {
+          var originalData = data_[index].data;
+          array.append(originalData, dataToAppend);
+        } else {
+          data_[index].data.push(dataToAppend);
         }
-        data_[index].data.push(data);
       }
 
       return graph;
@@ -471,6 +483,7 @@ function (obj, config, array, assetLoader, components) {
      */
     graph.update = function () {
       update_();
+
       components_.forEach(function (component) {
         component.update();
       });

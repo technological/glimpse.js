@@ -6,9 +6,10 @@ define([
   'core/array',
   'core/config',
   'core/object',
-  'core/string'
+  'core/string',
+  'd3-ext/util'
 ],
-function (array, config, obj, string) {
+function (array, config, obj, string, util) {
   'use strict';
 
   return function () {
@@ -16,8 +17,6 @@ function (array, config, obj, string) {
     //Private variables
     var config_ = {},
       defaults_,
-      x_,
-      y_,
       data_,
       root_;
 
@@ -39,15 +38,15 @@ function (array, config, obj, string) {
 
     /**
      * Updates the line component
-     * @param  {d3.selection|Node|string} selection
+     * @param  {d3.selection} selection
      */
     update_ = function (selection) {
-      selection.attr({
+      selection
+        .datum(line.data().data)
+        .attr({
           'stroke-width': config_.strokeWidth,
           'stroke': config_.color,
-          'fill': 'none',
-          'opacity': 1,
-          'd': config_.lineGenerator(line.data().data)
+          'd': config_.lineGenerator
       });
     };
 
@@ -96,9 +95,13 @@ function (array, config, obj, string) {
         .y(function(d, i) {
           return config_.yScale(dataConfig.y(d, i));
         })
+        .defined(function (d, i) {
+          var minX = config_.xScale.range()[0];
+          return(config_.xScale(dataConfig.x(d, i)) >= minX);
+        })
         .interpolate(config_.interpolate);
 
-      selection = root_.select('.gl-line').data(dataConfig.data);
+      selection = root_.select('.gl-path').data(dataConfig.data);
 
       update_(selection);
       remove_(selection);
@@ -111,14 +114,18 @@ function (array, config, obj, string) {
      * @return {components.line}
      */
     line.render = function (selection) {
-      root_ = selection.append('g')
+      root_ = util.select(selection).append('g')
         .attr({
           'id': config_.id,
-          'class': 'gl-component gl-line'
+          'class': 'gl-component gl-line',
+          'clip': 'url(#clip)'
         });
-
       root_.append('path')
-        .attr('class', 'gl-line');
+        .attr({
+          'class': 'gl-path',
+          'fill': 'none',
+          'opacity': 1
+        });
       line.update();
 
       return line;

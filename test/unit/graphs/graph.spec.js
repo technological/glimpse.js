@@ -31,13 +31,13 @@ function (graph, assetLoader) {
     fakeData = [{
       id:'fakeData',
       data: [
-        {"x":epochBaseMs + 0 * oneDayMs, "y":106},
-        {"x":epochBaseMs + 1 * oneDayMs, "y":56},
-        {"x":epochBaseMs + 2 * oneDayMs, "y":100},
-        {"x":epochBaseMs + 3 * oneDayMs, "y":103},
-        {"x":epochBaseMs + 4 * oneDayMs, "y":90},
-        {"x":epochBaseMs + 5 * oneDayMs, "y":200},
-        {"x":epochBaseMs + 6 * oneDayMs, "y":130}
+        { x: epochBaseMs + 0 * oneDayMs, y: 106},
+        { x: epochBaseMs + 1 * oneDayMs, y: 56},
+        { x: epochBaseMs + 2 * oneDayMs, y: 100},
+        { x: epochBaseMs + 3 * oneDayMs, y: 103},
+        { x: epochBaseMs + 4 * oneDayMs, y: 90},
+        { x: epochBaseMs + 5 * oneDayMs, y: 200},
+        { x: epochBaseMs + 6 * oneDayMs, y: 130}
       ]
     }];
 
@@ -152,9 +152,9 @@ function (graph, assetLoader) {
         dataWithAccessors = [{
           id:'dataWithAccessors',
           data: [
-            {"x":13, "y":106},
-            {"x":15, "y":56},
-            {"x":17, "y":100}
+            { x: 13, y: 106},
+            { x: 15, y: 56},
+            { x: 17, y: 100}
           ],
           x: accessor.x,
           y: accessor.y
@@ -226,17 +226,17 @@ function (graph, assetLoader) {
 
     });
 
-    describe('concatData()', function () {
-      var someData, accessor;
+    describe('appendData()', function () {
+      var someData;
 
       beforeEach(function() {
 
         someData = {
           id:'someData',
           data: [
-            {"x":13, "y":106},
-            {"x":15, "y":56},
-            {"x":17, "y":100}
+            { x: 13, y: 106},
+            { x: 15, y: 56},
+            { x: 17, y: 100}
           ]
         };
 
@@ -245,7 +245,7 @@ function (graph, assetLoader) {
       it('pushes data for a given id', function() {
         testGraph.data(someData);
         expect(testGraph.data('someData').data.length).toBe(3);
-        testGraph.concatData('someData', {"x":14, "y":106})
+        testGraph.appendData('someData', { x: 14, y: 106})
           .update();
         expect(testGraph.data('someData').data.length).toBe(4);
       });
@@ -253,9 +253,9 @@ function (graph, assetLoader) {
       it('concats array of data for a given id', function() {
         testGraph.data(someData);
         expect(testGraph.data('someData').data.length).toBe(3);
-        testGraph.concatData('someData', [{"x":18, "y":156}, {"x":15, "y":196}])
+        testGraph.appendData('someData', [{ x: 18, y: 156}, { x: 15, y: 196}])
           .update();
-        expect(testGraph.data('someData').data.length).toBe(6);
+        expect(testGraph.data('someData').data.length).toBe(5);
       });
 
     });
