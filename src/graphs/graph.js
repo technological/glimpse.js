@@ -26,7 +26,8 @@ function (obj, config, array, assetLoader, components, layoutManager) {
       xAxis_,
       yAxis_,
       legend_,
-      svg_;
+      svg_,
+      xDomainLabel_;
 
     /**
      * Private functions
@@ -46,7 +47,8 @@ function (obj, config, array, assetLoader, components, layoutManager) {
       update_,
       updateScales_,
       updateLegend_,
-      upsertData_;
+      upsertData_,
+      updateXDomainLabel_;
 
     config_ = {};
 
@@ -65,8 +67,26 @@ function (obj, config, array, assetLoader, components, layoutManager) {
       yScale: d3.scale.linear(),
       showLegend: true,
       xTicks: undefined,
-      yTicks: 3
+      yTicks: 3,
+      xDomainLabelFormatter: d3.time.format.utc('%b %e, %I:%M %p')
     };
+
+    /**
+     * @private
+     * Default x domain label formatter.
+     * Text is in the format:
+     *    ShortMonth Day, HH:MM AM/PM - ShortMonth Day, HH:MM AM/PM UTC
+     * @param {Array} domain Contains min and max of the domain.
+     * @return {String}
+     * @see https://github.com/mbostock/d3/wiki/Time-Formatting#wiki-format
+     */
+    defaults_.xDomainLabelFormatter = function(domain) {
+      var formatter;
+
+      formatter = d3.time.format.utc('%b %e, %I:%M %p');
+      return formatter(domain[0]) + ' - ' + formatter(domain[1]) + ' UTC';
+    };
+
 
     /**
      * @private
@@ -286,11 +306,26 @@ function (obj, config, array, assetLoader, components, layoutManager) {
 
     /**
      * @private
+     * Updates the text in the label showing the date range.
+     * TODO: position this with layout manager
+     */
+    updateXDomainLabel_ = function() {
+      var domain;
+
+      if (config_.xDomainLabelFormatter) {
+        domain = config_.xScale.domain();
+        xDomainLabel_.text(config_.xDomainLabelFormatter(domain));
+      }
+    };
+
+    /**
+     * @private
      * Updates scales and legend
      */
     update_ = function () {
       updateScales_();
       updateLegend_();
+      updateXDomainLabel_();
     };
 
     /**
@@ -336,6 +371,7 @@ function (obj, config, array, assetLoader, components, layoutManager) {
         ticks: config_.yTicks
       });
       legend_ = components.legend();
+      xDomainLabel_ = components.label();
       return graph;
     }
 
@@ -457,6 +493,7 @@ function (obj, config, array, assetLoader, components, layoutManager) {
       assetLoader.loadAll();
       addLegend_();
       addAxes_();
+      addComponent_(xDomainLabel_);
       renderPanel_(selection);
       update_();
       renderComponents_(svg_);
