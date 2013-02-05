@@ -24,7 +24,7 @@ function(obj, config, string, array, util) {
     config_ = {};
 
     defaults_ = {
-      id: string.random(),
+      cid: undefined,
       dataId: undefined,
       cssClass: undefined,
       text: undefined,
@@ -113,13 +113,15 @@ function(obj, config, string, array, util) {
       }
 
       root_.attr({
-        'id': config_.id,
         'class': 'gl-component gl-label',
         'transform':
           'translate(' + [config_.marginLeft, config_.marginTop] + ')'
       });
       if (config_.cssClass) {
         root_.classed(config_.cssClass, true);
+      }
+      if (config_.cid) {
+        root_.attr('gl-cid', config_.cid);
       }
       root_.select('text').attr({
         'fill': config_.color,
@@ -137,7 +139,7 @@ function(obj, config, string, array, util) {
     obj.extend(
       label,
       config(label, config_, [
-        'id',
+        'cid',
         'cssClass',
         'color',
         'fontFamily',

@@ -53,10 +53,10 @@ function (graph, assetLoader) {
             y: function (d) { return d.y; }
           }
         ])
-        .component({ id: 'testComponent', type: 'line', dataId: 'fakeData' })
-        .xAxis({ id: 'xAxis' })
-        .yAxis({ id: 'yAxis' })
-        .legend({ id: 'legend' });
+        .component({ cid: 'testComponent', type: 'line', dataId: 'fakeData' })
+        .xAxis({ cid: 'xAxis' })
+        .yAxis({ cid: 'yAxis' })
+        .legend({ cid: 'legend' });
     }
 
     function setSpies() {
@@ -265,7 +265,7 @@ function (graph, assetLoader) {
     describe('component()', function () {
       it('adds component', function() {
         testGraph.component({
-          id: 'testComponent',
+          cid: 'testComponent',
           type: 'line',
           dataId: 'fakeData'
         });
@@ -275,7 +275,7 @@ function (graph, assetLoader) {
       it('returns a component when id is passed', function() {
         var line;
         testGraph.component({
-          id: 'testComponent',
+          cid: 'testComponent',
           type: 'line',
           dataId: 'fakeData'
         });
@@ -286,7 +286,7 @@ function (graph, assetLoader) {
       it('updates the config on the component', function() {
         var line;
         testGraph.component({
-          id: 'testComponent',
+          cid: 'testComponent',
           type: 'line',
           dataId: 'fakeData',
           'strokeWidth': 5

@@ -10,13 +10,13 @@ function (axisComponent) {
         axis, container, node;
 
     function getComponentNode() {
-      return container.select('#' + componentId).node();
+      return container.select('[gl-cid=' + componentId + ']').node();
     }
 
     beforeEach(function() {
       container = jasmine.svgFixture().append('g').size(400, 200);
       axis = axisComponent();
-      axis.config({id: componentId });
+      axis.config({cid: componentId });
     });
 
     it('axis to be defined', function () {

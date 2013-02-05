@@ -446,7 +446,7 @@ function (obj, config, array, assetLoader, components, layoutManager) {
 
     /**
      * Creates and adds a component to the graph based on the type
-     * or returns the component based on the id
+     * or returns the component based on the cid.
      * @param  {string|Object} componentConfig
      * @return {component|graphs.graph}
      */
@@ -457,10 +457,10 @@ function (obj, config, array, assetLoader, components, layoutManager) {
         // TODO: clone this?
         return components_;
       }
-      // Single string indicates id of component to return.
+      // Single string indicates cid of component to return.
       if (typeof componentConfig === 'string') {
         return array.find(components_, function (c) {
-          return c.id() === componentConfig;
+          return c.cid() === componentConfig;
         });
       }
       component = components[componentConfig.type]();
