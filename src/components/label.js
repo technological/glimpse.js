@@ -6,9 +6,10 @@ define([
   'core/object',
   'core/config',
   'core/string',
-  'core/array'
+  'core/array',
+  'd3-ext/util'
 ],
-function(obj, config, string, array) {
+function(obj, config, string, array, util) {
   'use strict';
 
   return function() {
@@ -55,16 +56,19 @@ function(obj, config, string, array) {
      * @return {Object|components.label}
      */
     label.data = function(data) {
+      // Set data if provided.
       if (data) {
         data_ = data;
         return label;
       }
-      if (!config_.dataId) {
-        return null;
+      // Find corresponding data group if dataId is set.
+      if (config_.dataId) {
+        return array.find(data_, function(d) {
+          return d.id === config_.dataId;
+        });
       }
-      return array.find(data_, function(d) {
-        return d.id === config_.dataId;
-      });
+      // Otherwise return the entire raw data.
+      return data_;
     };
 
     /**
@@ -78,12 +82,7 @@ function(obj, config, string, array) {
         config_.text = d3.functor(text);
         return label;
       }
-      // Has data, text() is an accessor to the data.
-      if (config_.dataId) {
-        return config_.text(label.data());
-      }
-      // Text is static.
-      return d3.functor(config_.text)();
+      return d3.functor(config_.text)(label.data());
     };
 
     /**
@@ -93,7 +92,7 @@ function(obj, config, string, array) {
      * @return {components.label}
      */
     label.render = function(selection) {
-      root_ = selection.append('g');
+      root_ = util.select(selection).append('g');
       root_.append('text');
       label.update();
       return label;
