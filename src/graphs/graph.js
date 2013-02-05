@@ -181,16 +181,7 @@ function (obj, config, array, assetLoader, components) {
      * @param  {d3.selection} selection
      */
     renderDefs_ = function (selection) {
-      var defs = selection.append('defs')
-                  .append('clipPath')
-                  .attr(
-                    {
-                      'id': 'clip',
-                      'width': config_.width,
-                      'height': config_.height
-                    }
-                  );
-      return defs;
+      return selection.append('defs');
     };
 
     /**

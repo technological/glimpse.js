@@ -117,8 +117,7 @@ function (array, config, obj, string, util) {
       root_ = util.select(selection).append('g')
         .attr({
           'id': config_.id,
-          'class': 'gl-component gl-line',
-          'clip': 'url(#clip)'
+          'class': 'gl-component gl-line'
         });
       root_.append('path')
         .attr({
