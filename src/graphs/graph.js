@@ -68,8 +68,7 @@ function (obj, config, array, assetLoader, components, layoutManager, d3util) {
       yScale: d3.scale.linear(),
       showLegend: true,
       xTicks: undefined,
-      yTicks: 3,
-      xDomainLabelFormatter: d3.time.format.utc('%b %e, %I:%M %p')
+      yTicks: 3
     };
 
     /**
@@ -84,10 +83,9 @@ function (obj, config, array, assetLoader, components, layoutManager, d3util) {
     defaults_.xDomainLabelFormatter = function(domain) {
       var formatter;
 
-      formatter = d3.time.format.utc('%b %e, %I:%M %p');
+      formatter = d3.time.format.utc('%b %-e, %I:%M %p');
       return formatter(domain[0]) + ' - ' + formatter(domain[1]) + ' UTC';
     };
-
 
     /**
      * @private
@@ -311,12 +309,9 @@ function (obj, config, array, assetLoader, components, layoutManager, d3util) {
      * TODO: position this with layout manager
      */
     updateXDomainLabel_ = function() {
-      var domain;
-
-      if (config_.xDomainLabelFormatter) {
-        domain = config_.xScale.domain();
-        xDomainLabel_.text(config_.xDomainLabelFormatter(domain));
-      }
+      xDomainLabel_
+        .data(config_.xScale.domain())
+        .text(config_.xDomainLabelFormatter);
     };
 
     /**
@@ -372,7 +367,7 @@ function (obj, config, array, assetLoader, components, layoutManager, d3util) {
         ticks: config_.yTicks
       });
       legend_ = components.legend();
-      xDomainLabel_ = components.label();
+      xDomainLabel_ = components.label().cid('xDomainLabel');
       return graph;
     }
 
