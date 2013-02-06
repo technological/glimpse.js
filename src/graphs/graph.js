@@ -9,9 +9,10 @@ define([
   'core/array',
   'core/asset-loader',
   'components/component',
-  'layout/layoutmanager'
+  'layout/layoutmanager',
+  'd3-ext/util'
 ],
-function (obj, config, array, assetLoader, components, layoutManager) {
+function (obj, config, array, assetLoader, components, layoutManager, d3util) {
   'use strict';
 
   return function () {
@@ -249,8 +250,8 @@ function (obj, config, array, assetLoader, components, layoutManager) {
     configureXScale_ = function (xExtents) {
       var max, min;
 
-      max = d3.max(xExtents);
-      min = d3.min(xExtents);
+      max = d3.max(xExtents) || config_.xScale.domain()[1];
+      min = d3.min(xExtents) || config_.xScale.domain()[0];
 
       //TODO: find a better way to check if the scale is a time scale
       if (config_.xScale.toString() === d3.time.scale().toString()) {
@@ -489,7 +490,7 @@ function (obj, config, array, assetLoader, components, layoutManager) {
      * @return {graphs.graph}
      */
     graph.render = function (selector) {
-      var selection = d3.select(selector);
+      var selection = d3util.select(selector);
       assetLoader.loadAll();
       addLegend_();
       addAxes_();
