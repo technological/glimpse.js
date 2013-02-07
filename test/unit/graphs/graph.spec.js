@@ -90,7 +90,7 @@ function (graph, assetLoader, compUtil) {
 
     it('has required convenience functions', function () {
       expect(testGraph).toHaveProperties(
-        'id',
+        'cid',
         'height',
         'width'
       );
@@ -508,6 +508,74 @@ function (graph, assetLoader, compUtil) {
         xScale.domain([0, 44715661000]);
         testGraph.update();
         expect(label.text()).toBe('Jan 1, 12:00 AM - Jun 2, 01:01 PM UTC');
+      });
+
+    });
+
+    describe('show()', function () {
+      var selection;
+
+      beforeEach(function() {
+        setGraph();
+        selection = jasmine.htmlFixture();
+        testGraph.render(selection.node());
+      });
+
+      it('shows graph', function() {
+        testGraph.show();
+        expect(testGraph.root().node()).toHaveAttr('display', 'inline');
+      });
+
+      it('shows component', function() {
+        var c = testGraph.component('testComponent');
+
+        testGraph.show('testComponent');
+        expect(c.root().node()).toHaveAttr('display', 'inline');
+      });
+
+      it('shows components', function() {
+        var c, yAxis;
+        c = testGraph.component('testComponent');
+        yAxis = testGraph.component('yAxis');
+
+        testGraph.show(['testComponent', 'yAxis']);
+        expect(c.root().node())
+          .toHaveAttr('display', 'inline');
+        expect(yAxis.root().node())
+        .toHaveAttr('display', 'inline');
+      });
+
+    });
+
+    describe('hide()', function () {
+      var selection;
+
+      beforeEach(function() {
+        setGraph();
+        selection = jasmine.htmlFixture();
+        testGraph.render(selection.node());
+      });
+
+      it('hides graph', function() {
+        testGraph.hide();
+        expect(testGraph.root().node()).toHaveAttr('display', 'none');
+      });
+
+      it('hides component', function() {
+        var c = testGraph.component('testComponent');
+
+        testGraph.hide('testComponent');
+        expect(c.root().node()).toHaveAttr('display', 'none');
+      });
+
+      it('hides components', function() {
+        var c, yAxis;
+        c = testGraph.component('testComponent');
+        yAxis = testGraph.component('yAxis');
+
+        testGraph.hide(['testComponent', 'yAxis']);
+        expect(c.root().node()).toHaveAttr('display', 'none');
+        expect(yAxis.root().node()).toHaveAttr('display', 'none');
       });
 
     });
