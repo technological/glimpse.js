@@ -28,6 +28,9 @@ function(obj, config, string, array, util) {
       dataId: undefined,
       cssClass: undefined,
       text: undefined,
+      gap: undefined,
+      layout: 'horizontal',
+      position: 'center-right',
       marginTop: 0,
       marginRight: 0,
       marginBottom: 0,
@@ -130,6 +133,7 @@ function(obj, config, string, array, util) {
         'font-weight': config_.fontWeight
       })
       .text(text);
+      root_.position(config_.position);
       return label;
     };
 
@@ -140,6 +144,7 @@ function(obj, config, string, array, util) {
       label,
       config(label, config_, [
         'cid',
+        'target',
         'cssClass',
         'color',
         'fontFamily',

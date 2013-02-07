@@ -358,7 +358,8 @@ function (obj, config, array, assetLoader, components, layoutManager, d3util) {
         type: 'x',
         orient: 'bottom',
         scale: config_.xScale,
-        ticks: config_.xTicks
+        ticks: config_.xTicks,
+        target: '.gl-xaxis'
       });
       yAxis_ = components.axis().config({
         type: 'y',
@@ -367,7 +368,9 @@ function (obj, config, array, assetLoader, components, layoutManager, d3util) {
         ticks: config_.yTicks
       });
       legend_ = components.legend();
-      xDomainLabel_ = components.label().cid('xDomainLabel');
+      xDomainLabel_ = components.label()
+        .cid('xDomainLabel')
+        .target('.gl-footer');
       return graph;
     }
 

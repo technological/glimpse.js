@@ -23,6 +23,7 @@ function (obj, config, string) {
     defaults_ = {
         type: 'x',
         id: string.random(),
+        gap: 0,
         target: '.gl-framed',
         color: '#333',
         opacity: 0.8,
@@ -82,12 +83,6 @@ function (obj, config, string) {
      * Apply updates to the axis.
      */
     axis.update = function () {
-      if (config_.type === 'x') {
-        // TODO: Formalize a way to get the container height.
-        root_.attr('transform', 'translate(' +
-                   [0, d3.select(root_.node().parentNode).height()] + ')');
-      }
-
       root_.selectAll('g').remove();
       d3axis_.scale(config_.scale)
         .orient(config_.orient)
