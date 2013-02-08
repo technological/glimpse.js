@@ -24,16 +24,17 @@ function (mixins) {
         component.hide = mixins.toggle.hide;
       });
 
-      it('show()', function () {
-        component.show();
-        expect(d3.select('.gl-component').node())
-          .toHaveAttr('display', 'inline');
-      });
-
       it('hide()', function () {
         component.hide();
         expect(d3.select('.gl-component').node())
           .toHaveAttr('display', 'none');
+      });
+
+      it('show()', function () {
+        component.hide();
+        component.show();
+        expect(d3.select('.gl-component').node())
+          .not.toHaveAttr('display');
       });
 
     });

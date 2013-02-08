@@ -9,7 +9,7 @@ define(function () {
 		* @return {components.component}
 		*/
 		show: function () {
-			this.root().attr('display', 'inline');
+			this.root().attr('display', null);
 			return this;
 		},
 

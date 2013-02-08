@@ -234,7 +234,7 @@ function (obj, config, array, assetLoader, format, components, layoutManager,
       var components = [];
 
       if (!cid) {
-        var display = isVisible ? 'inline' : 'none';
+        var display = isVisible ? null : 'none';
         root_.attr('display', display);
         return;
       }

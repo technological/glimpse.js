@@ -512,41 +512,6 @@ function (graph, assetLoader, compUtil) {
 
     });
 
-    describe('show()', function () {
-      var selection;
-
-      beforeEach(function() {
-        setGraph();
-        selection = jasmine.htmlFixture();
-        testGraph.render(selection.node());
-      });
-
-      it('shows graph', function() {
-        testGraph.show();
-        expect(testGraph.root().node()).toHaveAttr('display', 'inline');
-      });
-
-      it('shows component', function() {
-        var c = testGraph.component('testComponent');
-
-        testGraph.show('testComponent');
-        expect(c.root().node()).toHaveAttr('display', 'inline');
-      });
-
-      it('shows components', function() {
-        var c, yAxis;
-        c = testGraph.component('testComponent');
-        yAxis = testGraph.component('yAxis');
-
-        testGraph.show(['testComponent', 'yAxis']);
-        expect(c.root().node())
-          .toHaveAttr('display', 'inline');
-        expect(yAxis.root().node())
-        .toHaveAttr('display', 'inline');
-      });
-
-    });
-
     describe('hide()', function () {
       var selection;
 
@@ -576,6 +541,43 @@ function (graph, assetLoader, compUtil) {
         testGraph.hide(['testComponent', 'yAxis']);
         expect(c.root().node()).toHaveAttr('display', 'none');
         expect(yAxis.root().node()).toHaveAttr('display', 'none');
+      });
+
+    });
+
+    describe('show()', function () {
+      var selection;
+
+      beforeEach(function() {
+        setGraph();
+        selection = jasmine.htmlFixture();
+        testGraph.render(selection.node());
+        testGraph.hide();
+      });
+
+      it('shows graph', function() {
+        testGraph.show();
+        expect(testGraph.root().node()).not.toHaveAttr('display');
+      });
+
+      it('shows component', function() {
+        var c = testGraph.component('testComponent');
+
+        testGraph.show('testComponent');
+        expect(c.root().node()).not.toHaveAttr('display');
+      });
+
+      it('shows components', function() {
+        var c, yAxis;
+        c = testGraph.component('testComponent');
+        yAxis = testGraph.component('yAxis');
+
+        testGraph.show(['testComponent', 'yAxis']);
+        expect(c.root().node())
+          .not.toHaveAttr('display');
+
+        expect(yAxis.root().node())
+          .not.toHaveAttr('display');
       });
 
     });
