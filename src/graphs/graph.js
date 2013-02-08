@@ -231,39 +231,26 @@ function (obj, config, array, assetLoader, format, components, layoutManager,
      * @param  {bool} isVisible
      */
     toggle_ = function (cid, isVisible) {
-      var components = [];
+      var display, comp;
 
       if (!cid) {
-        var display = isVisible ? null : 'none';
+        display = isVisible ? null : 'none';
         root_.attr('display', display);
         return;
       }
 
-      if (Array.isArray(cid)) {
-        var i, len;
-          len = cid.length;
-        for (i = 0; i < len; i++) {
-          var c = getComponent_(cid[i]);
-          if (c) {
-            components.push(c);
-          }
-        }
-      } else {
-        var cmp = getComponent_(cid);
-        if (cmp) {
-          components.push(cmp);
-        }
-      }
+      cid = array.getArray(cid);
 
-      if (components.length) {
-        components.forEach(function (c) {
+      cid.forEach(function (id) {
+        comp = getComponent_(id);
+        if (comp) {
           if (isVisible) {
-            c.show();
+            comp.show();
           } else {
-            c.hide();
+            comp.hide();
           }
-        });
-      }
+        }
+      });
     };
 
     /**
@@ -419,7 +406,7 @@ function (obj, config, array, assetLoader, format, components, layoutManager,
 
     /**
      * Toggles the loading asset on/off.
-     * @param {boolean} isVisibletoggle_
+     * @param {boolean} isVisible
      * @returns {graphs.graph}
      */
     graph.toggleLoading = function(isVisible) {

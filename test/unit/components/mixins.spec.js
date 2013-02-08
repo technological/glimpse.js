@@ -4,7 +4,7 @@ define([
 function (mixins) {
   'use strict';
 
-  describe('core.mixins', function () {
+  describe('components.mixins', function () {
 
     describe('mixins.toggle', function () {
       var selection, root, component;
