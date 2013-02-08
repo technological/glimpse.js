@@ -73,9 +73,9 @@ function (obj, config, array, assetLoader, format, components, layoutManager,
       xScale: d3.time.scale(),
       yScale: d3.scale.linear(),
       showLegend: true,
-      xTicks: undefined,
-      yTicks: 3,
-      xDomainLabelFormatter: format.timeDomain
+      xDomainLabelFormatter: format.timeDomain,
+      xTicks: 7,
+      yTicks: 3
     };
 
     /**
@@ -400,7 +400,8 @@ function (obj, config, array, assetLoader, format, components, layoutManager,
       xAxis_ = components.axis()
         .config({
           'type': 'x',
-          'orient': 'bottom'
+          'orient': 'bottom',
+          'target': '.gl-xaxis'
         });
       yAxis_ = components.axis()
         .config({
@@ -610,7 +611,7 @@ function (obj, config, array, assetLoader, format, components, layoutManager,
       return graph;
     };
 
-    obj.extend(graph, config(graph, config_, ['cid', 'width', 'height']));
+    obj.extend(graph, config.mixin(config_, 'id', 'width', 'height'));
     return graph();
   };
 
