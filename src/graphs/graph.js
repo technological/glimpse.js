@@ -37,6 +37,7 @@ function (obj, config, array, assetLoader, format, components, layoutManager,
       addAxes_,
       addLegend_,
       configureXScale_,
+      configureYScale_,
       defaultXaccessor_,
       defaultYaccessor_,
       getComponent_,
@@ -92,7 +93,9 @@ function (obj, config, array, assetLoader, format, components, layoutManager,
       emptyMessage: 'No data to display',
       loadingMessage: 'Loading...',
       errorMessage: 'Error loading graph data',
-      state: 'normal'
+      state: 'normal',
+      yDomainModifier: 20,
+      yRangeModifier: 10
     };
 
     /**
@@ -333,6 +336,24 @@ function (obj, config, array, assetLoader, format, components, layoutManager,
     };
 
     /**
+     * configures the Y scale
+     * @param  {Array} yExtents
+     */
+    configureYScale_ = function (yExtents) {
+      var rangeMod, domainMod, height, max;
+
+      height = getFrameHeight_();
+      rangeMod = Math.round(height * (config_.yRangeModifier/100));
+
+      max = d3.max(yExtents);
+      domainMod = max * (config_.yDomainModifier/100);
+      yExtents.push(max + domainMod);
+
+      config_.yScale.rangeRound([height - rangeMod, 0])
+        .domain(d3.extent(yExtents));
+    };
+
+    /**
      * @private
      * Updates the domain on the scales
      */
@@ -362,11 +383,13 @@ function (obj, config, array, assetLoader, format, components, layoutManager,
       }
 
       configureXScale_(xExtents);
-      config_.yScale.rangeRound([getFrameHeight_(), 0])
-        .domain(d3.extent(yExtents));
+      configureYScale_(yExtents);
     };
 
-    updateAxes_ = function() {
+    /**
+     * Updates the config for the axes
+     */
+    updateAxes_ = function () {
       xAxis_.config({
         scale: config_.xScale,
         ticks: config_.xTicks
@@ -382,7 +405,7 @@ function (obj, config, array, assetLoader, format, components, layoutManager,
      * Updates the text in the label showing the date range.
      * TODO: position this with layout manager
      */
-    updateXDomainLabel_ = function() {
+    updateXDomainLabel_ = function () {
       xDomainLabel_
         .data(config_.xScale.domain())
         .text(config_.xDomainLabelFormatter);

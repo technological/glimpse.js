@@ -353,7 +353,7 @@ function (graph, assetLoader, compUtil) {
       );
 
       it('updates domain for yScale', function () {
-        expect(yScale.domain()).toEqual([56, 200]);
+        expect(yScale.domain()).toEqual([56, 240]);
       });
 
       it('updates domain for based on force property the config', function () {
@@ -361,7 +361,33 @@ function (graph, assetLoader, compUtil) {
           forceY: [0]
         });
         testGraph.update();
-        expect(yScale.domain()).toEqual([0, 200]);
+        expect(yScale.domain()).toEqual([0, 240]);
+      });
+
+      it('updates range for yScale based on yRangeModifier', function () {
+        testGraph.config({
+          yRangeModifier: 0
+        });
+        testGraph.update();
+        expect(yScale.range()).toEqual([147, 0]);
+        testGraph.config({
+          yRangeModifier: 10
+        });
+        testGraph.update();
+        expect(yScale.range()).toEqual([132, 15]);
+      });
+
+      it('updates domain for based on on yDomainModifier', function () {
+        testGraph.config({
+          yDomainModifier: 0
+        });
+        testGraph.update();
+        expect(yScale.domain()).toEqual([56, 200]);
+        testGraph.config({
+          yDomainModifier: 10
+        });
+        testGraph.update();
+        expect(yScale.domain()).toEqual([56, 220]);
       });
 
       it('calls domain for yScale', function () {
