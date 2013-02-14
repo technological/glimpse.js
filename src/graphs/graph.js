@@ -13,11 +13,11 @@ define([
   'layout/layoutmanager',
   'd3-ext/util'
 ],
-function (obj, config, array, assetLoader, format, components, layoutManager,
+function(obj, config, array, assetLoader, format, components, layoutManager,
   d3util) {
   'use strict';
 
-  return function () {
+  return function() {
 
     /**
      * Private variables.
@@ -104,7 +104,7 @@ function (obj, config, array, assetLoader, format, components, layoutManager,
      * sets scales and data on the components
      * @param {component} component [description]
      */
-    addComponent_ = function (component) {
+    addComponent_ = function(component) {
       if (component.data) {
         component.data(data_);
       }
@@ -130,7 +130,7 @@ function (obj, config, array, assetLoader, format, components, layoutManager,
      * @private
      * Adds axes to the components array
      */
-    addAxes_ = function () {
+    addAxes_ = function() {
       addComponent_(xAxis_);
       addComponent_(yAxis_);
     };
@@ -139,7 +139,7 @@ function (obj, config, array, assetLoader, format, components, layoutManager,
      * @private
      * Adds legend to the components array
      */
-    addLegend_ = function () {
+    addLegend_ = function() {
       if (config_.showLegend) {
         addComponent_(legend_);
       }
@@ -151,7 +151,7 @@ function (obj, config, array, assetLoader, format, components, layoutManager,
      * @param  {Object} d
      * @return {Object}
      */
-    defaultXaccessor_ = function (d) {
+    defaultXaccessor_ = function(d) {
       return d.x;
     };
 
@@ -161,7 +161,7 @@ function (obj, config, array, assetLoader, format, components, layoutManager,
      * @param  {Object} d
      * @return {Object}
      */
-    defaultYaccessor_ = function (d) {
+    defaultYaccessor_ = function(d) {
       return d.y;
     };
 
@@ -188,7 +188,7 @@ function (obj, config, array, assetLoader, format, components, layoutManager,
      * Calculates the frame height
      * @return {number}
      */
-    getFrameHeight_ = function () {
+    getFrameHeight_ = function() {
       return svg_.select('.gl-framed').height();
     };
 
@@ -197,7 +197,7 @@ function (obj, config, array, assetLoader, format, components, layoutManager,
      * Calculates the frame width
      * @return {number}
      */
-    getFrameWidth_ = function () {
+    getFrameWidth_ = function() {
       return svg_.select('.gl-framed').width();
     };
 
@@ -206,11 +206,11 @@ function (obj, config, array, assetLoader, format, components, layoutManager,
      * Sets the target selection and calls render on each component
      * @param  {d3.selection} selection
      */
-    renderComponents_ = function (selection) {
+    renderComponents_ = function(selection) {
       if (!components_) {
         return;
       }
-      components_.forEach(function (component) {
+      components_.forEach(function(component) {
         var renderTarget;
         renderTarget = selection.select(
             component.config('target') || '.gl-unframed');
@@ -223,7 +223,7 @@ function (obj, config, array, assetLoader, format, components, layoutManager,
      * Appends defs
      * @param  {d3.selection} selection
      */
-    renderDefs_ = function (selection) {
+    renderDefs_ = function(selection) {
       return selection.append('defs');
     };
 
@@ -232,7 +232,7 @@ function (obj, config, array, assetLoader, format, components, layoutManager,
      * Appends svg node to the selection
      * @param  {d3.selection} selection
      */
-    renderSvg_ = function (selection) {
+    renderSvg_ = function(selection) {
       root_ = selection.append('svg')
         .attr({
           'width': config_.width,
@@ -252,7 +252,7 @@ function (obj, config, array, assetLoader, format, components, layoutManager,
      * Sets up the panel(svg)
      * @param  {d3.selection} selection
      */
-    renderPanel_ = function (selection) {
+    renderPanel_ = function(selection) {
       svg_ = renderSvg_(selection);
       renderDefs_(svg_);
       layoutManager.setLayout(
@@ -267,7 +267,7 @@ function (obj, config, array, assetLoader, format, components, layoutManager,
      * @param  {string|Array} cid
      * @param  {bool} isVisible
      */
-    toggle_ = function (cid, isVisible) {
+    toggle_ = function(cid, isVisible) {
       var display, comp;
 
       if (!cid) {
@@ -278,7 +278,7 @@ function (obj, config, array, assetLoader, format, components, layoutManager,
 
       cid = array.getArray(cid);
 
-      cid.forEach(function (id) {
+      cid.forEach(function(id) {
         comp = getComponent_(id);
         if (comp) {
           if (isVisible) {
@@ -294,9 +294,9 @@ function (obj, config, array, assetLoader, format, components, layoutManager,
      * @private
      * Formats the keys for the legend and calls update on it
      */
-    updateLegend_ = function () {
+    updateLegend_ = function() {
       var legendConfig = [];
-      components_.forEach(function (c) {
+      components_.forEach(function(c) {
         if (c.config('showInLegend')) {
           legendConfig.push({
             color: c.config('color'),
@@ -312,7 +312,7 @@ function (obj, config, array, assetLoader, format, components, layoutManager,
      * configures the X scale
      * @param  {Array} xExtents
      */
-    configureXScale_ = function (xExtents) {
+    configureXScale_ = function(xExtents) {
       var max, min, offset, newMin;
 
       max = d3.max(xExtents) || config_.xScale.domain()[1];
@@ -339,7 +339,7 @@ function (obj, config, array, assetLoader, format, components, layoutManager,
      * configures the Y scale
      * @param  {Array} yExtents
      */
-    configureYScale_ = function (yExtents) {
+    configureYScale_ = function(yExtents) {
       var rangeMod, domainMod, height, max;
 
       height = getFrameHeight_();
@@ -357,11 +357,11 @@ function (obj, config, array, assetLoader, format, components, layoutManager,
      * @private
      * Updates the domain on the scales
      */
-    updateScales_ = function () {
+    updateScales_ = function() {
       var xExtents = [],
         yExtents = [];
 
-      components_.forEach(function (component) {
+      components_.forEach(function(component) {
         var componentData;
         if (component.data) {
           componentData = component.data();
@@ -389,7 +389,7 @@ function (obj, config, array, assetLoader, format, components, layoutManager,
     /**
      * Updates the config for the axes
      */
-    updateAxes_ = function () {
+    updateAxes_ = function() {
       xAxis_.config({
         scale: config_.xScale,
         ticks: config_.xTicks
@@ -405,7 +405,7 @@ function (obj, config, array, assetLoader, format, components, layoutManager,
      * Updates the text in the label showing the date range.
      * TODO: position this with layout manager
      */
-    updateXDomainLabel_ = function () {
+    updateXDomainLabel_ = function() {
       xDomainLabel_
         .data(config_.xScale.domain())
         .text(config_.xDomainLabelFormatter);
@@ -415,7 +415,7 @@ function (obj, config, array, assetLoader, format, components, layoutManager,
      * @private
      * Updates scales and legend
      */
-    update_ = function () {
+    update_ = function() {
       updateScales_();
       updateAxes_();
       updateLegend_();
@@ -426,8 +426,8 @@ function (obj, config, array, assetLoader, format, components, layoutManager,
      * Inserts/Updates object in data array
      * @param  {object} data
      */
-    upsertData_ = function (data) {
-      var index = array.findIndex(data_, function (d) {
+    upsertData_ = function(data) {
+      var index = array.findIndex(data_, function(d) {
         return d.id === data.id;
       });
       if (index !== -1) {
@@ -611,11 +611,11 @@ function (obj, config, array, assetLoader, format, components, layoutManager,
      * @param  {Object|Array} data
      * @return {graphs.graph|Object}
      */
-    graph.data = function (data) {
+    graph.data = function(data) {
       if (data) {
         // Single string indicates id of data to return.
         if (typeof data === 'string') {
-          return array.find(data_, function (d) {
+          return array.find(data_, function(d) {
             return d.id === data;
           });
         }
@@ -664,7 +664,7 @@ function (obj, config, array, assetLoader, format, components, layoutManager,
      * @param  {string|Object} componentConfig
      * @return {component|graphs.graph}
      */
-    graph.component = function (componentConfig) {
+    graph.component = function(componentConfig) {
       var component;
       // No args. Return all components.
       if (!componentConfig) {
@@ -673,7 +673,7 @@ function (obj, config, array, assetLoader, format, components, layoutManager,
       }
       // Single string indicates cid of component to return.
       if (typeof componentConfig === 'string') {
-        return array.find(components_, function (c) {
+        return array.find(components_, function(c) {
           return c.cid() === componentConfig;
         });
       }
@@ -687,9 +687,9 @@ function (obj, config, array, assetLoader, format, components, layoutManager,
      * Updates the graph with new/updated data/config
      * @return {graphs.graph}
      */
-    graph.update = function () {
+    graph.update = function() {
       update_();
-      components_.forEach(function (component) {
+      components_.forEach(function(component) {
         component.update();
       });
       return graph;
@@ -701,7 +701,7 @@ function (obj, config, array, assetLoader, format, components, layoutManager,
      * @param  {d3.selection|Node|string} selector
      * @return {graphs.graph}
      */
-    graph.render = function (selector) {
+    graph.render = function(selector) {
       var selection = d3util.select(selector);
       assetLoader.loadAll();
       addLegend_();
@@ -722,7 +722,7 @@ function (obj, config, array, assetLoader, format, components, layoutManager,
      * @param  {Object|} config
      * @return {components.axis|graphs.graph}
      */
-    graph.xAxis = function (config) {
+    graph.xAxis = function(config) {
       if (config) {
         xAxis_.config(config);
         return graph;
@@ -735,7 +735,7 @@ function (obj, config, array, assetLoader, format, components, layoutManager,
      * @param  {Object} config
      * @return {graphs.graph|components.axis}
      */
-    graph.yAxis = function (config) {
+    graph.yAxis = function(config) {
       if (config) {
         yAxis_.config(config);
         return graph;
@@ -748,7 +748,7 @@ function (obj, config, array, assetLoader, format, components, layoutManager,
      * @param  {Object} config
      * @return {graphs.graph|component.legend}
      */
-    graph.legend = function (config) {
+    graph.legend = function(config) {
       if (config) {
         legend_.config(config);
         return graph;
@@ -760,7 +760,7 @@ function (obj, config, array, assetLoader, format, components, layoutManager,
      * Returns the root_
      * @return {d3.selection}
      */
-    graph.root = function () {
+    graph.root = function() {
       return root_;
     };
 
@@ -770,7 +770,7 @@ function (obj, config, array, assetLoader, format, components, layoutManager,
      * @param  {string|Array} cid
      * @return {graphs.graph}
      */
-    graph.show = function (cid) {
+    graph.show = function(cid) {
       toggle_(cid, true);
       return graph;
     };
@@ -781,7 +781,7 @@ function (obj, config, array, assetLoader, format, components, layoutManager,
      * @param  {string|Array} cid
      * @return {graphs.graph}
      */
-    graph.hide = function (cid) {
+    graph.hide = function(cid) {
       toggle_(cid, false);
       return graph;
     };
