@@ -8,10 +8,9 @@ define([
   'core/config',
   'components/label',
   'components/mixins',
-  'd3-ext/util',
-  'layout/layoutmanager'
+  'd3-ext/util'
 ],
-function(obj, config, label, mixins, d3util, layoutManager) {
+function(obj, config, label, mixins, d3util) {
   'use strict';
 
   return function() {
@@ -25,10 +24,10 @@ function(obj, config, label, mixins, d3util, layoutManager) {
     config_ = {};
 
     defaults_ = {
-      cid: undefined,
-      target: undefined,
+      cid: null,
+      target: null,
       components: [],
-      sublayout: null,
+      layoutConfig: { type: 'horizontal', position: 'center', gap: 6 },
       opacity: 1,
       labels: [],
       backgroundColor: '#fff'
@@ -47,22 +46,22 @@ function(obj, config, label, mixins, d3util, layoutManager) {
      * Append background rect, all child components, and apply the layout.
      */
     appendChildren_ = function() {
-      var parent = d3.select(root_.node().parentNode);
+      var parentNode,
+          componentsContainer;
 
+      parentNode = d3.select(root_.node().parentNode);
       root_.append('rect').attr({
-        width: parent.width(),
-        height: parent.height(),
+        width: parentNode.width(),
+        height: parentNode.height(),
         opacity: config_.opacity,
         fill: config_.backgroundColor
       });
-      layoutManager.setLayout(
-        config_.sublayout,
-        root_,
-        parent.width(),
-        parent.height());
+      componentsContainer = root_.append('g')
+        .attr('class', 'gl-components');
       config_.components.forEach(function(component) {
-        component.render();
+        component.render(componentsContainer);
       });
+      componentsContainer.layout(config_.layoutConfig);
     };
 
     function overlay() {
@@ -79,7 +78,8 @@ function(obj, config, label, mixins, d3util, layoutManager) {
         'target',
         'cssClass',
         'opacity',
-        'backgroundColor'
+        'backgroundColor',
+        'layoutConfig'
       ),
       mixins.lifecycle,
       mixins.toggle);

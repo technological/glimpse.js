@@ -427,29 +427,18 @@ function (obj, config, array, assetLoader, format, components, layoutManager,
     };
 
     /**
-     * Shows the empty data overlay.
+     * @private
+     * Displays the loading spinner and message over the framed area.
      */
     showEmptyOverlay_ = function() {
       var labelTexts,
           overlay,
-          cid,
           labels,
           layoutConfig;
 
-      // TODO: This should be easier to do with layout manager.
       layoutConfig = {
-        'class': 'gl-vgroup',
-        'split': [50, 50],
-        children: [{
-          'class': 'gl-overlay-top',
-          padding: 1,
-        },
-        {
-          'class': 'gl-overlay-bottom',
-          padding: 1,
-        }]
+        type: 'vertical', position: 'center', gap: 6
       };
-      cid = 'emptyOverlay';
       labelTexts = array.getArray(config_.emptyMessage);
       labels = labelTexts.map(function(text, idx) {
         var label = components.label().text(text);
@@ -457,113 +446,75 @@ function (obj, config, array, assetLoader, format, components, layoutManager,
           label.config({
             color: '#666',
             fontSize: 18,
-            target: '.gl-overlay-top',
-            position: 'center-bottom',
             fontWeight: 'bold'
           });
         } else {
           label.config({
             color: '#a9a9a9',
-            fontSize: 13,
-            target: '.gl-overlay-bottom',
-            position: 'center-top'
+            fontSize: 13
           });
         }
         return label;
       });
       overlay = components.overlay()
         .config({
-          cid: cid,
-          sublayout: layoutConfig,
+          cid: 'emptyOverlay',
+          layoutConfig: layoutConfig,
           components: labels
         });
       addComponent_(overlay);
       overlay.render(root_.select('.gl-framed'));
     };
 
+    /**
+     * @private
+     * Displays the loading spinner and message over the framed area.
+     */
     showLoadingOverlay_ = function() {
       var label,
           spinner,
-          overlay,
-          layoutConfig;
+          overlay;
 
-      // TODO: This should be easier to do with layout manager.
-      layoutConfig = {
-        'class': 'gl-hgroup',
-        'split': [45, 55],
-        children: [
-          {
-            'class': 'gl-overlay-loading-spinner',
-            padding: 1
-          },
-          {
-            'class': 'gl-overlay-loading-text',
-            padding: 1
-          }
-        ]
-      };
       spinner = components.asset().config({
-        assetId: 'gl-asset-spinner',
-        target: '.gl-overlay-loading-spinner',
-        position: 'center-right'
+        assetId: 'gl-asset-spinner'
       });
       label = components.label()
         .text(config_.loadingMessage)
         .config({
           color: '#666',
-          fontSize: 13,
-          target: '.gl-overlay-loading-text',
-          position: 'center-left'
+          fontSize: 13
         });
       overlay = components.overlay()
         .config({
           cid: 'loadingOverlay',
-          sublayout: layoutConfig,
-          components: [label, spinner]
+          components: [spinner, label]
         });
       addComponent_(overlay);
       overlay.render(root_.select('.gl-framed'));
     };
 
+    /**
+     * @private
+     * Displays the error icon and message over the framed area.
+     */
     showErrorOverlay_ = function() {
       var label,
           icon,
-          overlay,
-          layoutConfig;
+          overlay;
 
-      // TODO: This should be easier to do with layout manager.
-      layoutConfig = {
-        'class': 'gl-hgroup',
-        'split': [40, 60],
-        children: [
-          {
-            'class': 'gl-overlay-error-icon',
-            padding: 1
-          },
-          {
-            'class': 'gl-overlay-error-text',
-            padding: 1
-          }
-        ]
-      };
       icon = components.asset().config({
-        assetId: 'gl-asset-icon-error',
-        target: '.gl-overlay-error-icon',
-        position: 'center-right'
+        assetId: 'gl-asset-icon-error'
       });
       label = components.label()
         .text(config_.errorMessage)
         .config({
           color: '#C40022',
-          fontSize: 13,
-          target: '.gl-overlay-error-text',
-          position: 'center-left'
+          fontSize: 13
         });
       overlay = components.overlay()
         .config({
           cid: 'errorOverlay',
-          sublayout: layoutConfig,
-          components: [label, icon]
+          components: [icon, label]
         });
       addComponent_(overlay);
       overlay.render(root_.select('.gl-framed'));

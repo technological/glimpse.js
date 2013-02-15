@@ -20,10 +20,10 @@ function(obj, config, mixins, d3util) {
     config_ = {};
 
     defaults_ = {
-      cid: undefined,
-      assetId: undefined,
-      target: undefined,
-      cssClass: undefined
+      cid: null,
+      assetId: null,
+      target: null,
+      cssClass: null
     };
 
     function asset() {

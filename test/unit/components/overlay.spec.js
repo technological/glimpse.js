@@ -21,7 +21,7 @@ function(overlay, componentUtil) {
 
     it('adds all convenience functions', function() {
       expect(testOverlay).toHaveProperties('cid', 'target', 'cssClass',
-          'opacity', 'backgroundColor');
+          'opacity', 'backgroundColor', 'layoutConfig');
     });
 
     describe('root()', function() {
@@ -103,10 +103,12 @@ function(overlay, componentUtil) {
       it('removes previous components', function() {
         testOverlay.config('components', [mockComponent]);
         testOverlay.update();
-        expect(root.selectAll('*')).toBeSelectionLength(2);
+        // rect + componnets container + component
+        expect(root.selectAll('*')).toBeSelectionLength(3);
         testOverlay.config('components', []);
         testOverlay.update();
-        expect(root.selectAll('*')).toBeSelectionLength(1);
+        // rect + componnets container
+        expect(root.selectAll('*')).toBeSelectionLength(2);
       });
 
     });
