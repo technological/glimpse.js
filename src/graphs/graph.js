@@ -614,14 +614,19 @@ function (obj, config, array, assetLoader, format, components, layoutManager,
       removeComponent_('emptyOverlay');
       removeComponent_('loadingOverlay');
       removeComponent_('errorOverlay');
+      graph.xAxis().show();
+      graph.legend().show();
       switch (newState) {
         case STATES.EMPTY:
           showEmptyOverlay_();
           break;
         case STATES.LOADING:
+          graph.xAxis().hide();
+          graph.legend().hide();
           showLoadingOverlay_();
           break;
         case STATES.ERROR:
+          graph.xAxis().hide();
           showErrorOverlay_();
           break;
         default:
