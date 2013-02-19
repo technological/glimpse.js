@@ -367,8 +367,19 @@ function(obj, config, array, assetLoader, format, components, layoutManager,
           if (componentData && componentData.data) {
             xExtents = xExtents.concat(
               d3.extent(componentData.data, componentData.x));
+
             yExtents = yExtents.concat(
-              d3.extent(componentData.data, componentData.y));
+              d3.extent(componentData.data,
+                function(d, i) {
+                  var value = componentData.y(d, i);
+                  // If Y-baselines are used (stacked),
+                  //   use the sum of the baseline and Y.
+                  if (componentData.y0) {
+                    value += componentData.y0(d, i);
+                  }
+                  return value;
+                })
+              );
           }
         }
       });
