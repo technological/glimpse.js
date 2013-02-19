@@ -294,8 +294,8 @@ function(obj, config, array, assetLoader, format, components, layoutManager,
      */
     updateLegend_ = function() {
       var legendConfig = [];
-      components_.forEach(function(c) {
-        if (c.config('showInLegend')) {
+      components_.forEach(function (c) {
+        if (c.config('inLegend')) {
           legendConfig.push({
             color: c.config('color'),
             label: c.data().title || ''
