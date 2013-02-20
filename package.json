@@ -26,7 +26,7 @@
     "sax": "~0.5.2"
   },
   "scripts": {
-    "test": "grunt testphantom"
+    "test": "grunt"
   },
   "repository": "git@github.com:racker/glimpse.js.git",
   "keywords": [
