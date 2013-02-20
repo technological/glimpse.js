@@ -157,3 +157,4 @@ module.exports = function(grunt) {
   grunt.registerTask('release', ['jshint', 'assets', 'test', 'compile']);
   grunt.registerTask('default', ['jshint', 'assets', 'exec:testPhantomOnly']);
 };
+
