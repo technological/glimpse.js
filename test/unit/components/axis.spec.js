@@ -130,13 +130,12 @@ function(axisComponent) {
         var zeroTick, transform;
         axis.config({
           type: 'y',
-          scale: d3.scale.linear(),
-          firstTickPadding: 20
+          scale: d3.scale.linear()
         });
         axis.render(container);
         zeroTick = d3.select(getComponentNode()).select('.gl-axis g');
         transform = d3.transform(zeroTick.attr('transform'));
-        expect(transform.translate[1]).toBe(-axis.config('firstTickPadding'));
+        expect(transform.translate[1]).toBe(-10);
       });
 
       describe('axis label background', function() {

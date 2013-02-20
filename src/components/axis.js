@@ -62,7 +62,7 @@ function(obj, config, string, mixins, d3util) {
         zeroTick = root_.select('g');
         if (zeroTick.node()) {
           transform = d3.transform(zeroTick.attr('transform'));
-          transform.translate[1] -= config_.firstTickPadding;
+          transform.translate[1] -= 10;
           zeroTick.attr('transform', transform.toString());
         }
       }

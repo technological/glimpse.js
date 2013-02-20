@@ -366,17 +366,13 @@ function(graph, assetLoader, compUtil) {
         expect(yScale.domain()).toEqual([0, 240]);
       });
 
-      it('updates domain for based on on yDomainModifier', function() {
+      it('updates domain for based on yDomainModifier', function() {
+        expect(yScale.domain()).toEqual([56, 240]);
         testGraph.config({
-          yDomainModifier: 0
+          yDomainModifier: 1.5
         });
         testGraph.update();
-        expect(yScale.domain()).toEqual([56, 200]);
-        testGraph.config({
-          yDomainModifier: 10
-        });
-        testGraph.update();
-        expect(yScale.domain()).toEqual([56, 220]);
+        expect(yScale.domain()).toEqual([56, 300]);
       });
 
       it('calls domain for yScale', function() {

@@ -94,8 +94,7 @@ function(obj, config, array, assetLoader, format, components, layoutManager,
       loadingMessage: 'Loading...',
       errorMessage: 'Error loading graph data',
       state: 'normal',
-      yDomainModifier: 20,
-      firstTickPadding: 10
+      yDomainModifier: 1.2
     };
 
     /**
@@ -315,6 +314,10 @@ function(obj, config, array, assetLoader, format, components, layoutManager,
     configureXScale_ = function(xExtents) {
       var max, min, offset, newMin;
 
+      if (config_.forceX) {
+        xExtents = xExtents.concat(config_.forceX);
+      }
+
       max = d3.max(xExtents) || config_.xScale.domain()[1];
       min = d3.min(xExtents) || config_.xScale.domain()[0];
 
@@ -340,11 +343,11 @@ function(obj, config, array, assetLoader, format, components, layoutManager,
      * @param  {Array} yExtents
      */
     configureYScale_ = function(yExtents) {
-      var domainMod, max;
+      yExtents.push(Math.round(d3.max(yExtents) * config_.yDomainModifier));
 
-      max = d3.max(yExtents);
-      domainMod = max * (config_.yDomainModifier/100);
-      yExtents.push(max + domainMod);
+      if (config_.forceY) {
+        yExtents = yExtents.concat(config_.forceY);
+      }
 
       config_.yScale.rangeRound([getFrameHeight_(), 0])
         .domain(d3.extent(yExtents));
@@ -370,15 +373,6 @@ function(obj, config, array, assetLoader, format, components, layoutManager,
           }
         }
       });
-
-      if (config_.forceX) {
-        xExtents = xExtents.concat(config_.forceX);
-      }
-
-      if (config_.forceY) {
-        yExtents = yExtents.concat(config_.forceY);
-      }
-
       configureXScale_(xExtents);
       configureYScale_(yExtents);
     };
@@ -393,8 +387,7 @@ function(obj, config, array, assetLoader, format, components, layoutManager,
       });
       yAxis_.config({
         scale: config_.yScale,
-        ticks: config_.yTicks,
-        firstTickPadding: config_.firstTickPadding
+        ticks: config_.yTicks
       });
     };
 
