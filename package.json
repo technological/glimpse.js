@@ -22,8 +22,7 @@
     "grunt-contrib-requirejs": "~0.4.0",
     "grunt-contrib-watch": "~0.2.0",
     "grunt-exec": "~0.4.0",
-    "uglify-js2": "~2.1.11",
-    "testacular": "~0.5.2",
+    "uglify-js": "~2.2.5",
     "sax": "~0.5.2"
   },
   "scripts": {
