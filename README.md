@@ -1,6 +1,8 @@
 **DO NOT USE THIS!** This is currently an unstable work in progress.  
 
-glimpse.js is a JavaScript toolkit library for making beautiful graphs & visualizations effortlessly.
+# glimpse.js [![Build Status](https://travis-ci.org/racker/glimpse.js.png?branch=master)](https://travis-ci.org/racker/glimpse.js)  
+
+A JavaScript library for making beautiful graphs and visualizations effortlessly.  
 
 Its purpose is to empower developers to quickly render data as standards-compliant web-based visualizations.
 Glimpse.js requires very little code and has virtually no learning curve, yet is customizable enough to allow for the most complex data visualizations.
