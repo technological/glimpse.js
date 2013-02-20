@@ -143,6 +143,7 @@ module.exports = function(grunt) {
 
   grunt.registerTask('test', 'exec:test');
   grunt.registerTask('testwatch', 'exec:testWatch');
+  grunt.registerTask('testphantom', 'exec:testPhantomOnly');
   grunt.registerTask('assets', ['clean:assets', 'compile-svg:assets']);
   grunt.registerTask('compile-static', [
     'assets',
