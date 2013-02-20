@@ -126,6 +126,19 @@ function(axisComponent) {
         expect(getComponentNode()).not.toHaveAttr('transform');
       });
 
+      it('it applies padding 0 tick', function() {
+        var zeroTick, transform;
+        axis.config({
+          type: 'y',
+          scale: d3.scale.linear(),
+          firstTickPadding: 20
+        });
+        axis.render(container);
+        zeroTick = d3.select(getComponentNode()).select('.gl-axis g');
+        transform = d3.transform(zeroTick.attr('transform'));
+        expect(transform.translate[1]).toBe(-axis.config('firstTickPadding'));
+      });
+
       describe('axis label background', function() {
 
         it('is inserted into the d3 svg axis component', function() {

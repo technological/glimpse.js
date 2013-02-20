@@ -95,7 +95,7 @@ function(obj, config, array, assetLoader, format, components, layoutManager,
       errorMessage: 'Error loading graph data',
       state: 'normal',
       yDomainModifier: 20,
-      yRangeModifier: 10
+      firstTickPadding: 10
     };
 
     /**
@@ -340,16 +340,13 @@ function(obj, config, array, assetLoader, format, components, layoutManager,
      * @param  {Array} yExtents
      */
     configureYScale_ = function(yExtents) {
-      var rangeMod, domainMod, height, max;
-
-      height = getFrameHeight_();
-      rangeMod = Math.round(height * (config_.yRangeModifier/100));
+      var domainMod, max;
 
       max = d3.max(yExtents);
       domainMod = max * (config_.yDomainModifier/100);
       yExtents.push(max + domainMod);
 
-      config_.yScale.rangeRound([height - rangeMod, 0])
+      config_.yScale.rangeRound([getFrameHeight_(), 0])
         .domain(d3.extent(yExtents));
     };
 
@@ -396,7 +393,8 @@ function(obj, config, array, assetLoader, format, components, layoutManager,
       });
       yAxis_.config({
         scale: config_.yScale,
-        ticks: config_.yTicks
+        ticks: config_.yTicks,
+        firstTickPadding: config_.firstTickPadding
       });
     };
 

@@ -366,19 +366,6 @@ function(graph, assetLoader, compUtil) {
         expect(yScale.domain()).toEqual([0, 240]);
       });
 
-      it('updates range for yScale based on yRangeModifier', function() {
-        testGraph.config({
-          yRangeModifier: 0
-        });
-        testGraph.update();
-        expect(yScale.range()).toEqual([147, 0]);
-        testGraph.config({
-          yRangeModifier: 10
-        });
-        testGraph.update();
-        expect(yScale.range()).toEqual([132, 15]);
-      });
-
       it('updates domain for based on on yDomainModifier', function() {
         testGraph.config({
           yDomainModifier: 0

@@ -55,8 +55,21 @@ function(obj, config, string, mixins, d3util) {
           'fill': config_.color
         });
 
+      //Apply padding to the first tick on Y axis
+      if (config_.type === 'y') {
+        var zeroTick, transform;
+
+        zeroTick = root_.select('g');
+        if (zeroTick.node()) {
+          transform = d3.transform(zeroTick.attr('transform'));
+          transform.translate[1] -= config_.firstTickPadding;
+          zeroTick.attr('transform', transform.toString());
+        }
+      }
+
       // apply text background for greater readability.
       root_.selectAll('.gl-axis text').each(function() {
+
         var textBg = this.cloneNode(true);
         d3.select(textBg).attr({
           stroke: config_.textBgColor,
