@@ -8,3 +8,6 @@ before_script:
 
 script:
   - grunt
+
+notifications:
+  irc: "irc.freenode.net#glimpse-dev"
