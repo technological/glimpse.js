@@ -13,7 +13,9 @@ define([
   function applyDerivation(dc, data) {
     var sel = dc.select(data.sources),
         derivedData = data.derivation(sel);
-    if (typeof derivedData === 'object') {
+    //TODO: Determine if this is a complete data source
+    if (typeof derivedData === 'object' &&
+         !Array.isArray(derivedData)) {
       obj.extend(derivedData, data);
     }
     return {
@@ -38,6 +40,7 @@ define([
       add: function(data) {
         if (Array.isArray(data)) {
           data.forEach(this.add);
+          return;
         }
         if (isDerived(data)) {
           data = applyDerivation(this, data);

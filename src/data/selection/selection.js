@@ -3,8 +3,9 @@
  * Data Selection.
  */
 define([
-  'data/dimension/dimension'
-], function (dimension) {
+  'data/dimension/dimension',
+  'core/array'
+], function (dimension, array) {
   'use strict';
 
   var Selection;
@@ -14,35 +15,37 @@ define([
    * Data Selection.
    */
   Selection = function(optDataSource) {
-    this.dataSources = optDataSource || [];
+    this.dataSources_ = array.getArray(optDataSource);
   };
 
   Selection.prototype.add = function(data) {
     if(Array.isArray(data)) {
-      data.forEach(function(d) {
-        this.dataSources.push(d);
-      }, this);
+      array.append(this.dataSources_, data);
     } else {
-      this.dataSources.push(data);
+      this.dataSources_.push(data);
     }
     return this;
   };
 
   Selection.prototype.map = function(fn) {
-    return dimension.create(this.dataSources.map(fn));
+    return new Selection(this.dataSources_.map(fn));
+  };
+
+  Selection.prototype.dimMap = function(fn) {
+    return dimension.create(this.dataSources_.map(fn));
   };
 
   Selection.prototype.all = function() {
-    return this.dataSources;
+    return this.dataSources_;
   };
 
   Selection.prototype.get = function(i) {
     i = i || 0;
-    return this.dataSources[i];
+    return this.dataSources_[i];
   };
 
   Selection.prototype.dim = function(dim) {
-    return this.map(function(dataSource) {
+    return this.dimMap(function(dataSource) {
       // TODO: Handle dimensions from dimensions field.
       return dataSource.data.map(dataSource[dim]);
     });
@@ -50,8 +53,8 @@ define([
 
   return {
 
-    create: function() {
-      return new Selection();
+    create: function(optDataSource) {
+      return new Selection(optDataSource);
     },
     getSelectionPrototype: function() {
       return Selection.prototype;

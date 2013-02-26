@@ -94,11 +94,7 @@
                 title: 'Time to Connect (DFW)',
                 data: latencyData[0].data,
                 x: function (d, i) { return d.time; },
-                y: function (d, i) { return d.latency; },
-                dim: {
-                  x: function (d, i) { return d.time; },
-                  y: function (d, i) { return d.latency; }
-                }
+                y: function (d, i) { return d.latency; }
               },
               { id: 'latencyOrd',
                 title: 'Time to Connect (ORD)',

@@ -3,8 +3,9 @@
  * Difference quotient.
  */
 define([
+  'core/object',
   'data/selection/selection'
-], function (selection) {
+], function (obj, selection) {
   'use strict';
 
   var selectionPrototype = selection.getSelectionPrototype();
@@ -34,12 +35,10 @@ define([
         prevX = curX;
         prevY = curY;
       });
+      obj.extend(r, source);
       r.data = mutatedData;
       r.x = function(d) { return d.x; };
       r.y = function(d) { return d.y; };
-      r.dim = {};
-      r.dim.x = function(d) { return d.x; };
-      r.dim.y = function(d) { return d.y; };
       return r;
     });
   };
