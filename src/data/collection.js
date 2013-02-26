@@ -45,6 +45,9 @@ define([
         dataCollection[data.id] = data;
       },
 
+      /**
+       * Recalculate derived sources.
+       */
       updateDerivations: function() {
         var data, id, origData;
         Object.keys(dataCollection).forEach(function(k) {
@@ -74,6 +77,9 @@ define([
         }
       },
 
+      /**
+       * Append data to a source by id.
+       */
       append: function(id, dataToAppend) {
         var dataSource = this.get(id);
         if (dataSource) {
