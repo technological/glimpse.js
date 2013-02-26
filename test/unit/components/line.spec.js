@@ -109,11 +109,14 @@ function(d3, object, line, dc) {
       beforeEach(function() {
         selection = jasmine.svgFixture();
         lineGenerator = testLine.lineGenerator();
-        mockScale = function(d) { return d; };
-        mockScale.range = function(){ return [0,1]; };
+        accessor = {
+          x: function(d) { return d.x + 1; },
+          y: function(d) { return d.y + 1; }
+        };
+        mockScale = d3.scale.linear();
         setData();
-        testLine.xScale(mockScale);
-        testLine.yScale(mockScale);
+        testLine.xScale(d3.scale.linear());
+        testLine.yScale(d3.scale.linear());
         testLine.render('#svg-fixture');
       });
 
