@@ -52,7 +52,7 @@ module.exports = function(grunt) {
           include: ['glimpse'],
           out: 'build/glimpse.js',
           wrap: {
-            startFile: ['src/wrap.start', 'lib/almond.js'],
+            startFile: ['src/wrap.start', 'components/almond/almond.js'],
             endFile: 'src/wrap.end'
           },
           generateSourceMaps: true,
