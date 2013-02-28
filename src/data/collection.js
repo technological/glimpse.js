@@ -11,9 +11,8 @@ define([
   'use strict';
 
   function applyDerivation(dc, data) {
-    var sel = dc.select(data.sources),
-        derivedData = data.derivation(sel);
-    //TODO: Determine if this is a complete data source
+    var dataSelection = dc.select(data.sources),
+        derivedData = data.derivation(dataSelection);
     if (typeof derivedData === 'object' &&
          !Array.isArray(derivedData)) {
       obj.extend(derivedData, data);

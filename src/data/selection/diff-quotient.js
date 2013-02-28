@@ -8,7 +8,17 @@ define([
 ], function (obj, selection) {
   'use strict';
 
-  var selectionPrototype = selection.getSelectionPrototype();
+  var selectionPrototype = selection.getSelectionPrototype(),
+      TIME_INTERVAL;
+
+  /**
+   * @const
+   * @enum{string}
+   * TODO: Move after creation of a constants file.
+   */
+  TIME_INTERVAL = {
+    DAY: 1000 * 60 * 60 * 24
+  };
 
   /**
    * Calculates the difference quotient on the data
@@ -29,7 +39,7 @@ define([
           slope = (curY - prevY) / (curX - prevX);
           mutatedData.push({
             x: curX,
-            y: slope * 1000 * 60 * 60 * 24
+            y: slope * TIME_INTERVAL.DAY
           });
         }
         prevX = curX;
