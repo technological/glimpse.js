@@ -4,22 +4,28 @@
  */
 define([
   'layout/layouts',
-  'core/array'
-], function (layouts, array) {
+  'core/array',
+  'layout/util'
+],
+function (layouts, array, util) {
   'use strict';
+  var applyLayout_,
+    calculateDim_,
+    getPaddingContainer_,
+    percent_;
 
-  function calculateDim(splits, length) {
+  calculateDim_ = function(splits, length) {
     return splits.map(function(split) {
       return (parseInt(split, 10)/100) * length;
     });
-  }
+  };
 
-  function percent(number, percentage) {
+  percent_= function(number, percentage) {
     percentage = percentage || 1;
     return parseInt(number, 10) * (percentage/100);
-  }
+  };
 
-  function getPaddingContainer(node, nodeInfo) {
+  getPaddingContainer_ = function(node, nodeInfo) {
     var child, paddingLeft, paddingRight, paddingTop,
         paddingBottom, percentWidth, percentHeight;
     if (nodeInfo.padding) {
@@ -47,23 +53,23 @@ define([
       'gl-padding-top': nodeInfo.paddingTop,
       'gl-padding-bottom': nodeInfo.paddingBottom
     });
-    percentWidth = percent(node.width());
-    percentHeight = percent(node.height());
+    percentWidth = percent_(node.width());
+    percentHeight = percent_(node.height());
     child.size(
-      percent(node.width(), 100 - (paddingLeft + paddingRight)),
-      percent(node.height(), 100 - (paddingTop + paddingBottom)));
+      percent_(node.width(), 100 - (paddingLeft + paddingRight)),
+      percent_(node.height(), 100 - (paddingTop + paddingBottom)));
     child.position('top-left',
       percentWidth * paddingLeft, percentHeight * paddingTop);
     return child;
-  }
+  };
 
-  function applyLayout(node) {
+  applyLayout_ = function(node) {
     if (node.classed('gl-vgroup')) {
       node.layout({type: 'vertical'});
     } else if (node.classed('gl-hgroup')) {
       node.layout({type: 'horizontal'});
     }
-  }
+  };
 
   return {
 
@@ -83,18 +89,20 @@ define([
         nodeInfo = layout[i];
         node = root.append('g');
         node.size(width, height);
-        node = getPaddingContainer(node, nodeInfo);
+        util.border(node, nodeInfo);
+        util.backgroundColor(node, nodeInfo);
+        node = getPaddingContainer_(node, nodeInfo);
         node.attr({
           'class': nodeInfo['class'],
           'split': nodeInfo.split
         });
         if (node.classed('gl-vgroup')) {
-          dim = calculateDim(nodeInfo.split, height);
+          dim = calculateDim_(nodeInfo.split, height);
           dim = dim.map(function(d) {
             return [width, d];
           });
         } else if (node.classed('gl-hgroup')) {
-          dim = calculateDim(nodeInfo.split, width);
+          dim = calculateDim_(nodeInfo.split, width);
           dim = dim.map(function(d) {
             return [d, height];
           });
@@ -106,7 +114,7 @@ define([
             this.setLayout(child, node, node.width(), node.height());
           }
         }, this);
-        applyLayout(node);
+        applyLayout_(node);
       }
     }
 

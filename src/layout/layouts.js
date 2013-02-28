@@ -15,7 +15,11 @@ define(function () {
         padding: 0,
         'class': 'gl-info'
       }, {
-        'class': 'gl-framed'
+        'class': 'gl-framed',
+        paddingTop: 5,
+        border: 1,
+        borderColor: '#999',
+        backgroundColor: '#fff'
       }, {
         'class': 'gl-xaxis',
         padding: 1,
@@ -24,6 +28,9 @@ define(function () {
         'class': 'gl-footer',
         paddingTop: 1,
         paddingBottom: 1
+        borderStyle: 'dashed',
+        borderTop: 1,
+        borderOpacity: 0.3
       }]
     },
 
