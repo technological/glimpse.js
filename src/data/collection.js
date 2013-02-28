@@ -18,13 +18,7 @@ define([
          !Array.isArray(derivedData)) {
       obj.extend(derivedData, data);
     }
-    return {
-      id: data.id,
-      glOrigData: data,
-      derivedData: derivedData,
-      sources: data.sources,
-      derivation: data.derivation
-    };
+    return derivedData;
   }
 
   function isDerived(data) {
@@ -34,6 +28,7 @@ define([
   function collection() {
     var dataCollection = {};
     return {
+
       /**
        * Add a data source.
        */
@@ -43,23 +38,21 @@ define([
           return;
         }
         if (isDerived(data)) {
-          data = applyDerivation(this, data);
+          dataCollection[data.id] = { glDerive: data };
+        } else {
+          dataCollection[data.id] = data;
         }
-        dataCollection[data.id] = data;
       },
 
       /**
        * Recalculate derived sources.
        */
       updateDerivations: function() {
-        var data, id, origData;
+        var data;
         Object.keys(dataCollection).forEach(function(k) {
           data = dataCollection[k];
-          if(isDerived(data)) {
-            id = data.id;
-            origData = data.glOrigData;
-            this.remove(id);
-            this.add(origData);
+          if(data.glDerive) {
+            data.glDerivation = applyDerivation(this, data.glDerive);
           }
         }, this);
       },
@@ -71,6 +64,9 @@ define([
         delete dataCollection[id];
       },
 
+      /**
+       * Update an item in place.
+       */
       upsert: function(data) {
         var id = data.id;
         if (dataCollection[id]) {
@@ -100,12 +96,13 @@ define([
       get: function(id) {
         if (id) {
           if (dataCollection[id]) {
-            return dataCollection[id].derivedData || dataCollection[id];
+            return dataCollection[id].glDerivation || dataCollection[id];
           }
           return  null;
         }
         return Object.keys(dataCollection).map(function(k) {
-          return dataCollection[k];
+          var data = dataCollection[k];
+          return data.glDerivation || data;
         });
       },
 
@@ -115,15 +112,16 @@ define([
        */
       select: function(sources) {
         var sel = selection.create(),
-            ids, data;
+            ids, dataList, data;
         if(sources === '*') {
-          data = [];
+          dataList = [];
           Object.keys(dataCollection).forEach(function(k) {
-            if(!isDerived(dataCollection[k])) {
-              data.push(dataCollection[k]);
+            data = dataCollection[k];
+            if(!isDerived(data) && !data.glDerive) {
+              dataList.push(data);
             }
           });
-          sel.add(data);
+          sel.add(dataList);
         } else {
           ids = sources.split(',');
           ids.forEach(function(id) {

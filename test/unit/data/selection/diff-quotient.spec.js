@@ -44,6 +44,7 @@ function (dc) {
           return sources.diffQuotient().dim('y').round().get();
         }
       });
+      dataCollection.updateDerivations();
 
     }
 

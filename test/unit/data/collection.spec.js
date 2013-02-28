@@ -67,12 +67,21 @@ define([
         expect(dataCollection.get('test')).toBe(data);
       });
 
-      it('adds a derived sources calls the derivation function', function() {
+      it('adds a derived sources does not call the derivation fn', function() {
         var derivationFn = jasmine.createSpy(),
             data = {id: 'test', sources:'*', derivation: derivationFn };
         dataCollection.add(data);
+        expect(derivationFn).not.toHaveBeenCalled();
+      });
+
+      it('adds a derived sources calls the derivation fn', function() {
+        var derivationFn = jasmine.createSpy(),
+            data = {id: 'test', sources:'*', derivation: derivationFn };
+        dataCollection.add(data);
+        dataCollection.updateDerivations();
         expect(derivationFn).toHaveBeenCalled();
       });
+
 
       it('adds derived data calls the deriv fn with a src sel', function() {
         var derivationFn = jasmine.createSpy(),
@@ -80,6 +89,7 @@ define([
             data = {id: 'test', sources:'depX', derivation: derivationFn };
         dataCollection.add(depX);
         dataCollection.add(data);
+        dataCollection.updateDerivations();
         expect(derivationFn).toHaveBeenCalledWith(sel.create(depX));
       });
 
@@ -90,6 +100,7 @@ define([
             data = {id: 'test', sources:'depX,depY', derivation: derivationFn };
         dataCollection.add([depX, depY]);
         dataCollection.add(data);
+        dataCollection.updateDerivations();
         expect(derivationFn).toHaveBeenCalledWith(sel.create([depX, depY]));
       });
 
@@ -100,6 +111,7 @@ define([
             data = {id: 'test', sources:'depY,depX', derivation: derivationFn };
         dataCollection.add([depX, depY]);
         dataCollection.add(data);
+        dataCollection.updateDerivations();
         expect(derivationFn).toHaveBeenCalledWith(sel.create([depY, depX]));
       });
 
@@ -111,6 +123,7 @@ define([
             data = {id: 'test', sources:'*', derivation: derivationFn };
         dataCollection.add([depX, depY, depZ]);
         dataCollection.add(data);
+        dataCollection.updateDerivations();
         expect(derivationFn).toHaveBeenCalledWith(
           sel.create([depX, depY, depZ]));
       });
@@ -125,6 +138,7 @@ define([
         dataCollection.add([depX, depY, depZ]);
         dataCollection.add(deriv1);
         dataCollection.add(data);
+        dataCollection.updateDerivations();
         expect(derivationFn).toHaveBeenCalledWith(
           sel.create([depX, depY, depZ]));
       });
@@ -140,6 +154,7 @@ define([
             data = {id: 'test', sources:'*', derivation: derivationFn };
         dataCollection.add([depX, depY]);
         dataCollection.add(data);
+        dataCollection.updateDerivations();
         expect(dataCollection.get('test')).toBe('XYZ');
       });
 

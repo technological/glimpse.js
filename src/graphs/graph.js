@@ -419,6 +419,7 @@ function(obj, config, array, assetLoader, format, components, layoutManager,
      * Updates scales and legend
      */
     update_ = function() {
+      dataCollection_.updateDerivations();
       updateScales_();
       updateAxes_();
       updateLegend_();
@@ -668,7 +669,6 @@ function(obj, config, array, assetLoader, format, components, layoutManager,
      * @return {graphs.graph}
      */
     graph.update = function() {
-      dataCollection_.updateDerivations();
       update_();
       components_.forEach(function(component) {
         component.update();
