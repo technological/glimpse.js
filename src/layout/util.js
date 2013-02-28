@@ -11,6 +11,14 @@ define(function () {
     getStrokeDashArray_,
     getStrokeWidth_;
 
+  /**
+   * Computes the stroke-dasharray value
+   * https://developer.mozilla.org/en-US/docs/SVG/Attribute/stroke-dasharray
+   * @param  {Object} border {top:bool, right:bool, bottom:bool, left:bool}
+   * @param  {integer} width  [description]
+   * @param  {integer} height [description]
+   * @return {Array}  stroke-dasharray
+   */
   getStrokeDashArray_ = function(border, width, height) {
     var stroke = [], t, r, b, l;
 
@@ -43,6 +51,13 @@ define(function () {
     return stroke;
   };
 
+  /**
+   * Applies solid border node by setting the
+   * stroke-dasharray attribute on the rect inside
+   * the node.
+   * @param  {d3.selection} node
+   * @param  {Object} nodeInfo
+   */
   applySolidBorder_ = function(node, nodeInfo) {
     var border = {},
       strokeDashArray = [],
@@ -87,6 +102,12 @@ define(function () {
     }
   };
 
+  /**
+   * Applies dashed border to the node by
+   * adding svg line elements.
+   * @param  {d3.selection} node
+   * @param  {Object} nodeInfo
+   */
   applyDashedBorder_ = function(node, nodeInfo) {
     var coordinates = {};
 
@@ -123,6 +144,12 @@ define(function () {
     }
   };
 
+  /**
+   * Adds svg line elements based on the coordinates array
+   * @param {Object} coordinates Cooridates to draw the line
+   * @param  {d3.selection} node
+   * @param  {Object} nodeInfo
+   */
   addDashedBorder_ = function(coordinates, node, nodeInfo) {
     node.append('line')
       .attr({
@@ -137,6 +164,10 @@ define(function () {
       });
   };
 
+  /**
+   * Computes the stroke-width attribute
+   * @param  {Object} nodeInfo
+   */
   getStrokeWidth_ = function(nodeInfo) {
     var strokeWidth = 1;
 
@@ -156,6 +187,11 @@ define(function () {
   };
 
   return {
+    /**
+     * Sets the border on the node
+     * @param  {d3.selection} node
+     * @param  {Object} nodeInfo
+     */
     border: function (node, nodeInfo) {
       if (nodeInfo.borderStyle === 'dashed') {
         applyDashedBorder_(node, nodeInfo);
@@ -164,6 +200,11 @@ define(function () {
       }
     },
 
+    /**
+     * Sets the background color on the node
+     * @param  {d3.selection} node
+     * @param  {Object} nodeInfo
+     */
     backgroundColor: function (node, nodeInfo) {
       node.select('.gl-layout-size')
         .attr('fill', nodeInfo.backgroundColor || 'none');
