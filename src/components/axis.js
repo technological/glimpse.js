@@ -24,7 +24,6 @@ function(obj, config, string, mixins, d3util) {
 
     defaults_ = {
       type: 'x',
-      id: string.random(),
       gap: 0,
       target: '.gl-framed',
       color: '#333',
