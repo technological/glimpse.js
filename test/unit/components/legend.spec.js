@@ -190,6 +190,21 @@ function(legend) {
 
     });
 
+    describe('destroy()', function() {
+      var selection;
+
+      beforeEach(function() {
+        selection = jasmine.svgFixture();
+        testLegend.render(selection);
+        testLegend.destroy();
+      });
+
+      it('removes all the dom nodes', function() {
+        expect(selection.selectAll('*')).toBeEmptySelection();
+      });
+
+    });
+
   });
 
 });

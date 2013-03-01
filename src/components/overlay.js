@@ -138,7 +138,9 @@ function(obj, config, label, mixins, d3util) {
       config_.components.forEach(function(label) {
         label.destroy();
       });
-      root_.remove();
+      if (root_) {
+        root_.remove();
+      }
       root_ = null;
       config_ = null;
       defaults_ = null;
