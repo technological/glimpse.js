@@ -100,7 +100,9 @@ function(obj, config, string, util, mixins) {
         .attr({
           'width': config_.indicatorWidth,
           'height': config_.indicatorHeight,
-          'fill': function(d) { return d.color; }
+          'fill': function(d) {
+            return d3.functor(d.color)();
+          }
         });
 
       // Update key text.
@@ -150,7 +152,9 @@ function(obj, config, string, util, mixins) {
       // The selection of legend keys.
       selection = root_
         .selectAll('.gl-legend-key')
-        .data(config_.keys, function(d) { return d.color; });
+        .data(config_.keys, function(d) {
+          return d3.functor(d.color)();
+        });
 
       remove_(selection);
       enter_(selection);
