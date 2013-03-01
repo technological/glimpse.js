@@ -631,13 +631,7 @@ function(obj, config, array, assetLoader, format, components, layoutManager,
      * @return {graphs.graph}
      */
     graph.removeData = function(id) {
-      var ids, itemsToRemove;
-
-      ids = array.getArray(id);
-      itemsToRemove = data_.filter(function(d) {
-        return array.contains(ids, d.id);
-      });
-      array.remove(data_, itemsToRemove);
+      dataCollection_.remove(id);
       return graph;
     };
 

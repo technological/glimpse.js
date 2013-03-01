@@ -657,12 +657,12 @@ function(graph, assetLoader, dc, compUtil) {
 
       it('removes a single data item from the collection', function() {
         testGraph.removeData('one');
-        expect(testGraph.data().map(idMapper)).toEqual(['two', 'three']);
+        expect(testGraph.data().get().map(idMapper)).toEqual(['two', 'three']);
       });
 
       it('removes multiple data items from the collection', function() {
         testGraph.removeData(['one', 'two']);
-        expect(testGraph.data().map(idMapper)).toEqual(['three']);
+        expect(testGraph.data().get().map(idMapper)).toEqual(['three']);
       });
 
       it('does nothing if data id doesnt exist', function() {
@@ -674,7 +674,7 @@ function(graph, assetLoader, dc, compUtil) {
           exThrown = true;
         }
         expect(exThrown).toBe(false);
-        expect(testGraph.data().length).toBe(3);
+        expect(testGraph.data().get().length).toBe(3);
       });
 
     });
