@@ -57,6 +57,8 @@ function(graph, assetLoader, dc, compUtil) {
           }
         ])
         .component({ cid: 'testComponent', type: 'line', dataId: 'fakeData' })
+        .component({ cid: 'testComponentWithColor',
+          type: 'line', dataId: 'fakeData', color: 'red' })
         .xAxis({ cid: 'xAxis' })
         .yAxis({ cid: 'yAxis' })
         .legend({ cid: 'legend' });
@@ -468,6 +470,26 @@ function(graph, assetLoader, dc, compUtil) {
       //TODO: tests for the layout of components.
       //dependency layout manager.
 
+    });
+
+    describe('setDefaultColor', function() {
+      var selection, testComponentWithColor;
+
+      beforeEach(function() {
+        setGraph();
+        setSpies();
+        selection = jasmine.htmlFixture();
+        testGraph.render(selection.node());
+        testComponentWithColor = testGraph.component('testComponentWithColor');
+      });
+
+      it('sets default color on component if color not specified', function() {
+        expect(testComponent.config().color).toBeDefinedAndNotNull();
+      });
+
+      it('does not override the component color if set', function() {
+        expect(testComponentWithColor.config().color).toBe('red');
+      });
     });
 
     describe('state()', function() {

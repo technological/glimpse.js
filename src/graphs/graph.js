@@ -61,8 +61,9 @@ function(obj, config, array, assetLoader, format, components, layoutManager,
       dataCollection_,
       isRendered_,
       updateStateDisplay,
-      STATES;
-
+      STATES,
+      NO_COLORED_COMPONENTS,
+      coloredComponentsCount;
     /**
      * @enum
      * The possible states a graph can be in.
@@ -74,6 +75,12 @@ function(obj, config, array, assetLoader, format, components, layoutManager,
       ERROR: 'error',
       DESTROYED: 'destroyed'
     };
+
+    /**
+     * Components that do not require a default color
+     * @type {Array}
+     */
+    NO_COLORED_COMPONENTS = ['x', 'y', 'legend', 'label'];
 
     config_ = {};
 
@@ -194,6 +201,27 @@ function(obj, config, array, assetLoader, format, components, layoutManager,
     getFrameWidth_ = function() {
       return root_.select('.gl-framed').width();
     };
+
+
+    /** Sets default color for each component if color not set */
+    function setDefaultColors() {
+      var colors, len, coloredComponents;
+
+      coloredComponents = components_.filter(function(c) {
+        return !array.contains(NO_COLORED_COMPONENTS, c.config().type);
+      });
+
+      colors = coloredComponents.length < 10 ? d3.scale.category10().range() :
+        d3.scale.category20().range();
+      len = colors.length;
+
+      components_.forEach(function(c) {
+        if (array.contains(coloredComponents, c) && c.hasOwnProperty('color')) {
+          c.config().color = c.config().color ?
+            c.config().color : colors[coloredComponentsCount++ % len];
+        }
+      });
+    }
 
     /**
      * @private
@@ -563,6 +591,7 @@ function(obj, config, array, assetLoader, format, components, layoutManager,
           target: '.gl-footer',
           position: 'center-right'
         });
+      coloredComponentsCount = 0;
       return graph;
     }
 
@@ -747,6 +776,7 @@ function(obj, config, array, assetLoader, format, components, layoutManager,
     graph.render = function(selector) {
       var selection = d3util.select(selector);
       assetLoader.loadAll();
+      setDefaultColors();
       addLegend_();
       addAxes_();
       addComponent_(xDomainLabel_);
