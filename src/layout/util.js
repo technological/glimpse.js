@@ -5,12 +5,6 @@
 define(function () {
   'use strict';
 
-  var addStyledBorder_,
-    applyStyledBorder_,
-    applySolidBorder_,
-    getStrokeDashArray_,
-    getStrokeWidth_;
-
   /**
    * Computes the stroke-dasharray value
    * https://developer.mozilla.org/en-US/docs/SVG/Attribute/stroke-dasharray
@@ -19,7 +13,7 @@ define(function () {
    * @param  {integer} height [description]
    * @return {Array}  stroke-dasharray
    */
-  getStrokeDashArray_ = function(border, width, height) {
+  function getStrokeDashArray(border, width, height) {
     var stroke = [], t, r, b, l;
 
     t = border.top;
@@ -49,7 +43,7 @@ define(function () {
     stroke.push(height);
 
     return stroke;
-  };
+  }
 
   /**
    * Applies solid border node by setting the
@@ -58,7 +52,7 @@ define(function () {
    * @param  {d3.selection} node
    * @param  {Object} nodeInfo
    */
-  applySolidBorder_ = function(node, nodeInfo) {
+  function applySolidBorder(node, nodeInfo) {
     var border = {},
       strokeDashArray = [],
       hasBorder = false;
@@ -73,7 +67,7 @@ define(function () {
     hasBorder = border.top || border.right || border.bottom || border.left;
 
     if (hasBorder) {
-      strokeDashArray = getStrokeDashArray_(
+      strokeDashArray = getStrokeDashArray(
         border,
         node.width(),
         node.height()
@@ -82,12 +76,12 @@ define(function () {
       node.select('.gl-layout-size')
         .attr({
           'stroke': nodeInfo.borderColor || '#999',
-          'stroke-width': getStrokeWidth_(nodeInfo),
+          'stroke-width': getStrokeWidth(nodeInfo),
           'stroke-opacity': nodeInfo.borderOpacity || 1,
           'stroke-dasharray': strokeDashArray.toString()
         });
     }
-  };
+  }
 
   /**
    * Applies styled border to the node by
@@ -95,7 +89,7 @@ define(function () {
    * @param  {d3.selection} node
    * @param  {Object} nodeInfo
    */
-  applyStyledBorder_ = function(node, nodeInfo, style) {
+  function applyStyledBorder(node, nodeInfo, style) {
     var coordinates = {};
 
     if (nodeInfo.border || nodeInfo.borderTop) {
@@ -104,7 +98,7 @@ define(function () {
       coordinates.x2 = node.width();
       coordinates.y2 = 0;
       coordinates.subClass = 'top';
-      addStyledBorder_(coordinates,  node, nodeInfo, style);
+      addStyledBorder(coordinates,  node, nodeInfo, style);
     }
 
     if (nodeInfo.border || nodeInfo.borderRight) {
@@ -113,7 +107,7 @@ define(function () {
       coordinates.x2 = node.width();
       coordinates.y2 = node.height();
       coordinates.subClass = 'right';
-      addStyledBorder_(coordinates, node, nodeInfo, style);
+      addStyledBorder(coordinates, node, nodeInfo, style);
     }
 
     if (nodeInfo.border || nodeInfo.borderBottom) {
@@ -122,7 +116,7 @@ define(function () {
       coordinates.x2 = node.width();
       coordinates.y2 = node.height();
       coordinates.subClass = 'bottom';
-      addStyledBorder_(coordinates, node, nodeInfo, style);
+      addStyledBorder(coordinates, node, nodeInfo, style);
     }
 
     if (nodeInfo.border || nodeInfo.borderLeft) {
@@ -131,9 +125,9 @@ define(function () {
       coordinates.x2 = 0;
       coordinates.y2 = node.height();
       coordinates.subClass = 'left';
-      addStyledBorder_(coordinates, node, nodeInfo, style);
+      addStyledBorder(coordinates, node, nodeInfo, style);
     }
-  };
+  }
 
   /**
    * Adds svg line elements based on the coordinates array
@@ -142,11 +136,11 @@ define(function () {
    * @param  {Object} nodeInfo
    * @param  {String} style
    */
-  addStyledBorder_ = function(coordinates, node, nodeInfo, style) {
+  function addStyledBorder(coordinates, node, nodeInfo, style) {
     var className, dasharray, strokeWidth;
 
     className = 'gl-' + style + '-border-' + coordinates.subClass;
-    strokeWidth = getStrokeWidth_(nodeInfo);
+    strokeWidth = getStrokeWidth(nodeInfo);
     dasharray = (style === 'dotted') ? '1,1' :
       (nodeInfo.borderDashArray || '2,2');
     node.append('line')
@@ -161,29 +155,29 @@ define(function () {
         'stroke-opacity': nodeInfo.borderOpacity || 1,
         'stroke-dasharray': dasharray
       });
-  };
+  }
 
   /**
    * Computes the stroke-width attribute
    * @param  {Object} nodeInfo
    */
-  getStrokeWidth_ = function(nodeInfo) {
+  function getStrokeWidth(nodeInfo) {
     var strokeWidth = 1;
 
     if (nodeInfo.border) {
-      strokeWidth = parseInt(nodeInfo.border, 10);
+      strokeWidth = nodeInfo.border;
     } else if (nodeInfo.borderTop) {
-      strokeWidth = parseInt(nodeInfo.borderTop, 10);
+      strokeWidth = nodeInfo.borderTop;
     } else if (nodeInfo.borderRight) {
-      strokeWidth = parseInt(nodeInfo.borderTop, 10);
+      strokeWidth = nodeInfo.borderTop;
     } else if (nodeInfo.borderBottom) {
-      strokeWidth = parseInt(nodeInfo.borderBottom, 10);
+      strokeWidth = nodeInfo.borderBottom;
     } else if (nodeInfo.borderLeft) {
-      strokeWidth = parseInt(nodeInfo.borderLeft, 10);
+      strokeWidth = nodeInfo.borderLeft;
     }
 
     return strokeWidth;
-  };
+  }
 
   return {
     /**
@@ -198,16 +192,16 @@ define(function () {
 
       switch(style) {
         case 'dotted':
-          applyStyledBorder_(node, nodeInfo, 'dotted');
+          applyStyledBorder(node, nodeInfo, 'dotted');
           break;
         case 'dashed':
-          applyStyledBorder_(node, nodeInfo, 'dashed');
+          applyStyledBorder(node, nodeInfo, 'dashed');
           break;
         case 'solid':
-          applySolidBorder_(node, nodeInfo);
+          applySolidBorder(node, nodeInfo);
           break;
         default:
-          applySolidBorder_(node, nodeInfo);
+          applySolidBorder(node, nodeInfo);
       }
     },
 
