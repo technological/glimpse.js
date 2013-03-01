@@ -5,8 +5,8 @@
 define(function () {
   'use strict';
 
-  var addDashedBorder_,
-    applyDashedBorder_,
+  var addStyledBorder_,
+    applyStyledBorder_,
     applySolidBorder_,
     getStrokeDashArray_,
     getStrokeWidth_;
@@ -61,8 +61,7 @@ define(function () {
   applySolidBorder_ = function(node, nodeInfo) {
     var border = {},
       strokeDashArray = [],
-      hasBorder = false,
-      strokeWidth;
+      hasBorder = false;
 
     border = {
       top: !!nodeInfo.border || !!nodeInfo.borderTop,
@@ -72,18 +71,6 @@ define(function () {
     };
 
     hasBorder = border.top || border.right || border.bottom || border.left;
-
-    if (nodeInfo.border) {
-      strokeWidth = nodeInfo.border;
-    } else if (nodeInfo.borderTop) {
-      strokeWidth = nodeInfo.borderTop;
-    } else if (nodeInfo.borderRight) {
-      strokeWidth = nodeInfo.borderTop;
-    } else if (nodeInfo.borderBottom) {
-      strokeWidth = nodeInfo.borderBottom;
-    } else if (nodeInfo.borderLeft) {
-      strokeWidth = nodeInfo.borderLeft;
-    }
 
     if (hasBorder) {
       strokeDashArray = getStrokeDashArray_(
@@ -103,12 +90,12 @@ define(function () {
   };
 
   /**
-   * Applies dashed border to the node by
+   * Applies styled border to the node by
    * adding svg line elements.
    * @param  {d3.selection} node
    * @param  {Object} nodeInfo
    */
-  applyDashedBorder_ = function(node, nodeInfo) {
+  applyStyledBorder_ = function(node, nodeInfo, style) {
     var coordinates = {};
 
     if (nodeInfo.border || nodeInfo.borderTop) {
@@ -116,23 +103,8 @@ define(function () {
       coordinates.y1 = 0;
       coordinates.x2 = node.width();
       coordinates.y2 = 0;
-      addDashedBorder_(coordinates,  node, nodeInfo);
-    }
-
-    if (nodeInfo.border || nodeInfo.borderBottom) {
-      coordinates.x1 = 0;
-      coordinates.y1 = node.height();
-      coordinates.x2 = node.width();
-      coordinates.y2 = node.height();
-      addDashedBorder_(coordinates, node, nodeInfo);
-    }
-
-    if (nodeInfo.border || nodeInfo.borderLeft) {
-      coordinates.x1 = 0;
-      coordinates.y1 = 0;
-      coordinates.x2 = 0;
-      coordinates.y2 = node.height();
-      addDashedBorder_(coordinates, node, nodeInfo);
+      coordinates.subClass = 'top';
+      addStyledBorder_(coordinates,  node, nodeInfo, style);
     }
 
     if (nodeInfo.border || nodeInfo.borderRight) {
@@ -140,7 +112,26 @@ define(function () {
       coordinates.y1 = 0;
       coordinates.x2 = node.width();
       coordinates.y2 = node.height();
-      addDashedBorder_(coordinates, node, nodeInfo);
+      coordinates.subClass = 'right';
+      addStyledBorder_(coordinates, node, nodeInfo, style);
+    }
+
+    if (nodeInfo.border || nodeInfo.borderBottom) {
+      coordinates.x1 = 0;
+      coordinates.y1 = node.height();
+      coordinates.x2 = node.width();
+      coordinates.y2 = node.height();
+      coordinates.subClass = 'bottom';
+      addStyledBorder_(coordinates, node, nodeInfo, style);
+    }
+
+    if (nodeInfo.border || nodeInfo.borderLeft) {
+      coordinates.x1 = 0;
+      coordinates.y1 = 0;
+      coordinates.x2 = 0;
+      coordinates.y2 = node.height();
+      coordinates.subClass = 'left';
+      addStyledBorder_(coordinates, node, nodeInfo, style);
     }
   };
 
@@ -149,18 +140,26 @@ define(function () {
    * @param {Object} coordinates Cooridates to draw the line
    * @param  {d3.selection} node
    * @param  {Object} nodeInfo
+   * @param  {String} style
    */
-  addDashedBorder_ = function(coordinates, node, nodeInfo) {
+  addStyledBorder_ = function(coordinates, node, nodeInfo, style) {
+    var className, dasharray, strokeWidth;
+
+    className = 'gl-' + style + '-border-' + coordinates.subClass;
+    strokeWidth = getStrokeWidth_(nodeInfo);
+    dasharray = (style === 'dotted') ? '1,1' :
+      (nodeInfo.borderDashArray || '2,2');
     node.append('line')
       .attr({
         x1: coordinates.x1,
         y1: coordinates.y1,
         x2: coordinates.x2,
         y2: coordinates.y2,
-        'class': 'gl-dashed-border',
+        'class': className,
         'stroke': nodeInfo.borderColor || '#999',
-        'stroke-width': getStrokeWidth_(nodeInfo),
-        'stroke-dasharray': '1,1'
+        'stroke-width': strokeWidth,
+        'stroke-opacity': nodeInfo.borderOpacity || 1,
+        'stroke-dasharray': dasharray
       });
   };
 
@@ -172,15 +171,15 @@ define(function () {
     var strokeWidth = 1;
 
     if (nodeInfo.border) {
-      strokeWidth = nodeInfo.border;
+      strokeWidth = parseInt(nodeInfo.border, 10);
     } else if (nodeInfo.borderTop) {
-      strokeWidth = nodeInfo.borderTop;
+      strokeWidth = parseInt(nodeInfo.borderTop, 10);
     } else if (nodeInfo.borderRight) {
-      strokeWidth = nodeInfo.borderTop;
+      strokeWidth = parseInt(nodeInfo.borderTop, 10);
     } else if (nodeInfo.borderBottom) {
-      strokeWidth = nodeInfo.borderBottom;
+      strokeWidth = parseInt(nodeInfo.borderBottom, 10);
     } else if (nodeInfo.borderLeft) {
-      strokeWidth = nodeInfo.borderLeft;
+      strokeWidth = parseInt(nodeInfo.borderLeft, 10);
     }
 
     return strokeWidth;
@@ -192,11 +191,23 @@ define(function () {
      * @param  {d3.selection} node
      * @param  {Object} nodeInfo
      */
-    border: function (node, nodeInfo) {
-      if (nodeInfo.borderStyle === 'dashed') {
-        applyDashedBorder_(node, nodeInfo);
-      } else {
-        applySolidBorder_(node, nodeInfo);
+    border: function(node, nodeInfo) {
+      var style;
+
+      style = nodeInfo.borderStyle || 'solid';
+
+      switch(style) {
+        case 'dotted':
+          applyStyledBorder_(node, nodeInfo, 'dotted');
+          break;
+        case 'dashed':
+          applyStyledBorder_(node, nodeInfo, 'dashed');
+          break;
+        case 'solid':
+          applySolidBorder_(node, nodeInfo);
+          break;
+        default:
+          applySolidBorder_(node, nodeInfo);
       }
     },
 
@@ -205,7 +216,7 @@ define(function () {
      * @param  {d3.selection} node
      * @param  {Object} nodeInfo
      */
-    backgroundColor: function (node, nodeInfo) {
+    backgroundColor: function(node, nodeInfo) {
       node.select('.gl-layout-size')
         .attr('fill', nodeInfo.backgroundColor || 'none');
     }

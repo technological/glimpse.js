@@ -28,9 +28,9 @@ define(function () {
         'class': 'gl-footer',
         paddingTop: 1,
         paddingBottom: 1
-        borderStyle: 'dashed',
-        borderTop: 1,
-        borderOpacity: 0.3
+        padding: 1,
+        borderStyle: 'dotted',
+        borderTop: 1
       }]
     },
 
