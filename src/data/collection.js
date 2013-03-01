@@ -110,7 +110,7 @@ define([
        * delimited by a comma.
        */
       select: function(sources) {
-        var sel = selection.create(),
+        var dataSelection = selection.create(),
             ids, dataList, data;
         if(sources === '*') {
           dataList = [];
@@ -120,18 +120,18 @@ define([
               dataList.push(data);
             }
           });
-          sel.add(dataList);
+          dataSelection.add(dataList);
         } else {
           ids = sources.split(',');
           ids.forEach(function(id) {
             data = dataCollection[id];
             if(data) {
-              sel.add(data);
+              dataSelection.add(data);
             }
           });
         }
 
-        return sel;
+        return dataSelection;
       }
     };
   }
