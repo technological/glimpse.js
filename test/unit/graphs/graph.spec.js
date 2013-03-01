@@ -46,6 +46,7 @@ function(graph, assetLoader, dc, compUtil) {
 
     function setGraph() {
       testGraph
+        .config({colorPalette: ['green']})
         .data([
           {
             id: 'fakeData',
@@ -117,7 +118,7 @@ function(graph, assetLoader, dc, compUtil) {
       });
 
       it('has default marginTop', function() {
-        expect(testGraph.config().marginTop).toBe(defaults.marginTop);
+        expect(config.marginTop).toBe(defaults.marginTop);
       });
 
       it('has default marginRight', function() {
@@ -142,6 +143,10 @@ function(graph, assetLoader, dc, compUtil) {
 
       it('has default showLegend set', function() {
         expect(config.showLegend).toBe(true);
+      });
+
+      it('has default colorPalette set', function() {
+        expect(config.colorPalette).toEqual(d3.scale.category20().range());
       });
 
     });
@@ -472,7 +477,7 @@ function(graph, assetLoader, dc, compUtil) {
 
     });
 
-    describe('setDefaultColor', function() {
+    describe('component colors', function() {
       var selection, testComponentWithColor;
 
       beforeEach(function() {
@@ -483,9 +488,11 @@ function(graph, assetLoader, dc, compUtil) {
         testComponentWithColor = testGraph.component('testComponentWithColor');
       });
 
-      it('sets default color on component if color not specified', function() {
-        expect(testComponent.config().color).toBeDefinedAndNotNull();
-      });
+      it('sets default color on component using colorPalette',
+        function() {
+          expect(testComponent.config().color).toBe('green');
+        }
+      );
 
       it('does not override the component color if set', function() {
         expect(testComponentWithColor.config().color).toBe('red');

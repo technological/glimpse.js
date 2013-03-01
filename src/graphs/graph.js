@@ -105,7 +105,8 @@ function(obj, config, array, assetLoader, format, components, layoutManager,
       loadingMessage: 'Loading...',
       errorMessage: 'Error loading graph data',
       state: 'normal',
-      yDomainModifier: 1.2
+      yDomainModifier: 1.2,
+      colorPalette: d3.scale.category20().range()
     };
 
     /**
@@ -206,13 +207,11 @@ function(obj, config, array, assetLoader, format, components, layoutManager,
     /** Sets default color for each component if color not set */
     function setDefaultColors() {
       var colors, len, coloredComponents;
-
       coloredComponents = components_.filter(function(c) {
         return !array.contains(NO_COLORED_COMPONENTS, c.config().type);
       });
 
-      colors = coloredComponents.length < 10 ? d3.scale.category10().range() :
-        d3.scale.category20().range();
+      colors = d3.functor(config_.colorPalette)();
       len = colors.length;
 
       components_.forEach(function(c) {
