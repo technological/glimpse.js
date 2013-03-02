@@ -1,7 +1,7 @@
 (function (global) {
 
 /**
- * almond 0.1.4 Copyright (c) 2011, The Dojo Foundation All Rights Reserved.
+ * almond 0.2.5 Copyright (c) 2011-2012, The Dojo Foundation All Rights Reserved.
  * Available via the MIT or new BSD license.
  * see: http://github.com/jrburke/almond for details
  */
@@ -12,12 +12,17 @@
 
 var requirejs, require, define;
 (function (undef) {
-    var main, req,
+    var main, req, makeMap, handlers,
         defined = {},
         waiting = {},
         config = {},
         defining = {},
+        hasOwn = Object.prototype.hasOwnProperty,
         aps = [].slice;
+
+    function hasProp(obj, prop) {
+        return hasOwn.call(obj, prop);
+    }
 
     /**
      * Given a relative module name, like ./something, normalize it to
@@ -73,6 +78,10 @@ var requirejs, require, define;
                 //end trimDots
 
                 name = name.join("/");
+            } else if (name.indexOf('./') === 0) {
+                // No baseName, so this is ID is resolved relative
+                // to baseUrl, pull off the leading dot.
+                name = name.substring(2);
             }
         }
 
@@ -152,17 +161,30 @@ var requirejs, require, define;
     }
 
     function callDep(name) {
-        if (waiting.hasOwnProperty(name)) {
+        if (hasProp(waiting, name)) {
             var args = waiting[name];
             delete waiting[name];
             defining[name] = true;
             main.apply(undef, args);
         }
 
-        if (!defined.hasOwnProperty(name)) {
+        if (!hasProp(defined, name) && !hasProp(defining, name)) {
             throw new Error('No ' + name);
         }
         return defined[name];
+    }
+
+    //Turns a plugin!resource to [plugin, resource]
+    //with the plugin being undefined if the name
+    //did not have a plugin prefix.
+    function splitPrefix(name) {
+        var prefix,
+            index = name ? name.indexOf('!') : -1;
+        if (index > -1) {
+            prefix = name.substring(0, index);
+            name = name.substring(index + 1, name.length);
+        }
+        return [prefix, name];
     }
 
     /**
@@ -170,16 +192,20 @@ var requirejs, require, define;
      * for normalization if necessary. Grabs a ref to plugin
      * too, as an optimization.
      */
-    function makeMap(name, relName) {
-        var prefix, plugin,
-            index = name.indexOf('!');
+    makeMap = function (name, relName) {
+        var plugin,
+            parts = splitPrefix(name),
+            prefix = parts[0];
 
-        if (index !== -1) {
-            prefix = normalize(name.slice(0, index), relName);
-            name = name.slice(index + 1);
+        name = parts[1];
+
+        if (prefix) {
+            prefix = normalize(prefix, relName);
             plugin = callDep(prefix);
+        }
 
-            //Normalize according
+        //Normalize according
+        if (prefix) {
             if (plugin && plugin.normalize) {
                 name = plugin.normalize(name, makeNormalize(relName));
             } else {
@@ -187,21 +213,50 @@ var requirejs, require, define;
             }
         } else {
             name = normalize(name, relName);
+            parts = splitPrefix(name);
+            prefix = parts[0];
+            name = parts[1];
+            if (prefix) {
+                plugin = callDep(prefix);
+            }
         }
 
         //Using ridiculous property names for space reasons
         return {
             f: prefix ? prefix + '!' + name : name, //fullName
             n: name,
+            pr: prefix,
             p: plugin
         };
-    }
+    };
 
     function makeConfig(name) {
         return function () {
             return (config && config.config && config.config[name]) || {};
         };
     }
+
+    handlers = {
+        require: function (name) {
+            return makeRequire(name);
+        },
+        exports: function (name) {
+            var e = defined[name];
+            if (typeof e !== 'undefined') {
+                return e;
+            } else {
+                return (defined[name] = {});
+            }
+        },
+        module: function (name) {
+            return {
+                id: name,
+                uri: '',
+                exports: defined[name],
+                config: makeConfig(name)
+            };
+        }
+    };
 
     main = function (name, deps, callback, relName) {
         var cjsModule, depName, ret, map, i,
@@ -224,25 +279,22 @@ var requirejs, require, define;
 
                 //Fast path CommonJS standard dependencies.
                 if (depName === "require") {
-                    args[i] = makeRequire(name);
+                    args[i] = handlers.require(name);
                 } else if (depName === "exports") {
                     //CommonJS module spec 1.1
-                    args[i] = defined[name] = {};
+                    args[i] = handlers.exports(name);
                     usingExports = true;
                 } else if (depName === "module") {
                     //CommonJS module spec 1.1
-                    cjsModule = args[i] = {
-                        id: name,
-                        uri: '',
-                        exports: defined[name],
-                        config: makeConfig(name)
-                    };
-                } else if (defined.hasOwnProperty(depName) || waiting.hasOwnProperty(depName)) {
+                    cjsModule = args[i] = handlers.module(name);
+                } else if (hasProp(defined, depName) ||
+                           hasProp(waiting, depName) ||
+                           hasProp(defining, depName)) {
                     args[i] = callDep(depName);
                 } else if (map.p) {
                     map.p.load(map.n, makeRequire(relName, true), makeLoad(depName), {});
                     args[i] = defined[depName];
-                } else if (!defining[depName]) {
+                } else {
                     throw new Error(name + ' missing ' + depName);
                 }
             }
@@ -270,6 +322,10 @@ var requirejs, require, define;
 
     requirejs = require = req = function (deps, callback, relName, forceSync, alt) {
         if (typeof deps === "string") {
+            if (handlers[deps]) {
+                //callback in this case is really relName
+                return handlers[deps](callback);
+            }
             //Just return the module wanted. In this scenario, the
             //deps arg is the module name, and second arg (if passed)
             //is just the relName.
@@ -303,9 +359,15 @@ var requirejs, require, define;
         if (forceSync) {
             main(undef, deps, callback, relName);
         } else {
+            //Using a non-zero value because of concern for what old browsers
+            //do, and latest browsers "upgrade" to 4 if lower value is used:
+            //http://www.whatwg.org/specs/web-apps/current-work/multipage/timers.html#dom-windowtimers-settimeout:
+            //If want a value immediately, use require('id') instead -- something
+            //that works in almond on the global level, but not guaranteed and
+            //unlikely to work in other AMD implementations.
             setTimeout(function () {
                 main(undef, deps, callback, relName);
-            }, 15);
+            }, 4);
         }
 
         return req;
@@ -317,6 +379,9 @@ var requirejs, require, define;
      */
     req.config = function (cfg) {
         config = cfg;
+        if (config.deps) {
+            req(config.deps, config.callback);
+        }
         return req;
     };
 
@@ -331,7 +396,9 @@ var requirejs, require, define;
             deps = [];
         }
 
-        waiting[name] = [name, deps, callback];
+        if (!hasProp(defined, name) && !hasProp(waiting, name)) {
+            waiting[name] = [name, deps, callback];
+        }
     };
 
     define.amd = {
@@ -339,28 +406,27 @@ var requirejs, require, define;
     };
 }());
 
-(function() {
-  var d3_format_decimalPoint = ".", d3_format_thousandsSeparator = ",", d3_format_grouping = [ 3, 3 ];
-  if (!Date.now) Date.now = function() {
-    return +new Date();
-  };
-  try {
-    document.createElement("div").style.setProperty("opacity", 0, "");
-  } catch (error) {
-    var d3_style_prototype = CSSStyleDeclaration.prototype, d3_style_setProperty = d3_style_prototype.setProperty;
-    d3_style_prototype.setProperty = function(name, value, priority) {
-      d3_style_setProperty.call(this, name, value + "", priority);
-    };
-  }
-  d3 = {
-    version: "3.0.3"
-  };
-  var π = Math.PI, ε = 1e-6, d3_radians = π / 180, d3_degrees = 180 / π;
+d3 = function() {
+  var π = Math.PI, ε = 1e-6, d3 = {
+    version: "3.0.6"
+  }, d3_radians = π / 180, d3_degrees = 180 / π, d3_document = document, d3_window = window;
   function d3_target(d) {
     return d.target;
   }
   function d3_source(d) {
     return d.source;
+  }
+  var d3_format_decimalPoint = ".", d3_format_thousandsSeparator = ",", d3_format_grouping = [ 3, 3 ];
+  if (!Date.now) Date.now = function() {
+    return +new Date();
+  };
+  try {
+    d3_document.createElement("div").style.setProperty("opacity", 0, "");
+  } catch (error) {
+    var d3_style_prototype = d3_window.CSSStyleDeclaration.prototype, d3_style_setProperty = d3_style_prototype.setProperty;
+    d3_style_prototype.setProperty = function(name, value, priority) {
+      d3_style_setProperty.call(this, name, value + "", priority);
+    };
   }
   function d3_class(ctor, properties) {
     try {
@@ -384,7 +450,7 @@ var requirejs, require, define;
     return Array.prototype.slice.call(pseudoarray);
   }
   try {
-    d3_array(document.documentElement.childNodes)[0].nodeType;
+    d3_array(d3_document.documentElement.childNodes)[0].nodeType;
   } catch (e) {
     d3_array = d3_arrayCopy;
   }
@@ -543,13 +609,10 @@ var requirejs, require, define;
         return µ + σ * x * Math.sqrt(-2 * Math.log(r) / r);
       };
     },
-    logNormal: function(µ, σ) {
-      var n = arguments.length;
-      if (n < 2) σ = 1;
-      if (n < 1) µ = 0;
-      var random = d3.random.normal();
+    logNormal: function() {
+      var random = d3.random.normal.apply(d3, arguments);
       return function() {
-        return Math.exp(µ + σ * random());
+        return Math.exp(random());
       };
     },
     irwinHall: function(m) {
@@ -736,7 +799,7 @@ var requirejs, require, define;
     return n ? Math.round(x * (n = Math.pow(10, n))) / n : Math.round(x);
   };
   d3.xhr = function(url, mimeType, callback) {
-    var xhr = {}, dispatch = d3.dispatch("progress", "load", "error"), headers = {}, response = d3_identity, request = new (window.XDomainRequest && /^(http(s)?:)?\/\//.test(url) ? XDomainRequest : XMLHttpRequest)();
+    var xhr = {}, dispatch = d3.dispatch("progress", "load", "error"), headers = {}, response = d3_identity, request = new (d3_window.XDomainRequest && /^(http(s)?:)?\/\//.test(url) ? XDomainRequest : XMLHttpRequest)();
     "onload" in request ? request.onload = request.onerror = respond : request.onreadystatechange = function() {
       request.readyState > 3 && respond();
     };
@@ -815,8 +878,8 @@ var requirejs, require, define;
     return d3.xhr(url, "text/html", callback).response(d3_html);
   };
   function d3_html(request) {
-    var range = document.createRange();
-    range.selectNode(document.body);
+    var range = d3_document.createRange();
+    range.selectNode(d3_document.body);
     return range.createContextualFragment(request.responseText);
   }
   d3.xml = function() {
@@ -975,11 +1038,11 @@ var requirejs, require, define;
       return x.toFixed(p);
     },
     r: function(x, p) {
-      return d3.round(x, p = d3_format_precision(x, p)).toFixed(Math.max(0, Math.min(20, p)));
+      return (x = d3.round(x, d3_format_precision(x, p))).toFixed(Math.max(0, Math.min(20, d3_format_precision(x * (1 + 1e-15), p))));
     }
   });
   function d3_format_precision(x, p) {
-    return p - (x ? 1 + Math.floor(Math.log(x + Math.pow(10, 1 + Math.floor(Math.log(x) / Math.LN10) - p)) / Math.LN10) : 1);
+    return p - (x ? Math.ceil(Math.log(x) / Math.LN10) : 1);
   }
   function d3_format_typeDefault(x) {
     return x + "";
@@ -997,7 +1060,7 @@ var requirejs, require, define;
       return t.reverse().join(d3_format_thousandsSeparator || "") + f;
     };
   }
-  var d3_formatPrefixes = [ "y", "z", "a", "f", "p", "n", "μ", "m", "", "k", "M", "G", "T", "P", "E", "Z", "Y" ].map(d3_formatPrefix);
+  var d3_formatPrefixes = [ "y", "z", "a", "f", "p", "n", "µ", "m", "", "k", "M", "G", "T", "P", "E", "Z", "Y" ].map(d3_formatPrefix);
   d3.formatPrefix = function(value, precision) {
     var i = 0;
     if (value) {
@@ -1146,7 +1209,7 @@ var requirejs, require, define;
     return dispatch;
   }
   d3.transform = function(string) {
-    var g = document.createElementNS(d3.ns.prefix.svg, "g");
+    var g = d3_document.createElementNS(d3.ns.prefix.svg, "g");
     return (d3.transform = function(string) {
       g.setAttribute("transform", string);
       var t = g.transform.baseVal.consolidate();
@@ -1781,7 +1844,7 @@ var requirejs, require, define;
     return n.querySelector(s);
   }, d3_selectAll = function(s, n) {
     return n.querySelectorAll(s);
-  }, d3_selectRoot = document.documentElement, d3_selectMatcher = d3_selectRoot.matchesSelector || d3_selectRoot.webkitMatchesSelector || d3_selectRoot.mozMatchesSelector || d3_selectRoot.msMatchesSelector || d3_selectRoot.oMatchesSelector, d3_selectMatches = function(n, s) {
+  }, d3_selectRoot = d3_document.documentElement, d3_selectMatcher = d3_selectRoot.matchesSelector || d3_selectRoot.webkitMatchesSelector || d3_selectRoot.mozMatchesSelector || d3_selectRoot.msMatchesSelector || d3_selectRoot.oMatchesSelector, d3_selectMatches = function(n, s) {
     return d3_selectMatcher.call(n, s);
   };
   if (typeof Sizzle === "function") {
@@ -1933,7 +1996,7 @@ var requirejs, require, define;
         for (priority in name) this.each(d3_selection_style(priority, name[priority], value));
         return this;
       }
-      if (n < 2) return getComputedStyle(this.node(), null).getPropertyValue(name);
+      if (n < 2) return d3_window.getComputedStyle(this.node(), null).getPropertyValue(name);
       priority = "";
     }
     return this.each(d3_selection_style(name, value, priority));
@@ -1995,20 +2058,20 @@ var requirejs, require, define;
   d3_selectionPrototype.append = function(name) {
     name = d3.ns.qualify(name);
     function append() {
-      return this.appendChild(document.createElementNS(this.namespaceURI, name));
+      return this.appendChild(d3_document.createElementNS(this.namespaceURI, name));
     }
     function appendNS() {
-      return this.appendChild(document.createElementNS(name.space, name.local));
+      return this.appendChild(d3_document.createElementNS(name.space, name.local));
     }
     return this.select(name.local ? appendNS : append);
   };
   d3_selectionPrototype.insert = function(name, before) {
     name = d3.ns.qualify(name);
     function insert() {
-      return this.insertBefore(document.createElementNS(this.namespaceURI, name), d3_select(before, this));
+      return this.insertBefore(d3_document.createElementNS(this.namespaceURI, name), d3_select(before, this));
     }
     function insertNS() {
-      return this.insertBefore(document.createElementNS(name.space, name.local), d3_select(before, this));
+      return this.insertBefore(d3_document.createElementNS(name.space, name.local), d3_select(before, this));
     }
     return this.select(name.local ? insertNS : insert);
   };
@@ -2146,7 +2209,7 @@ var requirejs, require, define;
   function d3_selection_sortComparator(comparator) {
     if (!arguments.length) comparator = d3.ascending;
     return function(a, b) {
-      return comparator(a && a.__data__, b && b.__data__);
+      return !a - !b || comparator(a.__data__, b.__data__);
     };
   }
   d3_selectionPrototype.on = function(type, listener, capture) {
@@ -2232,7 +2295,7 @@ var requirejs, require, define;
     }
     return d3_transition(subgroups, id);
   };
-  var d3_selectionRoot = d3_selection([ [ document ] ]);
+  var d3_selectionRoot = d3_selection([ [ d3_document ] ]);
   d3_selectionRoot[0].parentNode = d3_selectRoot;
   d3.select = function(selector) {
     return typeof selector === "string" ? d3_selectionRoot.select(selector) : d3_selection([ [ selector ] ]);
@@ -2444,7 +2507,7 @@ var requirejs, require, define;
     }
     return d3_transition_tween(this, "style." + name, value, function(b) {
       function styleString() {
-        var a = getComputedStyle(this, null).getPropertyValue(name), i;
+        var a = d3_window.getComputedStyle(this, null).getPropertyValue(name), i;
         return a !== b && (i = interpolate(a, b), function(t) {
           this.style.setProperty(name, i(t), priority);
         });
@@ -2455,7 +2518,7 @@ var requirejs, require, define;
   d3_transitionPrototype.styleTween = function(name, tween, priority) {
     if (arguments.length < 3) priority = "";
     return this.tween("style." + name, function(d, i) {
-      var f = tween.call(this, d, i, getComputedStyle(this, null).getPropertyValue(name));
+      var f = tween.call(this, d, i, d3_window.getComputedStyle(this, null).getPropertyValue(name));
       return f && function(t) {
         this.style.setProperty(name, f(t), priority);
       };
@@ -2613,19 +2676,19 @@ var requirejs, require, define;
     }
     return then;
   }
-  var d3_timer_frame = window.requestAnimationFrame || window.webkitRequestAnimationFrame || window.mozRequestAnimationFrame || window.oRequestAnimationFrame || window.msRequestAnimationFrame || function(callback) {
+  var d3_timer_frame = d3_window.requestAnimationFrame || d3_window.webkitRequestAnimationFrame || d3_window.mozRequestAnimationFrame || d3_window.oRequestAnimationFrame || d3_window.msRequestAnimationFrame || function(callback) {
     setTimeout(callback, 17);
   };
   d3.mouse = function(container) {
     return d3_mousePoint(container, d3_eventSource());
   };
-  var d3_mouse_bug44083 = /WebKit/.test(navigator.userAgent) ? -1 : 0;
+  var d3_mouse_bug44083 = /WebKit/.test(d3_window.navigator.userAgent) ? -1 : 0;
   function d3_mousePoint(container, e) {
     var svg = container.ownerSVGElement || container;
     if (svg.createSVGPoint) {
       var point = svg.createSVGPoint();
-      if (d3_mouse_bug44083 < 0 && (window.scrollX || window.scrollY)) {
-        svg = d3.select(document.body).append("svg").style("position", "absolute").style("top", 0).style("left", 0);
+      if (d3_mouse_bug44083 < 0 && (d3_window.scrollX || d3_window.scrollY)) {
+        svg = d3.select(d3_document.body).append("svg").style("position", "absolute").style("top", 0).style("left", 0);
         var ctm = svg[0][0].getScreenCTM();
         d3_mouse_bug44083 = !(ctm.f || ctm.e);
         svg.remove();
@@ -3658,18 +3721,18 @@ var requirejs, require, define;
   d3.svg.symbolTypes = d3_svg_symbols.keys();
   var d3_svg_symbolSqrt3 = Math.sqrt(3), d3_svg_symbolTan30 = Math.tan(30 * d3_radians);
   d3.svg.axis = function() {
-    var scale = d3.scale.linear(), orient = "bottom", tickMajorSize = 6, tickMinorSize = 6, tickEndSize = 6, tickPadding = 3, tickArguments_ = [ 10 ], tickValues = null, tickFormat_, tickSubdivide = 0;
+    var scale = d3.scale.linear(), orient = d3_svg_axisDefaultOrient, tickMajorSize = 6, tickMinorSize = 6, tickEndSize = 6, tickPadding = 3, tickArguments_ = [ 10 ], tickValues = null, tickFormat_, tickSubdivide = 0;
     function axis(g) {
       g.each(function() {
         var g = d3.select(this);
         var ticks = tickValues == null ? scale.ticks ? scale.ticks.apply(scale, tickArguments_) : scale.domain() : tickValues, tickFormat = tickFormat_ == null ? scale.tickFormat ? scale.tickFormat.apply(scale, tickArguments_) : String : tickFormat_;
-        var subticks = d3_svg_axisSubdivide(scale, ticks, tickSubdivide), subtick = g.selectAll(".minor").data(subticks, String), subtickEnter = subtick.enter().insert("line", "g").attr("class", "tick minor").style("opacity", 1e-6), subtickExit = d3.transition(subtick.exit()).style("opacity", 1e-6).remove(), subtickUpdate = d3.transition(subtick).style("opacity", 1);
-        var tick = g.selectAll("g").data(ticks, String), tickEnter = tick.enter().insert("g", "path").style("opacity", 1e-6), tickExit = d3.transition(tick.exit()).style("opacity", 1e-6).remove(), tickUpdate = d3.transition(tick).style("opacity", 1), tickTransform;
-        var range = d3_scaleRange(scale), path = g.selectAll(".domain").data([ 0 ]), pathUpdate = d3.transition(path);
+        var subticks = d3_svg_axisSubdivide(scale, ticks, tickSubdivide), subtick = g.selectAll(".tick.minor").data(subticks, String), subtickEnter = subtick.enter().insert("line", ".tick").attr("class", "tick minor").style("opacity", 1e-6), subtickExit = d3.transition(subtick.exit()).style("opacity", 1e-6).remove(), subtickUpdate = d3.transition(subtick).style("opacity", 1);
+        var tick = g.selectAll(".tick.major").data(ticks, String), tickEnter = tick.enter().insert("g", "path").attr("class", "tick major").style("opacity", 1e-6), tickExit = d3.transition(tick.exit()).style("opacity", 1e-6).remove(), tickUpdate = d3.transition(tick).style("opacity", 1), tickTransform;
+        var range = d3_scaleRange(scale), path = g.selectAll(".domain").data([ 0 ]), pathUpdate = (path.enter().append("path").attr("class", "domain"), 
+        d3.transition(path));
         var scale1 = scale.copy(), scale0 = this.__chart__ || scale1;
         this.__chart__ = scale1;
-        path.enter().append("path").attr("class", "domain");
-        tickEnter.append("line").attr("class", "tick");
+        tickEnter.append("line");
         tickEnter.append("text");
         var lineEnter = tickEnter.select("line"), lineUpdate = tickUpdate.select("line"), text = tick.select("text").text(tickFormat), textEnter = tickEnter.select("text"), textUpdate = tickUpdate.select("text");
         switch (orient) {
@@ -3752,7 +3815,7 @@ var requirejs, require, define;
     };
     axis.orient = function(x) {
       if (!arguments.length) return orient;
-      orient = x;
+      orient = x in d3_svg_axisOrients ? x + "" : d3_svg_axisDefaultOrient;
       return axis;
     };
     axis.ticks = function() {
@@ -3789,6 +3852,12 @@ var requirejs, require, define;
       return axis;
     };
     return axis;
+  };
+  var d3_svg_axisDefaultOrient = "bottom", d3_svg_axisOrients = {
+    top: 1,
+    right: 1,
+    bottom: 1,
+    left: 1
   };
   function d3_svg_axisX(selection, x) {
     selection.attr("transform", function(d) {
@@ -3864,7 +3933,7 @@ var requirejs, require, define;
     }
     function brushstart() {
       var target = this, eventTarget = d3.select(d3.event.target), event_ = event.of(target, arguments), g = d3.select(target), resizing = eventTarget.datum(), resizingX = !/^(n|s)$/.test(resizing) && x, resizingY = !/^(e|w)$/.test(resizing) && y, dragging = eventTarget.classed("extent"), center, origin = mouse(), offset;
-      var w = d3.select(window).on("mousemove.brush", brushmove).on("mouseup.brush", brushend).on("touchmove.brush", brushmove).on("touchend.brush", brushend).on("keydown.brush", keydown).on("keyup.brush", keyup);
+      var w = d3.select(d3_window).on("mousemove.brush", brushmove).on("mouseup.brush", brushend).on("touchmove.brush", brushmove).on("touchend.brush", brushend).on("keydown.brush", keydown).on("keyup.brush", keyup);
       if (dragging) {
         origin[0] = extent[0][0] - origin[0];
         origin[1] = extent[0][1] - origin[1];
@@ -4051,7 +4120,7 @@ var requirejs, require, define;
     }
     function mousedown() {
       var target = this, event_ = event.of(target, arguments), eventTarget = d3.event.target, touchId = d3.event.touches ? d3.event.changedTouches[0].identifier : null, offset, origin_ = point(), moved = 0;
-      var w = d3.select(window).on(touchId != null ? "touchmove.drag-" + touchId : "mousemove.drag", dragmove).on(touchId != null ? "touchend.drag-" + touchId : "mouseup.drag", dragend, true);
+      var w = d3.select(d3_window).on(touchId != null ? "touchmove.drag-" + touchId : "mousemove.drag", dragmove).on(touchId != null ? "touchend.drag-" + touchId : "mouseup.drag", dragend, true);
       if (origin) {
         offset = origin.apply(target, arguments);
         offset = [ offset.x - origin_[0], offset.y - origin_[1] ];
@@ -4107,7 +4176,7 @@ var requirejs, require, define;
   d3.behavior.zoom = function() {
     var translate = [ 0, 0 ], translate0, scale = 1, scale0, scaleExtent = d3_behavior_zoomInfinity, event = d3_eventDispatch(zoom, "zoom"), x0, x1, y0, y1, touchtime;
     function zoom() {
-      this.on("mousedown.zoom", mousedown).on("mousewheel.zoom", mousewheel).on("mousemove.zoom", mousemove).on("DOMMouseScroll.zoom", mousewheel).on("dblclick.zoom", dblclick).on("touchstart.zoom", touchstart).on("touchmove.zoom", touchmove).on("touchend.zoom", touchstart);
+      this.on("mousedown.zoom", mousedown).on("mousemove.zoom", mousemove).on(d3_behavior_zoomWheel + ".zoom", mousewheel).on("dblclick.zoom", dblclick).on("touchstart.zoom", touchstart).on("touchmove.zoom", touchmove).on("touchend.zoom", touchstart);
     }
     zoom.translate = function(x) {
       if (!arguments.length) return translate;
@@ -4174,8 +4243,8 @@ var requirejs, require, define;
       });
     }
     function mousedown() {
-      var target = this, event_ = event.of(target, arguments), eventTarget = d3.event.target, moved = 0, w = d3.select(window).on("mousemove.zoom", mousemove).on("mouseup.zoom", mouseup), l = location(d3.mouse(target));
-      window.focus();
+      var target = this, event_ = event.of(target, arguments), eventTarget = d3.event.target, moved = 0, w = d3.select(d3_window).on("mousemove.zoom", mousemove).on("mouseup.zoom", mouseup), l = location(d3.mouse(target));
+      d3_window.focus();
       d3_eventCancel();
       function mousemove() {
         moved = 1;
@@ -4239,21 +4308,14 @@ var requirejs, require, define;
     }
     return d3.rebind(zoom, event, "on");
   };
-  var d3_behavior_zoomDiv, d3_behavior_zoomInfinity = [ 0, Infinity ];
-  function d3_behavior_zoomDelta() {
-    if (!d3_behavior_zoomDiv) {
-      d3_behavior_zoomDiv = d3.select("body").append("div").style("visibility", "hidden").style("top", 0).style("height", 0).style("width", 0).style("overflow-y", "scroll").append("div").style("height", "2000px").node().parentNode;
-    }
-    var e = d3.event, delta;
-    try {
-      d3_behavior_zoomDiv.scrollTop = 1e3;
-      d3_behavior_zoomDiv.dispatchEvent(e);
-      delta = 1e3 - d3_behavior_zoomDiv.scrollTop;
-    } catch (error) {
-      delta = e.wheelDelta || -e.detail * 5;
-    }
-    return delta;
-  }
+  var d3_behavior_zoomInfinity = [ 0, Infinity ];
+  var d3_behavior_zoomDelta, d3_behavior_zoomWheel = "onwheel" in document ? (d3_behavior_zoomDelta = function() {
+    return -d3.event.deltaY * (d3.event.deltaMode ? 120 : 1);
+  }, "wheel") : "onmousewheel" in document ? (d3_behavior_zoomDelta = function() {
+    return d3.event.wheelDelta;
+  }, "mousewheel") : (d3_behavior_zoomDelta = function() {
+    return -d3.event.detail;
+  }, "MozMousePixelScroll");
   d3.layout = {};
   d3.layout.bundle = function() {
     return function(links) {
@@ -4506,18 +4568,18 @@ var requirejs, require, define;
     };
     force.linkDistance = function(x) {
       if (!arguments.length) return linkDistance;
-      linkDistance = d3_functor(x);
+      linkDistance = typeof x === "function" ? x : +x;
       return force;
     };
     force.distance = force.linkDistance;
     force.linkStrength = function(x) {
       if (!arguments.length) return linkStrength;
-      linkStrength = d3_functor(x);
+      linkStrength = typeof x === "function" ? x : +x;
       return force;
     };
     force.friction = function(x) {
       if (!arguments.length) return friction;
-      friction = x;
+      friction = +x;
       return force;
     };
     force.charge = function(x) {
@@ -4527,16 +4589,17 @@ var requirejs, require, define;
     };
     force.gravity = function(x) {
       if (!arguments.length) return gravity;
-      gravity = x;
+      gravity = +x;
       return force;
     };
     force.theta = function(x) {
       if (!arguments.length) return theta;
-      theta = x;
+      theta = +x;
       return force;
     };
     force.alpha = function(x) {
       if (!arguments.length) return alpha;
+      x = +x;
       if (alpha) {
         if (x > 0) alpha = x; else alpha = 0;
       } else if (x > 0) {
@@ -4554,14 +4617,10 @@ var requirejs, require, define;
         (o = nodes[i]).index = i;
         o.weight = 0;
       }
-      distances = [];
-      strengths = [];
       for (i = 0; i < m; ++i) {
         o = links[i];
         if (typeof o.source == "number") o.source = nodes[o.source];
         if (typeof o.target == "number") o.target = nodes[o.target];
-        distances[i] = linkDistance.call(this, o, i);
-        strengths[i] = linkStrength.call(this, o, i);
         ++o.source.weight;
         ++o.target.weight;
       }
@@ -4572,16 +4631,12 @@ var requirejs, require, define;
         if (isNaN(o.px)) o.px = o.x;
         if (isNaN(o.py)) o.py = o.y;
       }
+      distances = [];
+      if (typeof linkDistance === "function") for (i = 0; i < m; ++i) distances[i] = +linkDistance.call(this, links[i], i); else for (i = 0; i < m; ++i) distances[i] = linkDistance;
+      strengths = [];
+      if (typeof linkStrength === "function") for (i = 0; i < m; ++i) strengths[i] = +linkStrength.call(this, links[i], i); else for (i = 0; i < m; ++i) strengths[i] = linkStrength;
       charges = [];
-      if (typeof charge === "function") {
-        for (i = 0; i < n; ++i) {
-          charges[i] = +charge.call(this, nodes[i], i);
-        }
-      } else {
-        for (i = 0; i < n; ++i) {
-          charges[i] = charge;
-        }
-      }
+      if (typeof charge === "function") for (i = 0; i < n; ++i) charges[i] = +charge.call(this, nodes[i], i); else for (i = 0; i < n; ++i) charges[i] = charge;
       function position(dimension, size) {
         var neighbors = neighbor(i), j = -1, m = neighbors.length, x;
         while (++j < m) if (!isNaN(x = neighbors[j][dimension])) return x;
@@ -4610,7 +4665,8 @@ var requirejs, require, define;
       return force.alpha(0);
     };
     force.drag = function() {
-      if (!drag) drag = d3.behavior.drag().origin(d3_identity).on("dragstart", d3_layout_forceDragstart).on("drag", dragmove).on("dragend", d3_layout_forceDragend);
+      if (!drag) drag = d3.behavior.drag().origin(d3_identity).on("dragstart.force", d3_layout_forceDragstart).on("drag.force", dragmove).on("dragend.force", d3_layout_forceDragend);
+      if (!arguments.length) return drag;
       this.on("mouseover.force", d3_layout_forceMouseover).on("mouseout.force", d3_layout_forceMouseout).call(drag);
     };
     function dragmove(d) {
@@ -4623,14 +4679,14 @@ var requirejs, require, define;
     d.fixed |= 2;
   }
   function d3_layout_forceDragend(d) {
-    d.fixed &= 1;
+    d.fixed &= ~6;
   }
   function d3_layout_forceMouseover(d) {
     d.fixed |= 4;
     d.px = d.x, d.py = d.y;
   }
   function d3_layout_forceMouseout(d) {
-    d.fixed &= 3;
+    d.fixed &= ~4;
   }
   function d3_layout_forceAccumulate(quad, alpha, charges) {
     var cx = 0, cy = 0;
@@ -4659,12 +4715,7 @@ var requirejs, require, define;
     quad.cx = cx / quad.charge;
     quad.cy = cy / quad.charge;
   }
-  function d3_layout_forceLinkDistance() {
-    return 20;
-  }
-  function d3_layout_forceLinkStrength() {
-    return 1;
-  }
+  var d3_layout_forceLinkDistance = 20, d3_layout_forceLinkStrength = 1;
   d3.layout.partition = function() {
     var hierarchy = d3.layout.hierarchy(), size = [ 1, 1 ];
     function position(node, x, dx, dy) {
@@ -6500,9 +6551,9 @@ var requirejs, require, define;
     return interpolate;
   }
   d3.geo.greatArc = function() {
-    var source = d3_source, s, target = d3_target, t, precision = 6 * d3_radians, interpolate;
+    var source = d3_source, source_, target = d3_target, target_, precision = 6 * d3_radians, interpolate;
     function greatArc() {
-      var p0 = s || source.apply(this, arguments), p1 = t || target.apply(this, arguments), i = interpolate || d3.geo.interpolate(p0, p1), t = 0, dt = precision / i.distance, coordinates = [ p0 ];
+      var p0 = source_ || source.apply(this, arguments), p1 = target_ || target.apply(this, arguments), i = interpolate || d3.geo.interpolate(p0, p1), t = 0, dt = precision / i.distance, coordinates = [ p0 ];
       while ((t += dt) < 1) coordinates.push(i(t));
       coordinates.push(p1);
       return {
@@ -6511,18 +6562,18 @@ var requirejs, require, define;
       };
     }
     greatArc.distance = function() {
-      return (interpolate || d3.geo.interpolate(s || source.apply(this, arguments), t || target.apply(this, arguments))).distance;
+      return (interpolate || d3.geo.interpolate(source_ || source.apply(this, arguments), target_ || target.apply(this, arguments))).distance;
     };
     greatArc.source = function(_) {
       if (!arguments.length) return source;
-      source = _, s = typeof _ === "function" ? null : _;
-      interpolate = s && t ? d3.geo.interpolate(s, t) : null;
+      source = _, source_ = typeof _ === "function" ? null : _;
+      interpolate = source_ && target_ ? d3.geo.interpolate(source_, target_) : null;
       return greatArc;
     };
     greatArc.target = function(_) {
       if (!arguments.length) return target;
-      target = _, t = typeof _ === "function" ? null : _;
-      interpolate = s && t ? d3.geo.interpolate(s, t) : null;
+      target = _, target_ = typeof _ === "function" ? null : _;
+      interpolate = source_ && target_ ? d3.geo.interpolate(source_, target_) : null;
       return greatArc;
     };
     greatArc.precision = function(_) {
@@ -6794,7 +6845,7 @@ var requirejs, require, define;
     d3.geo.stream(object, d3_geo_area);
     return d3_geo_areaSum;
   };
-  var d3_geo_areaSum, d3_geo_areaRing;
+  var d3_geo_areaSum, d3_geo_areaRingU, d3_geo_areaRingV;
   var d3_geo_area = {
     sphere: function() {
       d3_geo_areaSum += 4 * π;
@@ -6803,30 +6854,29 @@ var requirejs, require, define;
     lineStart: d3_noop,
     lineEnd: d3_noop,
     polygonStart: function() {
-      d3_geo_areaRing = 0;
+      d3_geo_areaRingU = 1, d3_geo_areaRingV = 0;
       d3_geo_area.lineStart = d3_geo_areaRingStart;
     },
     polygonEnd: function() {
-      d3_geo_areaSum += d3_geo_areaRing < 0 ? 4 * π + d3_geo_areaRing : d3_geo_areaRing;
+      var area = 2 * Math.atan2(d3_geo_areaRingV, d3_geo_areaRingU);
+      d3_geo_areaSum += area < 0 ? 4 * π + area : area;
       d3_geo_area.lineStart = d3_geo_area.lineEnd = d3_geo_area.point = d3_noop;
     }
   };
   function d3_geo_areaRingStart() {
-    var λ00, φ00, λ1, λ0, φ0, cosφ0, sinφ0;
+    var λ00, φ00, λ0, cosφ0, sinφ0;
     d3_geo_area.point = function(λ, φ) {
       d3_geo_area.point = nextPoint;
-      λ1 = λ0 = (λ00 = λ) * d3_radians, φ0 = (φ00 = φ) * d3_radians, cosφ0 = Math.cos(φ0), 
-      sinφ0 = Math.sin(φ0);
+      λ0 = (λ00 = λ) * d3_radians, cosφ0 = Math.cos(φ = (φ00 = φ) * d3_radians / 2 + π / 4), 
+      sinφ0 = Math.sin(φ);
     };
     function nextPoint(λ, φ) {
-      λ *= d3_radians, φ *= d3_radians;
-      if (Math.abs(Math.abs(φ0) - π / 2) < ε && Math.abs(Math.abs(φ) - π / 2) < ε) return;
-      var cosφ = Math.cos(φ), sinφ = Math.sin(φ);
-      if (Math.abs(φ0 - π / 2) < ε) d3_geo_areaRing += (λ - λ1) * 2; else {
-        var dλ = λ - λ0, cosdλ = Math.cos(dλ), d = Math.atan2(Math.sqrt((d = cosφ * Math.sin(dλ)) * d + (d = cosφ0 * sinφ - sinφ0 * cosφ * cosdλ) * d), sinφ0 * sinφ + cosφ0 * cosφ * cosdλ), s = (d + π + φ0 + φ) / 4;
-        d3_geo_areaRing += (dλ < 0 && dλ > -π || dλ > π ? -4 : 4) * Math.atan(Math.sqrt(Math.abs(Math.tan(s) * Math.tan(s - d / 2) * Math.tan(s - π / 4 - φ0 / 2) * Math.tan(s - π / 4 - φ / 2))));
-      }
-      λ1 = λ0, λ0 = λ, φ0 = φ, cosφ0 = cosφ, sinφ0 = sinφ;
+      λ *= d3_radians;
+      φ = φ * d3_radians / 2 + π / 4;
+      var dλ = λ - λ0, cosφ = Math.cos(φ), sinφ = Math.sin(φ), k = sinφ0 * sinφ, u0 = d3_geo_areaRingU, v0 = d3_geo_areaRingV, u = cosφ0 * cosφ + k * Math.cos(dλ), v = k * Math.sin(dλ);
+      d3_geo_areaRingU = u0 * u - v0 * v;
+      d3_geo_areaRingV = v0 * u + u0 * v;
+      λ0 = λ, cosφ0 = cosφ, sinφ0 = sinφ;
     }
     d3_geo_area.lineEnd = function() {
       nextPoint(λ00, φ00);
@@ -7130,10 +7180,10 @@ var requirejs, require, define;
     polygons = polygons.map(function(polygon, i) {
       var cx = vertices[i][0], cy = vertices[i][1], angle = polygon.map(function(v) {
         return Math.atan2(v[0] - cx, v[1] - cy);
-      });
-      return d3.range(polygon.length).sort(function(a, b) {
+      }), order = d3.range(polygon.length).sort(function(a, b) {
         return angle[a] - angle[b];
-      }).filter(function(d, i, order) {
+      });
+      return order.filter(function(d, i) {
         return !i || angle[d] - angle[order[i - 1]] > ε;
       }).map(function(d) {
         return polygon[d];
@@ -8144,7 +8194,8 @@ var requirejs, require, define;
   d3.time.scale.utc = function() {
     return d3_time_scale(d3.scale.linear(), d3_time_scaleUTCMethods, d3_time_scaleUTCFormat);
   };
-})();
+  return d3;
+}();
 define("d3", (function (global) {
     return function () {
         var ret, fn;
@@ -8240,6 +8291,16 @@ function () {
         }
       });
       return removedItems;
+    },
+
+    /**
+     * Check if an array contains an item.
+     * @param {Array} arr The array to check.
+     * @param {Object} item The item to check for.
+     * @return {Boolean}
+     */
+    contains: function(arr, item) {
+      return !!arr.length && arr.indexOf(item) !== -1;
     }
 
   };
@@ -8631,7 +8692,7 @@ function() {
      * @param {d3.selection|string} selection
      */
     select: function(selection) {
-      return (selection instanceof d3.selection) ?
+      return (Array.isArray(selection)) ?
         selection :
         d3.select(selection);
     }
@@ -8729,7 +8790,7 @@ function(array, config, obj, string, d3Util, mixins) {
     //Private variables
     var config_ = {},
       defaults_,
-      data_,
+      dataCollection_,
       root_,
       remove_,
       update_;
@@ -8739,7 +8800,7 @@ function(array, config, obj, string, d3Util, mixins) {
       cid: undefined,
       strokeWidth: 2,
       color: 'steelBlue',
-      showInLegend: true,
+      inLegend: true,
       lineGenerator: d3.svg.line(),
       interpolate: 'linear',
       ease: 'linear',
@@ -8767,7 +8828,9 @@ function(array, config, obj, string, d3Util, mixins) {
      * @param  {d3.selection|Node|string} selection
      */
     remove_ = function(selection) {
-      selection.exit().remove();
+      if (selection && selection.exit) {
+        selection.exit().remove();
+      }
     };
 
     /**
@@ -8779,16 +8842,29 @@ function(array, config, obj, string, d3Util, mixins) {
       return line;
     }
 
+    obj.extend(
+      line,
+      config.mixin(
+        config_,
+        'cid',
+        'xScale',
+        'yScale',
+        'lineGenerator'
+      ),
+      mixins.lifecycle,
+      mixins.toggle);
+
     // TODO: this will be the same for all components
     // put this func somehwere else and apply as needed
     line.data = function(data) {
       if (data) {
-        data_ = data;
+        dataCollection_ = data;
         return line;
       }
-      return array.find(data_, function(d) {
-        return d.id === config_.dataId;
-      });
+      if (!dataCollection_) {
+        return;
+      }
+      return dataCollection_.get(config_.dataId);
     };
 
     /**
@@ -8797,12 +8873,15 @@ function(array, config, obj, string, d3Util, mixins) {
      */
     line.update = function() {
       var dataConfig, selection;
-      dataConfig = line.data();
 
       if (config_.cid) {
         root_.attr('gl-cid', config_.cid);
       }
-
+      dataConfig = line.data();
+      // Return early if there's no data.
+      if (!dataConfig || !dataConfig.data) {
+        return line;
+      }
       // Configure the lineGenerator function
       config_.lineGenerator
         .x(function(d, i) {
@@ -8816,9 +8895,8 @@ function(array, config, obj, string, d3Util, mixins) {
           return(config_.xScale(dataConfig.x(d, i)) >= minX);
         })
         .interpolate(config_.interpolate);
-
-      selection = root_.select('.gl-path').data(dataConfig.data);
-
+      selection = root_.select('.gl-path')
+        .data(dataConfig.data);
       update_(selection);
       remove_(selection);
       return line;
@@ -8852,15 +8930,18 @@ function(array, config, obj, string, d3Util, mixins) {
       return root_;
     };
 
-    obj.extend(
-      line,
-      config.mixin(
-        config_,
-        'cid',
-        'xScale',
-        'yScale',
-        'lineGenerator'
-    ), mixins.toggle);
+    /**
+     * Destroys the line and removes everything from the DOM.
+     * @public
+     */
+    line.destroy = function() {
+      if (root_) {
+        root_.remove();
+      }
+      root_ = null;
+      config_ = null;
+      defaults_ = null;
+    };
 
     return line();
 
@@ -8969,7 +9050,9 @@ function(obj, config, string, util, mixins) {
         .attr({
           'width': config_.indicatorWidth,
           'height': config_.indicatorHeight,
-          'fill': function(d) { return d.color; }
+          'fill': function(d) {
+            return d3.functor(d.color)();
+          }
         });
 
       // Update key text.
@@ -9000,6 +9083,23 @@ function(obj, config, string, util, mixins) {
       return legend;
     }
 
+    // Apply Mixins.
+    obj.extend(
+      legend,
+      config.mixin(
+        config_,
+        'cid',
+        'keys',
+        'fontColor',
+        'fontFamily',
+        'fontSize',
+        'fontWeight',
+        'indicatorWidth',
+        'indicatorHeight'
+      ),
+      mixins.lifecycle,
+      mixins.toggle);
+
     /**
      * Apply post-render updates.
      * Insert/update/remove DOM for each key.
@@ -9019,7 +9119,9 @@ function(obj, config, string, util, mixins) {
       // The selection of legend keys.
       selection = root_
         .selectAll('.gl-legend-key')
-        .data(config_.keys, function(d) { return d.color; });
+        .data(config_.keys, function(d) {
+          return d3.functor(d.color)();
+        });
 
       remove_(selection);
       enter_(selection);
@@ -9052,20 +9154,18 @@ function(obj, config, string, util, mixins) {
       return root_;
     };
 
-    // MIXINS
-    obj.extend(
-      legend,
-      config.mixin(
-        config_,
-        'cid',
-        'keys',
-        'fontColor',
-        'fontFamily',
-        'fontSize',
-        'fontWeight',
-        'indicatorWidth',
-        'indicatorHeight'
-      ), mixins.toggle);
+    /**
+     * Destroys the legend and removes everything from the DOM.
+     * @public
+     */
+    legend.destroy = function() {
+      if (root_) {
+        root_.remove();
+      }
+      root_ = null;
+      config_ = null;
+      defaults_ = null;
+    };
 
     return legend();
   };
@@ -9097,18 +9197,17 @@ function(obj, config, string, mixins, d3util) {
     config_ = {};
 
     defaults_ = {
-        type: 'x',
-        id: string.random(),
-        gap: 0,
-        target: '.gl-framed',
-        color: '#333',
-        opacity: 0.8,
-        fontFamily: 'arial',
-        fontSize: 10,
-        textBgColor: '#fff',
-        textBgSize: 3,
-        tickSize: 0,
-        ticks: 3
+      type: 'x',
+      gap: 0,
+      target: '.gl-framed',
+      color: '#333',
+      opacity: 0.8,
+      fontFamily: 'arial',
+      fontSize: 10,
+      textBgColor: '#fff',
+      textBgSize: 3,
+      tickSize: 0,
+      ticks: 3
     };
 
     /**
@@ -9178,6 +9277,16 @@ function(obj, config, string, mixins, d3util) {
       return axis;
     }
 
+
+    // Apply mixins.
+    obj.extend(
+      axis,
+      config.mixin(
+        config_,
+        'cid'),
+      mixins.lifecycle,
+      mixins.toggle);
+
     /**
      * Apply updates to the axis.
      */
@@ -9236,7 +9345,20 @@ function(obj, config, string, mixins, d3util) {
       return root_;
     };
 
-    obj.extend(axis, config.mixin(config_, 'cid'), mixins.toggle);
+    /**
+     * Destroys the axis and removes everything from the DOM.
+     * @public
+     */
+    axis.destroy = function() {
+      if (root_) {
+        root_.remove();
+      }
+      root_ = null;
+      config_ = null;
+      defaults_ = null;
+      d3axis_ = null;
+    };
+
     return axis();
   };
 
@@ -9263,7 +9385,7 @@ function(obj, config, string, array, util, mixins) {
 
     var defaults_,
       config_,
-      data_,
+      dataCollection_,
       root_;
 
     config_ = {};
@@ -9319,17 +9441,15 @@ function(obj, config, string, array, util, mixins) {
     label.data = function(data) {
       // Set data if provided.
       if (data) {
-        data_ = data;
+        dataCollection_ = data;
         return label;
       }
       // Find corresponding data group if dataId is set.
       if (config_.dataId) {
-        return array.find(data_, function(d) {
-          return d.id === config_.dataId;
-        });
+        return dataCollection_.get(config_.dataId);
       }
       // Otherwise return the entire raw data.
-      return data_;
+      return dataCollection_;
     };
 
     /**
@@ -9354,7 +9474,7 @@ function(obj, config, string, array, util, mixins) {
      */
     label.render = function(selection) {
       root_ = util.select(selection || config_.target).append('g');
-      root_.append('text').attr('baseline-shift', '-100%');
+      root_.append('text');
       label.update();
       return label;
     };
@@ -9367,12 +9487,10 @@ function(obj, config, string, array, util, mixins) {
       var text;
 
       text = label.text();
-
       // Return early if no data or render() hasn't been called yet.
       if (!root_ || !text) {
         return;
       }
-
       root_.attr({
         'class': 'gl-component gl-label'
       });
@@ -9386,7 +9504,10 @@ function(obj, config, string, array, util, mixins) {
         'fill': config_.color,
         'font-family': config_.fontFamily,
         'font-size': config_.fontSize,
-        'font-weight': config_.fontWeight
+        'font-weight': config_.fontWeight,
+        // NOTE: Need to manually set y position since dominant-baseline
+        //   doesn't work in FF or IE.
+        'y': config_.fontSize
       })
       .text(text);
       root_.position(config_.position);
@@ -9399,6 +9520,19 @@ function(obj, config, string, array, util, mixins) {
      */
     label.root = function () {
       return root_;
+    };
+
+    /**
+     * Destroys the label and removes everything from the DOM.
+     * @public
+     */
+    label.destroy = function() {
+      if (root_) {
+        root_.remove();
+      }
+      root_ = null;
+      config_ = null;
+      defaults_ = null;
     };
 
     return label();
@@ -9426,8 +9560,7 @@ function(obj, config, label, mixins, d3util) {
     var defaults_,
       config_,
       root_,
-      removeExisting_,
-      appendChildren_;
+      updateChildren_;
 
     config_ = {};
 
@@ -9437,37 +9570,34 @@ function(obj, config, label, mixins, d3util) {
       components: [],
       layoutConfig: { type: 'horizontal', position: 'center', gap: 6 },
       opacity: 1,
-      labels: [],
       backgroundColor: '#fff'
-    };
-
-    /**
-     * @private
-     * Remove all existing items from this overlay.
-     */
-    removeExisting_ = function() {
-      root_.selectAll('*').remove();
     };
 
     /**
      * @private
      * Append background rect, all child components, and apply the layout.
      */
-    appendChildren_ = function() {
+    updateChildren_ = function() {
       var parentNode,
           componentsContainer;
 
       parentNode = d3.select(root_.node().parentNode);
-      root_.append('rect').attr({
+
+      root_.select('rect').attr({
         width: parentNode.width(),
         height: parentNode.height(),
         opacity: config_.opacity,
         fill: config_.backgroundColor
       });
-      componentsContainer = root_.append('g')
+      componentsContainer = root_.select('g')
         .attr('class', 'gl-components');
       config_.components.forEach(function(component) {
-        component.render(componentsContainer);
+        if (component.root()) {
+          // If already rendered, just update instead.
+          component.update();
+        } else {
+          component.render(componentsContainer);
+        }
       });
       componentsContainer.layout(config_.layoutConfig);
     };
@@ -9511,6 +9641,8 @@ function(obj, config, label, mixins, d3util) {
     overlay.render = function(selection) {
       if (!root_) {
         root_ = d3util.select(selection || config_.target).append('g');
+        root_.append('rect');
+        root_.append('g');
         overlay.update();
       }
       return overlay;
@@ -9535,8 +9667,7 @@ function(obj, config, label, mixins, d3util) {
       if (config_.cid) {
         root_.attr('gl-cid', config_.cid);
       }
-      removeExisting_();
-      appendChildren_();
+      updateChildren_();
       return overlay;
     };
 
@@ -9549,7 +9680,9 @@ function(obj, config, label, mixins, d3util) {
       config_.components.forEach(function(label) {
         label.destroy();
       });
-      root_.remove();
+      if (root_) {
+        root_.remove();
+      }
       root_ = null;
       config_ = null;
       defaults_ = null;
@@ -9669,7 +9802,9 @@ function(obj, config, mixins, d3util) {
      * Destroys this component and cleans up after itself.
      */
     asset.destroy = function() {
-      root_.remove();
+      if(root_) {
+        root_.remove();
+      }
       root_ = null;
       config_ = null;
       defaults_ = null;
@@ -9681,15 +9816,193 @@ function(obj, config, mixins, d3util) {
 
 });
 
+/**
+ * @fileOverview
+ * Area component to draw filled areas in 2d space.
+ */
+define('components/area',[
+  'core/array',
+  'core/config',
+  'core/object',
+  'core/string',
+  'd3-ext/util',
+  'components/mixins'
+],
+function(array, config, obj, string, d3util, mixins) {
+  
+
+  return function() {
+
+    //Private variables
+    var config_ = {},
+      defaults_,
+      dataCollection_,
+      root_,
+      updateAreaGenerator_;
+
+    defaults_ = {
+      target: '.gl-framed',
+      cid: null,
+      xScale: null,
+      yScale: null,
+      cssClass: null,
+      color: 'steelBlue',
+      inLegend: true,
+      areaGenerator: d3.svg.area(),
+      opacity: 1
+    };
+
+    updateAreaGenerator_ = function() {
+      var dataConfig,
+          y0,
+          y1;
+
+      dataConfig = area.data();
+      if (config_.cid) {
+        root_.attr('gl-cid', config_.cid);
+      }
+      if (dataConfig.y0) {
+        // Use y0 for baseline if supplied.
+        y0 = function(d, i) {
+          return config_.yScale(dataConfig.y0(d, i));
+        };
+        y1 = function(d, i) {
+          return config_.yScale(dataConfig.y(d, i) + dataConfig.y0(d, i));
+        };
+      } else {
+        // Otherwise default to bottom of range.
+        y0 = function() {
+          return config_.yScale.range()[0];
+        };
+        y1 = function(d, i) {
+          return config_.yScale(dataConfig.y(d, i));
+        };
+      }
+
+      // Configure the areaGenerator function
+      config_.areaGenerator
+        .x(function(d, i) {
+          return config_.xScale(dataConfig.x(d, i));
+        })
+        .y0(y0)
+        .y1(y1)
+        .defined(function(d, i) {
+          var minX, value;
+          minX = 0;
+          value = dataConfig.x(d, i);
+          if (config_.xScale) {
+            minX = config_.xScale.range()[0];
+            value = config_.xScale(value);
+          }
+          return value >= minX;
+        });
+    };
+
+    /**
+     * Main function for area component
+     * @return {components.area}
+     */
+    function area() {
+      obj.extend(config_, defaults_);
+      return area;
+    }
+
+    // Apply mixins.
+    obj.extend(
+      area,
+      config.mixin(
+        config_,
+        'cid',
+        'target',
+        'xScale',
+        'yScale',
+        'color',
+        'opacity',
+        'cssClass',
+        'areaGenerator'
+      ),
+      mixins.lifecycle,
+      mixins.toggle);
+
+    // TODO: this will be the same for all components
+    // put this func somehwere else and apply as needed
+    area.data = function(data) {
+      if (data) {
+        dataCollection_ = data;
+        return area;
+      }
+      return dataCollection_.get(config_.dataId);
+    };
+
+    /**
+     * Updates the area component with new/updated data/config
+     * @return {components.area}
+     */
+    area.update = function() {
+      updateAreaGenerator_();
+      if (config_.cssClass) {
+        root_.classed(config_.cssClass, true);
+      }
+      root_.select('.gl-path')
+        .datum(area.data().data)
+        .attr({
+          'fill': config_.color,
+          'opacity': config_.opacity,
+          'd': config_.areaGenerator
+        });
+      return area;
+    };
+
+    /**
+     * Renders the area component
+     * @param  {d3.selection|Node|string} selection
+     * @return {components.area}
+     */
+    area.render = function(selection) {
+      root_ = d3util.select(selection || config_.target).append('g')
+        .attr({
+          'class': 'gl-component gl-area'
+        });
+      root_.append('path')
+        .attr({
+          'class': 'gl-path',
+        });
+      area.update();
+      return area;
+    };
+
+    /**
+     * Returns the root_
+     * @return {d3.selection}
+     */
+    area.root = function() {
+      return root_;
+    };
+
+    area.destroy = function() {
+      if(root_) {
+        root_.remove();
+      }
+      root_ = null;
+      config_ = null;
+      defaults_ = null;
+    };
+
+    return area();
+
+  };
+});
+
 define('components/component',[
   'components/line',
   'components/legend',
   'components/axis',
   'components/label',
   'components/overlay',
-  'components/asset'
+  'components/asset',
+  'components/area'
 ],
-function(line, legend, axis, label, overlay, asset) {
+function(line, legend, axis, label, overlay, asset, area) {
   
 
   return {
@@ -9698,7 +10011,8 @@ function(line, legend, axis, label, overlay, asset) {
     axis: axis,
     label: label,
     overlay: overlay,
-    asset: asset
+    asset: asset,
+    area: area
   };
 
 });
@@ -9904,6 +10218,433 @@ define('layout/layoutmanager',[
 
 /**
  * @fileOverview
+ * Data Dimension.
+ */
+define('data/dimension/dimension',[
+  'core/array'
+], function (array) {
+  
+
+  var Dimension;
+
+  function sumReduce(arr) {
+    return arr.reduce(function(prevValue, curValue){
+      return curValue + prevValue;
+    });
+  }
+
+  /**
+   * @constructor
+   * Data Dimension.
+   */
+  Dimension = function(optDataSource) {
+    this.dataSources_ = array.getArray(optDataSource);
+  };
+
+  /**
+   * Adds a dimension to the dimension selection.
+   */
+  Dimension.prototype.add = function(data) {
+    if(Array.isArray(data)) {
+      array.append(this.dataSources_, data);
+    } else {
+      this.dataSources_.push(data);
+    }
+    return this;
+  };
+
+  /**
+   * Generic map function that accepts and applies a function
+   *   on its sources.
+   */
+  Dimension.prototype.map = function(fn, context) {
+    return new Dimension(this.dataSources_.map(fn, context));
+  };
+
+  /**
+   * Accepts and applies a filter fn on its dimension sources.
+   */
+  Dimension.prototype.filter = function(fn, context) {
+    return this.map(function(dataSource) {
+      return dataSource.filter(fn, context);
+    });
+  };
+
+  /**
+   * Sums all the values and returns the selection.
+   */
+  Dimension.prototype.sum = function() {
+    return this.map(function(dataSource) {
+      return sumReduce(dataSource);
+    });
+  };
+
+  /**
+   * Averages the values in the dimension selection.
+   */
+  Dimension.prototype.avg = function() {
+    return this.map(function(dataSource) {
+      return sumReduce(dataSource)/dataSource.length;
+    });
+  };
+
+  /**
+   * Computes the max values in the dimension selection.
+   */
+  Dimension.prototype.max = function() {
+    return this.map(function(dataSource) {
+      return d3.max(dataSource);
+    });
+  };
+
+  /**
+   * Computes the min values in the dimension selection.
+   */
+  Dimension.prototype.min = function() {
+    return this.map(function(dataSource) {
+      return d3.min(dataSource);
+    });
+  };
+
+  /**
+   * Computes the max/min values in the dimension selection.
+   */
+  Dimension.prototype.extent = function() {
+    return this.map(function(dataSource) {
+      return d3.extent(dataSource);
+    });
+  };
+
+  /**
+   * Rounds the values in the dimension selection.
+   */
+  Dimension.prototype.round = function() {
+    return this.map(function(dataSource) {
+      if (Array.isArray(dataSource)) {
+        return dataSource.map(function(d) {
+          return Math.round(d);
+        });
+      } else {
+        return Math.round(dataSource);
+      }
+    });
+  };
+
+  /**
+   * Concatinates the values in multiple sources into one.
+   */
+  Dimension.prototype.concat = function() {
+    var arr = [];
+    this.dataSources_.forEach(function(dataSource) {
+      arr = arr.concat(dataSource);
+    });
+    return new Dimension([arr]);
+  };
+
+  /**
+   * Returns the raw value of the selection.
+   */
+  Dimension.prototype.all = function() {
+    return this.dataSources_;
+  };
+
+  /**
+   * Returns a source by index.
+   * Defaults to returning the first source.
+   */
+  Dimension.prototype.get = function(i) {
+    i = i || 0;
+    return this.dataSources_[i];
+  };
+
+  return {
+
+    create: function(optDimensions) {
+      return new Dimension(optDimensions);
+    },
+
+    getDimensionPrototype: function() {
+      return Dimension.prototype;
+    }
+
+  };
+
+});
+
+/**
+ * @fileOverview
+ * Data Selection.
+ */
+define('data/selection/selection',[
+  'data/dimension/dimension',
+  'core/array'
+], function (dimension, array) {
+  
+
+  var Selection;
+
+  /**
+   * @constructor
+   * Data Selection.
+   */
+  Selection = function(optDataSource) {
+    this.dataSources_ = array.getArray(optDataSource);
+  };
+
+  Selection.prototype.add = function(data) {
+    if(Array.isArray(data)) {
+      array.append(this.dataSources_, data);
+    } else {
+      this.dataSources_.push(data);
+    }
+    return this;
+  };
+
+  Selection.prototype.map = function(fn) {
+    return new Selection(this.dataSources_.map(fn));
+  };
+
+  Selection.prototype.dimMap = function(fn) {
+    return dimension.create(this.dataSources_.map(fn));
+  };
+
+  Selection.prototype.all = function() {
+    return this.dataSources_;
+  };
+
+  Selection.prototype.get = function(i) {
+    i = i || 0;
+    return this.dataSources_[i];
+  };
+
+  Selection.prototype.dim = function(dim) {
+    return this.dimMap(function(dataSource) {
+      // TODO: Handle dimensions from dimensions field.
+      return dataSource.data.map(dataSource[dim]);
+    });
+  };
+
+  return {
+
+    create: function(optDataSource) {
+      return new Selection(optDataSource);
+    },
+    getSelectionPrototype: function() {
+      return Selection.prototype;
+    }
+
+  };
+
+});
+
+/**
+ * @fileOverview
+ * Difference quotient.
+ */
+define('data/selection/diff-quotient',[
+  'core/object',
+  'data/selection/selection'
+], function (obj, selection) {
+  
+
+  var selectionPrototype = selection.getSelectionPrototype(),
+      TIME_INTERVAL;
+
+  /**
+   * @const
+   * @enum{string}
+   * TODO: Move after creation of a constants file.
+   */
+  TIME_INTERVAL = {
+    DAY: 1000 * 60 * 60 * 24
+  };
+
+  /**
+   * Calculates the difference quotient on the data
+   * TODO: Should accept axis on which to work on.
+   *       Time interval to calculate rate by.
+   */
+  selectionPrototype.diffQuotient = function () {
+    var data, mutatedData,
+        prevX, prevY, curX, curY, slope;
+    return this.map(function(source) {
+      var r = {};
+      data = source.data;
+      mutatedData = [];
+      data.forEach(function(d, i) {
+        curX = source.x(d);
+        curY = source.y(d);
+        if (i !== 0) {
+          slope = (curY - prevY) / (curX - prevX);
+          mutatedData.push({
+            x: curX,
+            y: slope * TIME_INTERVAL.DAY
+          });
+        }
+        prevX = curX;
+        prevY = curY;
+      });
+      obj.extend(r, source);
+      r.data = mutatedData;
+      r.x = function(d) { return d.x; };
+      r.y = function(d) { return d.y; };
+      return r;
+    });
+  };
+
+});
+
+/**
+ * @fileOverview
+ * Data source mutators.
+ */
+define('data/collection',[
+  'core/object',
+  'core/array',
+  'data/selection/selection',
+  'data/selection/diff-quotient'
+], function (obj, array, selection) {
+  
+
+  function applyDerivation(dc, data) {
+    var dataSelection = dc.select(data.sources),
+        derivedData = data.derivation(dataSelection);
+    if (typeof derivedData === 'object' &&
+         !Array.isArray(derivedData)) {
+      obj.extend(derivedData, data);
+    }
+    return derivedData;
+  }
+
+  function isDerived(data) {
+    return data.sources || data.derivation;
+  }
+
+  function collection() {
+    var dataCollection = {};
+    return {
+
+      /**
+       * Add a data source.
+       */
+      add: function(data) {
+        if (Array.isArray(data)) {
+          data.forEach(this.add);
+          return;
+        }
+        if (isDerived(data)) {
+          dataCollection[data.id] = { glDerive: data };
+        } else {
+          dataCollection[data.id] = data;
+        }
+      },
+
+      /**
+       * Recalculate derived sources.
+       */
+      updateDerivations: function() {
+        var data;
+        Object.keys(dataCollection).forEach(function(k) {
+          data = dataCollection[k];
+          if(data.glDerive) {
+            data.glDerivation = applyDerivation(this, data.glDerive);
+          }
+        }, this);
+      },
+
+      /**
+       * Remove a data source by id.
+       */
+      remove: function(id) {
+        var ids = array.getArray(id);
+        ids.forEach(function(i) {
+          delete dataCollection[i];
+        });
+      },
+
+      /**
+       * Update an item in place.
+       */
+      upsert: function(data) {
+        var id = data.id;
+        if (dataCollection[id]) {
+          obj.extend(dataCollection[id], data);
+        } else {
+          this.add(data);
+        }
+      },
+
+      /**
+       * Append data to a source by id.
+       */
+      append: function(id, dataToAppend) {
+        var dataSource = this.get(id);
+        if (dataSource) {
+          if (Array.isArray(dataToAppend)) {
+            array.append(dataSource.data, dataToAppend);
+          } else {
+            dataSource.data.push(dataToAppend);
+          }
+        }
+      },
+
+      /**
+       * Get data source by id.
+       */
+      get: function(id) {
+        if (id) {
+          if (dataCollection[id]) {
+            return dataCollection[id].glDerivation || dataCollection[id];
+          }
+          return  null;
+        }
+        return Object.keys(dataCollection).map(function(k) {
+          var data = dataCollection[k];
+          return data.glDerivation || data;
+        });
+      },
+
+      /**
+       * Accepts sources string of ids that are
+       * delimited by a comma.
+       */
+      select: function(sources) {
+        var dataSelection = selection.create(),
+            ids, dataList, data;
+        if(sources === '*') {
+          dataList = [];
+          Object.keys(dataCollection).forEach(function(k) {
+            data = dataCollection[k];
+            if(!isDerived(data) && !data.glDerive) {
+              dataList.push(data);
+            }
+          });
+          dataSelection.add(dataList);
+        } else {
+          ids = sources.split(',');
+          ids.forEach(function(id) {
+            data = dataCollection[id];
+            if(data) {
+              dataSelection.add(data);
+            }
+          });
+        }
+
+        return dataSelection;
+      }
+    };
+  }
+
+  return {
+    create: function() {
+      return collection();
+    }
+  };
+
+});
+
+/**
+ * @fileOverview
  *
  * A reusable X-Y graph.
  */
@@ -9915,10 +10656,11 @@ define('graphs/graph',[
   'core/format',
   'components/component',
   'layout/layoutmanager',
-  'd3-ext/util'
+  'd3-ext/util',
+  'data/collection'
 ],
 function(obj, config, array, assetLoader, format, components, layoutManager,
-  d3util) {
+  d3util, collection) {
   
 
   return function() {
@@ -9928,16 +10670,13 @@ function(obj, config, array, assetLoader, format, components, layoutManager,
      */
     var config_,
       defaults_,
-      data_,
       components_,
       root_,
       xAxis_,
       yAxis_,
       legend_,
-      svg_,
       xDomainLabel_,
       addComponent_,
-      removeComponent_,
       addAxes_,
       addLegend_,
       configureXScale_,
@@ -9947,6 +10686,7 @@ function(obj, config, array, assetLoader, format, components, layoutManager,
       getComponent_,
       getFrameHeight_,
       getFrameWidth_,
+      renderComponent_,
       renderComponents_,
       renderDefs_,
       renderPanel_,
@@ -9961,6 +10701,8 @@ function(obj, config, array, assetLoader, format, components, layoutManager,
       showLoadingOverlay_,
       showEmptyOverlay_,
       showErrorOverlay_,
+      dataCollection_,
+      isRendered_,
       STATES;
 
     /**
@@ -10009,7 +10751,7 @@ function(obj, config, array, assetLoader, format, components, layoutManager,
      */
     addComponent_ = function(component) {
       if (component.data) {
-        component.data(data_);
+        component.data(dataCollection_);
       }
       if (component.xScale) {
         component.xScale(config_.xScale);
@@ -10018,15 +10760,6 @@ function(obj, config, array, assetLoader, format, components, layoutManager,
         component.yScale(config_.yScale);
       }
       components_.push(component);
-    };
-
-    /**
-     * @param {String|Array} cid
-     */
-    removeComponent_ = function(cid) {
-      array.remove(components_, getComponent_(cid)).forEach(function(c) {
-        c.destroy();
-      });
     };
 
     /**
@@ -10092,7 +10825,7 @@ function(obj, config, array, assetLoader, format, components, layoutManager,
      * @return {number}
      */
     getFrameHeight_ = function() {
-      return svg_.select('.gl-framed').height();
+      return root_.select('.gl-framed').height();
     };
 
     /**
@@ -10101,7 +10834,7 @@ function(obj, config, array, assetLoader, format, components, layoutManager,
      * @return {number}
      */
     getFrameWidth_ = function() {
-      return svg_.select('.gl-framed').width();
+      return root_.select('.gl-framed').width();
     };
 
     /**
@@ -10114,11 +10847,15 @@ function(obj, config, array, assetLoader, format, components, layoutManager,
         return;
       }
       components_.forEach(function(component) {
-        var renderTarget;
-        renderTarget = selection.select(
-            component.config('target') || '.gl-unframed');
-        component.render(renderTarget);
+        renderComponent_(component, selection);
       });
+    };
+
+    renderComponent_ = function(component, selection) {
+      var renderTarget;
+      renderTarget = selection.select(
+        component.config('target') || root_);
+      component.render(renderTarget);
     };
 
     /**
@@ -10156,11 +10893,11 @@ function(obj, config, array, assetLoader, format, components, layoutManager,
      * @param  {d3.selection} selection
      */
     renderPanel_ = function(selection) {
-      svg_ = renderSvg_(selection);
-      renderDefs_(svg_);
+      root_ = renderSvg_(selection);
+      renderDefs_(root_);
       layoutManager.setLayout(
         config_.layout,
-        svg_,
+        root_,
         config_.viewBoxWidth,
         config_.viewBoxHeight);
     };
@@ -10200,14 +10937,15 @@ function(obj, config, array, assetLoader, format, components, layoutManager,
     updateLegend_ = function() {
       var legendConfig = [];
       components_.forEach(function(c) {
-        if (c.config('showInLegend')) {
+        var cData = c.data ? c.data() : null;
+        if (c.config('inLegend') && cData) {
           legendConfig.push({
             color: c.config('color'),
             label: c.data().title || ''
           });
         }
       });
-      legend_.config({keys: legendConfig})
+      legend_.config({ cid: 'legend', keys: legendConfig })
         .update();
     };
 
@@ -10272,8 +11010,19 @@ function(obj, config, array, assetLoader, format, components, layoutManager,
           if (componentData && componentData.data) {
             xExtents = xExtents.concat(
               d3.extent(componentData.data, componentData.x));
+
             yExtents = yExtents.concat(
-              d3.extent(componentData.data, componentData.y));
+              d3.extent(componentData.data,
+                function(d, i) {
+                  var value = componentData.y(d, i);
+                  // If Y-baselines are used (stacked),
+                  //   use the sum of the baseline and Y.
+                  if (componentData.y0) {
+                    value += componentData.y0(d, i);
+                  }
+                  return value;
+                })
+              );
           }
         }
       });
@@ -10311,6 +11060,7 @@ function(obj, config, array, assetLoader, format, components, layoutManager,
      * Updates scales and legend
      */
     update_ = function() {
+      dataCollection_.updateDerivations();
       updateScales_();
       updateAxes_();
       updateLegend_();
@@ -10322,26 +11072,19 @@ function(obj, config, array, assetLoader, format, components, layoutManager,
      * @param  {object} data
      */
     upsertData_ = function(data) {
-      var index = array.findIndex(data_, function(d) {
-        return d.id === data.id;
-      });
-      if (index !== -1) {
-        data_[index] = obj.extend(data_[index], data);
-      } else {
-        //Set default x and y accessors.
-        if (!data.x) {
-          data.x = defaultXaccessor_;
-        }
-        if (!data.y) {
-          data.y = defaultYaccessor_;
-        }
-        data_.push(data);
+      //Set default x and y accessors.
+      if (!data.x) {
+        data.x = defaultXaccessor_;
       }
+      if (!data.y) {
+        data.y = defaultYaccessor_;
+      }
+      dataCollection_.upsert(data);
     };
 
     /**
      * @private
-     * Displays the loading spinner and message over the framed area.
+     * Displays the empty message over the framed area.
      */
     showEmptyOverlay_ = function() {
       var labelTexts,
@@ -10440,7 +11183,7 @@ function(obj, config, array, assetLoader, format, components, layoutManager,
     function graph() {
       obj.extend(config_, defaults_);
       components_ = [];
-      data_ = [];
+      dataCollection_ = collection.create();
       xAxis_ = components.axis()
         .config({
           'type': 'x',
@@ -10475,9 +11218,9 @@ function(obj, config, array, assetLoader, format, components, layoutManager,
       if (!newState) {
         return oldState;
       }
-      removeComponent_('emptyOverlay');
-      removeComponent_('loadingOverlay');
-      removeComponent_('errorOverlay');
+      graph.removeComponent('emptyOverlay');
+      graph.removeComponent('loadingOverlay');
+      graph.removeComponent('errorOverlay');
       graph.xAxis().show();
       graph.legend().show();
       switch (newState) {
@@ -10510,9 +11253,7 @@ function(obj, config, array, assetLoader, format, components, layoutManager,
       if (data) {
         // Single string indicates id of data to return.
         if (typeof data === 'string') {
-          return array.find(data_, function(d) {
-            return d.id === data;
-          });
+          return dataCollection_.get(data);
         }
         if (Array.isArray(data)) {
           var i, len = data.length;
@@ -10525,7 +11266,18 @@ function(obj, config, array, assetLoader, format, components, layoutManager,
         return graph;
       }
 
-      return data_;
+      return dataCollection_;
+    };
+
+    /**
+     * Removes any specified data sets from the data collection.
+     * @public
+     * @param {String|Array} id Single id or array of ids.
+     * @return {graphs.graph}
+     */
+    graph.removeData = function(id) {
+      dataCollection_.remove(id);
+      return graph;
     };
 
     /**
@@ -10535,21 +11287,7 @@ function(obj, config, array, assetLoader, format, components, layoutManager,
      * @return {graphs.graph}
      */
     graph.appendData = function (id, dataToAppend) {
-      var index, originalData;
-
-      index = array.findIndex(data_, function (d) {
-        return d.id === id;
-      });
-
-      if (index !== -1) {
-        if (Array.isArray(dataToAppend)) {
-          originalData = data_[index].data;
-          array.append(originalData, dataToAppend);
-        } else {
-          data_[index].data.push(dataToAppend);
-        }
-      }
-
+      dataCollection_.append(id, dataToAppend);
       return graph;
     };
 
@@ -10575,6 +11313,23 @@ function(obj, config, array, assetLoader, format, components, layoutManager,
       component = components[componentConfig.type]();
       component.config(componentConfig);
       addComponent_(component);
+
+      if (isRendered_) {
+        renderComponent_(component, root_);
+      }
+
+      return graph;
+    };
+
+    /**
+     * @public
+     * @param {String|Array} cid Component cid or array of cids to remove.
+     * @return {graphs.graph}
+     */
+    graph.removeComponent = function(cid) {
+      array.remove(components_, getComponent_(cid)).forEach(function(c) {
+        c.destroy();
+      });
       return graph;
     };
 
@@ -10604,7 +11359,8 @@ function(obj, config, array, assetLoader, format, components, layoutManager,
       addComponent_(xDomainLabel_);
       renderPanel_(selection);
       update_();
-      renderComponents_(svg_);
+      renderComponents_(root_);
+      isRendered_ = true;
       return graph;
     };
 
