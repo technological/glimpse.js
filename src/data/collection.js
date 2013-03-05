@@ -42,7 +42,9 @@ define([
       return;
     }
     visited = visited || [];
-    if (deps[id]) { return; }
+    if (deps[id]) {
+      return;
+    }
     if (array.contains(visited, id)) {
       deps[id] = true;
       // TODO: Make enum for errors.
@@ -146,8 +148,9 @@ define([
       },
 
       /**
-       * Accepts sources string of ids that are
-       * delimited by a comma.
+       * Accepts the following string of comma-delimited:
+       * ids
+       * wildcards (* for all non-derived sources, + for all sources)
        */
       select: function(sources) {
         var dataSelection = selection.create(),
