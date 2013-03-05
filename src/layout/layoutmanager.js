@@ -4,10 +4,9 @@
  */
 define([
   'layout/layouts',
-  'core/array',
-  'layout/util'
+  'core/array'
 ],
-function (layouts, array, util) {
+function (layouts, array) {
   'use strict';
 
   function calculateDim(splits, length) {
@@ -59,6 +58,54 @@ function (layouts, array, util) {
     return child;
   }
 
+  /**
+   * Computes border parameters required to set borders
+   * @param  {Object} nodeInfo
+   * @return {Object}
+   *  {style: borderStyle, color: borderColor, width: [t, r, b, l]}
+   */
+  function getBorderParams(nodeInfo) {
+    var borderParams = {},
+      strokeWidth,
+      width,
+      hasBorder;
+
+    width = [0, 0, 0, 0];
+    hasBorder = false;
+
+    if (nodeInfo.border) {
+      strokeWidth = parseInt(nodeInfo.border, 10);
+      width = [strokeWidth, strokeWidth, strokeWidth, strokeWidth];
+      hasBorder = true;
+    }
+    if (nodeInfo.borderTop) {
+      width[0] = parseInt(nodeInfo.borderTop, 10);
+      hasBorder = true;
+    }
+    if (nodeInfo.borderRight) {
+      width[1] = parseInt(nodeInfo.borderRight, 10);
+      hasBorder = true;
+    }
+    if (nodeInfo.borderBottom) {
+      width[2] = parseInt(nodeInfo.borderBottom, 10);
+      hasBorder = true;
+    }
+    if (nodeInfo.borderLeft) {
+      width[3] = parseInt(nodeInfo.borderLeft, 10);
+      hasBorder = true;
+    }
+
+    borderParams = {
+      color: nodeInfo.borderColor || '#999',
+      style: nodeInfo.borderStyle || 'solid',
+      width: width,
+      hasBorder: hasBorder
+    };
+
+    return borderParams;
+
+  }
+
   function applyLayout(node) {
     if (node.classed('gl-vgroup')) {
       node.layout({type: 'vertical'});
@@ -76,7 +123,7 @@ function (layouts, array, util) {
      */
     setLayout: function(layout, root, width, height) {
       /*jshint loopfunc: true */
-      var i, node, nodeInfo, dim;
+      var i, node, nodeInfo, dim, borderParams;
       if (typeof layout === 'string') {
         layout = layouts.getLayout(layout);
       }
@@ -85,8 +132,17 @@ function (layouts, array, util) {
         nodeInfo = layout[i];
         node = root.append('g');
         node.size(width, height);
-        util.border(node, nodeInfo);
-        util.backgroundColor(node, nodeInfo);
+        borderParams = getBorderParams(nodeInfo);
+        if (borderParams.hasBorder) {
+          node.border(
+            borderParams.style,
+            borderParams.color,
+            borderParams.width
+          );
+        }
+        if (nodeInfo.backgroundColor) {
+          node.backgroundColor(nodeInfo.backgroundColor);
+        }
         node = getPaddingContainer(node, nodeInfo);
         node.attr({
           'class': nodeInfo['class'],

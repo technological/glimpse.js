@@ -1,12 +1,12 @@
 define([
-  'layout/util'
+  'd3-ext/d3-ext'
 ],
-function (util) {
+function () {
   'use strict';
 
   describe('layout.util', function() {
 
-    var node, nodeInfo, w, h, rect;
+    var node, borderInfo, w, h, rect;
 
     beforeEach(function() {
       w = 400;
@@ -19,12 +19,13 @@ function (util) {
 
       describe('border', function() {
         beforeEach(function() {
-          nodeInfo = {
-            border: 1,
-            borderOpacity: 0.3,
-            borderColor: 'red'
+          borderInfo = {
+            style: 'solid',
+            color: 'red',
+            width: [1, 1, 1, 1]
           };
-          util.border(node, nodeInfo);
+          node.size(w, h);
+          node.border(borderInfo.style, borderInfo.color, borderInfo.width);
           rect = node.select('.gl-layout-size').node();
         });
 
@@ -35,21 +36,15 @@ function (util) {
           );
         });
 
-        it('sets stroke-opacity', function() {
-          expect(rect).toHaveAttr(
-            'stroke-opacity', nodeInfo.borderOpacity
-          );
-        });
-
         it('sets stroke-width', function() {
           expect(rect).toHaveAttr(
-            'stroke-width', nodeInfo.border
+            'stroke-width', borderInfo.width[0]
           );
         });
 
         it('sets stroke', function() {
           expect(rect).toHaveAttr(
-            'stroke', nodeInfo.borderColor
+            'stroke', borderInfo.color
           );
         });
 
@@ -57,12 +52,13 @@ function (util) {
 
       describe('individual borders', function() {
         it('stroke-dasharray for top border', function() {
-          nodeInfo = {
-            borderTop: 1,
-            borderOpacity: 0.3,
-            borderColor: 'red'
+         borderInfo = {
+            style: 'solid',
+            color: 'red',
+            width: [1, 0, 0, 0]
           };
-          util.border(node, nodeInfo);
+          node.size(w, h);
+          node.border(borderInfo.style, borderInfo.color, borderInfo.width);
           rect = node.select('.gl-layout-size').node();
           expectedValue = [w,h,0,w,0,h];
           expect(rect).toHaveAttr(
@@ -71,10 +67,13 @@ function (util) {
         });
 
         it('stroke-dasharray for right border', function() {
-          nodeInfo = {
-            borderRight: 1
+          borderInfo = {
+            style: 'solid',
+            color: 'red',
+            width: [0, 1, 0, 0]
           };
-          util.border(node, nodeInfo);
+          node.size(w, h);
+          node.border(borderInfo.style, borderInfo.color, borderInfo.width);
           rect = node.select('.gl-layout-size').node();
           expectedValue = [0,w,h,w,0,h];
           expect(rect).toHaveAttr(
@@ -83,10 +82,13 @@ function (util) {
         });
 
         it('stroke-dasharray for bottom border', function() {
-          nodeInfo = {
-            borderBottom: 1
+          borderInfo = {
+            style: 'solid',
+            color: 'red',
+            width: [0, 0, 1, 0]
           };
-          util.border(node, nodeInfo);
+          node.size(w, h);
+          node.border(borderInfo.style, borderInfo.color, borderInfo.width);
           rect = node.select('.gl-layout-size').node();
           expectedValue = [0,w,0,h,w,h];
           expect(rect).toHaveAttr(
@@ -95,10 +97,13 @@ function (util) {
         });
 
         it('stroke-dasharray for left border', function() {
-          nodeInfo = {
-            borderLeft: 1
+          borderInfo = {
+            style: 'solid',
+            color: 'red',
+            width: [0, 0, 0, 1]
           };
-          util.border(node, nodeInfo);
+          node.size(w, h);
+          node.border(borderInfo.style, borderInfo.color, borderInfo.width);
           rect = node.select('.gl-layout-size').node();
           expectedValue = [0,w,0,h,0,w,h];
           expect(rect).toHaveAttr(
@@ -115,13 +120,13 @@ function (util) {
 
       describe('border', function() {
         beforeEach(function() {
-          nodeInfo = {
-            border: 1,
-            borderStyle: 'dotted',
-            borderColor: 'red',
-            borderOpacity: 0.3
+          borderInfo = {
+            style: 'dotted',
+            color: 'red',
+            width: [1, 1, 1, 1]
           };
-          util.border(node, nodeInfo);
+          node.size(w, h);
+          node.border(borderInfo.style, borderInfo.color, borderInfo.width);
           lines = node.selectAll('line');
         });
 
@@ -136,9 +141,8 @@ function (util) {
             'y1': 0,
             'x2': w,
             'y2': 0,
-            'stroke-width': nodeInfo.border,
-            'stroke': nodeInfo.borderColor,
-            'stroke-opacity': nodeInfo.borderOpacity,
+            'stroke-width': borderInfo.width[0],
+            'stroke': borderInfo.color,
             'stroke-dasharray':'1,1'
           });
         });
@@ -150,9 +154,8 @@ function (util) {
             'y1': 0,
             'x2': w,
             'y2': h,
-            'stroke-width': nodeInfo.border,
-            'stroke': nodeInfo.borderColor,
-            'stroke-opacity': nodeInfo.borderOpacity,
+            'stroke-width': borderInfo.width[0],
+            'stroke': borderInfo.color,
             'stroke-dasharray':'1,1'
           });
         });
@@ -164,9 +167,8 @@ function (util) {
             'y1': h,
             'x2': w,
             'y2': h,
-            'stroke-width': nodeInfo.border,
-            'stroke': nodeInfo.borderColor,
-            'stroke-opacity': nodeInfo.borderOpacity,
+            'stroke-width': borderInfo.width[0],
+            'stroke': borderInfo.color,
             'stroke-dasharray':'1,1'
           });
         });
@@ -178,9 +180,8 @@ function (util) {
             'y1': 0,
             'x2': 0,
             'y2': h,
-            'stroke-width': nodeInfo.border,
-            'stroke': nodeInfo.borderColor,
-            'stroke-opacity': nodeInfo.borderOpacity,
+            'stroke-width': borderInfo.width[0],
+            'stroke': borderInfo.color,
             'stroke-dasharray':'1,1'
           });
 
@@ -191,11 +192,12 @@ function (util) {
       describe('individual borders', function() {
 
         it('adds a dotted line for borderTop', function() {
-          nodeInfo = {
-            borderTop: 1,
-            borderStyle: 'dotted'
+          borderInfo = {
+            style: 'dotted',
+            width: [1, 0, 0, 0]
           };
-          util.border(node, nodeInfo);
+          node.size(w, h);
+          node.border(borderInfo.style, borderInfo.color, borderInfo.width);
           lines = node.selectAll('line');
           expect(lines[0].length).toBe(1);
           line = node.select('.gl-dotted-border-top').node();
@@ -203,11 +205,12 @@ function (util) {
         });
 
         it('adds a dotted line for borderRight', function() {
-          nodeInfo = {
-            borderRight: 1,
-            borderStyle: 'dotted'
+          borderInfo = {
+            style: 'dotted',
+            width: [0, 1, 0, 0]
           };
-          util.border(node, nodeInfo);
+          node.size(w, h);
+          node.border(borderInfo.style, borderInfo.color, borderInfo.width);
           lines = node.selectAll('line');
           expect(lines[0].length).toBe(1);
           line = node.select('.gl-dotted-border-right').node();
@@ -215,11 +218,12 @@ function (util) {
         });
 
         it('adds a dotted line for borderBottom', function() {
-          nodeInfo = {
-            borderBottom: 1,
-            borderStyle: 'dotted'
+          borderInfo = {
+            style: 'dotted',
+            width: [0, 0, 1, 0]
           };
-          util.border(node, nodeInfo);
+          node.size(w, h);
+          node.border(borderInfo.style, borderInfo.color, borderInfo.width);
           lines = node.selectAll('line');
           expect(lines[0].length).toBe(1);
           line = node.select('.gl-dotted-border-bottom').node();
@@ -227,11 +231,12 @@ function (util) {
         });
 
         it('adds a dotted line for borderLeft', function() {
-          nodeInfo = {
-            borderLeft: 1,
-            borderStyle: 'dotted'
+          borderInfo = {
+            style: 'dotted',
+            width: [0, 0, 0, 1]
           };
-          util.border(node, nodeInfo);
+          node.size(w, h);
+          node.border(borderInfo.style, borderInfo.color, borderInfo.width);
           lines = node.selectAll('line');
           expect(lines[0].length).toBe(1);
           line = node.select('.gl-dotted-border-left').node();
@@ -243,89 +248,68 @@ function (util) {
 
     describe('border-dashed', function() {
       var line;
-
-      describe('border', function() {
-        beforeEach(function() {
-          nodeInfo = {
-            border: 1,
-            borderStyle: 'dashed',
-            borderColor: 'red',
-            borderOpacity: 0.3,
-            borderDashArray: '5,5'
-          };
-          util.border(node, nodeInfo);
-        });
-
-        it('adds a dashed line for top border', function() {
-          line = node.select('.gl-dashed-border-top').node();
-          expect(line).toHaveAttr({
-            'x1': 0,
-            'y1': 0,
-            'x2': w,
-            'y2': 0,
-            'stroke-width': nodeInfo.border,
-            'stroke': nodeInfo.borderColor,
-            'stroke-opacity': nodeInfo.borderOpacity,
-            'stroke-dasharray':'5,5'
-          });
-        });
-
-        it('adds a dashed line for right border', function() {
-          line = node.select('.gl-dashed-border-right').node();
-          expect(line).toHaveAttr({
-            'x1': w,
-            'y1': 0,
-            'x2': w,
-            'y2': h,
-            'stroke-width': nodeInfo.border,
-            'stroke': nodeInfo.borderColor,
-            'stroke-opacity': nodeInfo.borderOpacity,
-            'stroke-dasharray':'5,5'
-          });
-        });
-
-        it('adds a dashed line for bottom border', function() {
-          line = node.select('.gl-dashed-border-bottom').node();
-          expect(line).toHaveAttr({
-            'x1': 0,
-            'y1': h,
-            'x2': w,
-            'y2': h,
-            'stroke-width': nodeInfo.border,
-            'stroke': nodeInfo.borderColor,
-            'stroke-opacity': nodeInfo.borderOpacity,
-            'stroke-dasharray':'5,5'
-          });
-        });
-
-        it('adds a dashed line for left border', function() {
-          line = node.select('.gl-dashed-border-left').node();
-          expect(line).toHaveAttr({
-            'x1': 0,
-            'y1': 0,
-            'x2': 0,
-            'y2': h,
-            'stroke-width': nodeInfo.border,
-            'stroke': nodeInfo.borderColor,
-            'stroke-opacity': nodeInfo.borderOpacity,
-            'stroke-dasharray':'5,5'
-          });
-
-        });
-
-      });
-
-    });
-
-    describe('backgroundColor', function() {
-      it('sets background color', function() {
-        nodeInfo = {
-          backgroundColor: 'red'
+      beforeEach(function() {
+        borderInfo = {
+          style: 'dashed',
+          color: 'red',
+          width: [1, 1, 1, 1]
         };
-        util.backgroundColor(node, nodeInfo);
-        expect(node.select('.gl-layout-size').node())
-          .toHaveAttr('fill', nodeInfo.backgroundColor);
+        node.border(borderInfo.style, borderInfo.color, borderInfo.width);
       });
+
+      it('adds a dashed line for top border', function() {
+        line = node.select('.gl-dashed-border-top').node();
+        expect(line).toHaveAttr({
+          'x1': 0,
+          'y1': 0,
+          'x2': w,
+          'y2': 0,
+          'stroke-width': borderInfo.width[0],
+          'stroke': borderInfo.color,
+          'stroke-dasharray':'5,5'
+        });
+      });
+
+      it('adds a dashed line for right border', function() {
+        line = node.select('.gl-dashed-border-right').node();
+        expect(line).toHaveAttr({
+          'x1': w,
+          'y1': 0,
+          'x2': w,
+          'y2': h,
+          'stroke-width': borderInfo.width[0],
+          'stroke': borderInfo.color,
+          'stroke-dasharray':'5,5'
+        });
+      });
+
+      it('adds a dashed line for bottom border', function() {
+        line = node.select('.gl-dashed-border-bottom').node();
+        expect(line).toHaveAttr({
+          'x1': 0,
+          'y1': h,
+          'x2': w,
+          'y2': h,
+          'stroke-width': borderInfo.width[0],
+          'stroke': borderInfo.color,
+          'stroke-dasharray':'5,5'
+        });
+      });
+
+      it('adds a dashed line for left border', function() {
+        line = node.select('.gl-dashed-border-left').node();
+        expect(line).toHaveAttr({
+          'x1': 0,
+          'y1': 0,
+          'x2': 0,
+          'y2': h,
+          'stroke-width': borderInfo.width[0],
+          'stroke': borderInfo.color,
+          'stroke-dasharray':'5,5'
+        });
+
+      });
+
     });
 
   });

@@ -27,7 +27,7 @@ define(function () {
       }, {
         'class': 'gl-footer',
         paddingTop: 1,
-        paddingBottom: 1
+        paddingBottom: 1,
         padding: 1,
         borderStyle: 'dotted',
         borderTop: 1
