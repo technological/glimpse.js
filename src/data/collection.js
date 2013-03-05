@@ -28,6 +28,10 @@ define([
     return false;
   }
 
+  function isWildCard(id) {
+    return id === '*' || id === '+';
+  }
+
   /**
    * @private
    * Derives data source by id.
@@ -52,7 +56,7 @@ define([
     }
     visited.push(id);
     sources = d.glDerive.sources.split(',')
-               .filter(function(d) { return d !== '*'; });
+               .filter(function(id) { return !isWildCard(id); });
     sources.forEach(function(id) {
       deriveDataById(id.trim(), data, deps, dataCollection, visited);
     });
@@ -157,7 +161,7 @@ define([
             dataList = [], ids;
         ids = sources.split(',');
         ids.forEach(function(id) {
-          if(id === '*' || id === '+') {
+          if(isWildCard(id)) {
             Object.keys(dataCollection).forEach(function(k) {
               if(!this.isDerived(k) || sources === '+') {
                 dataList.push(this.get(k));
