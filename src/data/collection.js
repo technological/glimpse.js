@@ -28,7 +28,14 @@ define([
     return false;
   }
 
-  function setDeps(id, data, deps, dataCollection, visited) {
+  /**
+   * @private
+   * Derives data source by id.
+   * Accepts the cached deps object.
+   * Results in the derivation of any non-cached dependencies
+   * of the data source.
+   */
+  function deriveDataById(id, data, deps, dataCollection, visited) {
     var d = data[id], sources;
     if(!dataCollection.isDerived(id)) {
       deps[id] = true;
@@ -45,7 +52,7 @@ define([
     sources = d.glDerive.sources.split(',')
                .filter(function(d) { return d !== '*'; });
     sources.forEach(function(id) {
-      setDeps(id.trim(), data, deps, dataCollection, visited);
+      deriveDataById(id.trim(), data, deps, dataCollection, visited);
     });
     deps[id] = true;
     d.glDerivation = applyDerivation(dataCollection, d.glDerive);
@@ -81,7 +88,7 @@ define([
       updateDerivations: function() {
         var deps = {};
         Object.keys(dataCollection).forEach(function(k) {
-          setDeps(k, dataCollection, deps, this);
+          deriveDataById(k, dataCollection, deps, this);
         }, this);
         return deps;
       },
