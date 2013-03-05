@@ -45,9 +45,9 @@ define(['d3'], function(d3) {
     var rect;
 
     if (this.node().tagName === 'g') {
-      rect = this.select('gl-layout-size');
+      rect = this.select('.gl-layout-size');
 
-      if (rect.empty) {
+      if (rect.empty()) {
         rect = this.append('rect');
       }
 
