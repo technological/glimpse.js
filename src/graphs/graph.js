@@ -125,6 +125,7 @@ function(obj, config, array, assetLoader, format, components, layoutManager,
       if (component.yScale) {
         component.yScale(config_.yScale);
       }
+      setDefaultColor(component);
       components_.push(component);
     };
 
@@ -203,23 +204,22 @@ function(obj, config, array, assetLoader, format, components, layoutManager,
       return root_.select('.gl-framed').width();
     };
 
+    /**
+     * @private
+     * Sets default color for on component if color not set
+     * @param {Object} component [description]
+     */
+    function setDefaultColor(component) {
+      var colors, len;
 
-    /** Sets default color for each component if color not set */
-    function setDefaultColors() {
-      var colors, len, coloredComponents;
-      coloredComponents = components_.filter(function(c) {
-        return !array.contains(NO_COLORED_COMPONENTS, c.config().type);
-      });
-
-      colors = d3.functor(config_.colorPalette)();
-      len = colors.length;
-
-      components_.forEach(function(c) {
-        if (array.contains(coloredComponents, c) && c.hasOwnProperty('color')) {
-          c.config().color = c.config().color ?
-            c.config().color : colors[coloredComponentsCount++ % len];
+      if (!array.contains(NO_COLORED_COMPONENTS, component.config().type)){
+        colors = d3.functor(config_.colorPalette)();
+        len = colors.length;
+        if (component.hasOwnProperty('color')) {
+          component.config().color = component.config().color ?
+            component.config().color : colors[coloredComponentsCount++ % len];
         }
-      });
+      }
     }
 
     /**
@@ -775,7 +775,6 @@ function(obj, config, array, assetLoader, format, components, layoutManager,
     graph.render = function(selector) {
       var selection = d3util.select(selector);
       assetLoader.loadAll();
-      setDefaultColors();
       addLegend_();
       addAxes_();
       addComponent_(xDomainLabel_);
