@@ -12,15 +12,16 @@ define(['d3'], function(d3) {
    */
   d3.selection.prototype.backgroundColor = function(color) {
     var rect;
-    rect = this.select('.gl-layout-size');
-    if (!rect.empty()) {
+
+    if (this.node().tagName === 'g') {
+      rect = this.select('.gl-layout-size');
+      if (rect.empty()) {
+        this.size(this.width(), this.height());
+        rect = this.select('.gl-layout-size');
+      }
       rect.attr('fill', color);
-
-    } else {
-      this.attr('fill', color);
+      this.attr('gl-background-color', color);
     }
-    this.attr('gl-background-color', color);
-
     return this;
   };
 
