@@ -43,19 +43,13 @@ define([
         stroke = stroke.concat([0, width]);
       }
 
-      if (r && lengthModTwo(stroke) !== 0 || !r && lengthModTwo(stroke) === 0) {
-        stroke.push(0);
-      }
+      computeDashOrGap(stroke, r);
       stroke.push(height);
 
-      if (b && lengthModTwo(stroke) !== 0 || !b && lengthModTwo(stroke) === 0) {
-        stroke.push(0);
-      }
+      computeDashOrGap(stroke, b);
       stroke.push(width);
 
-      if (l && lengthModTwo(stroke) !== 0 || !l && lengthModTwo(stroke) === 0) {
-        stroke.push(0);
-      }
+      computeDashOrGap(stroke, l);
       stroke.push(height);
 
     } else {
@@ -64,6 +58,18 @@ define([
         DEFAULTS.dasharrayDotted : DEFAULTS.dasharrayDashed;
     }
     return stroke;
+  }
+
+  /**
+   * Computes if a gap needs to be added to the strokedasharray
+   * @param  {Array}  stroke
+   * @param  {Boolean} hasEdge
+   */
+  function computeDashOrGap(stroke, hasEdge) {
+    var mod2 = stroke.length % 2;
+    if (hasEdge && mod2 !== 0 || !hasEdge && mod2 === 0) {
+      stroke.push(0);
+    }
   }
 
   /**
@@ -94,15 +100,6 @@ define([
    */
   function getBorderClass(style, subClass) {
     return 'gl-' + style + '-border-' + subClass;
-  }
-
-  /**
-   * Computes arr.length % 2
-   * @param  {Array} arr
-   * @return {integer}
-   */
-  function lengthModTwo(arr) {
-    return arr.length % 2;
   }
 
   /**
