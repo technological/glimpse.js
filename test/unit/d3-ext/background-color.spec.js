@@ -28,6 +28,26 @@ function () {
         rect.backgroundColor('red');
         expect(rect.node()).not.toHaveAttr('fill', 'red');
       });
+
+      it('does not set the color if node is not g', function() {
+        var rect;
+        rect = g.append('rect');
+        rect.backgroundColor('red');
+        expect(rect.node()).not.toHaveAttr('fill', 'red');
+      });
+
+      it('appends rect only once and updates color on subsequent calls',
+      function() {
+        var testRect;
+        g.backgroundColor('red');
+        g.backgroundColor('green');
+        testRect = g.selectAll('rect');
+        expect(testRect[0].length).toBe(1);
+        expect(testRect.node()).toHaveAttr({
+          fill: 'green'
+        });
+      });
+
     });
 
   });

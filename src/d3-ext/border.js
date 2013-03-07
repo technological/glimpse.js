@@ -21,10 +21,19 @@ define([
 
   /**
    * Computes the stroke-dasharray value
-   *   https://developer.mozilla.org/en-US/docs/SVG/Attribute/stroke-dasharray
+   * @see
+   *    https://developer.mozilla.org/en-US/docs/SVG/Attribute/stroke-dasharray
    * @param  {d3.selection} node
    * @param  {Object} borderInfo  Contains
-   *  {style: borderStyle, color: borderColor, width: [t, r, b, l]}
+   *  {
+   *    style: border style <'solid'|'dotted'|'dashed'>,
+   *    color: border color <paint>,
+   *    @see http://www.w3.org/TR/SVG/painting.html#SpecifyingPaint
+   *    width: {Array} 4 element array corresponding to
+   *      border width of each edge top, right, bottom and left
+   *      Value : <percentage> | <length> | inherit | 0
+   *      0 represents no border
+   *  }
    */
   function getStrokeDashArray(node, borderInfo) {
     var stroke = [], t, r, b, l, height, width;
@@ -74,7 +83,10 @@ define([
 
   /**
    * Computes the stroke-width attribute
-   * @param {Array} width , r, b, l] value array of border-width
+   * @param {Array} 4 element array corresponding to
+   *      border width of each edge top, right, bottom and left
+   *      Value : <percentage> | <length> | inherit | 0
+   *      0 represents no border
    */
   function getStrokeWidth(width) {
     var strokeWidth = 1;
@@ -94,8 +106,8 @@ define([
 
   /**
    * Computes the class name for border
-   * @param  {string} style    Style of the border
-   * @param  {string} subClass Subclass to append
+   * @param  {string} style  Style of the border <'solid'|'dashed'|'dotted'>
+   * @param  {string} subClass Subclass to append class name
    * @return {string} class name for border
    */
   function getBorderClass(style, subClass) {
@@ -106,6 +118,20 @@ define([
    * Adds svg line element based on the coordinates array
    * @param  {d3.selection} node
    * @param  {Object} lineInfo
+   *  contains
+   *  {
+   *    x1: x-axis coordinate of the start of the line,
+   *    y1: y-axis coordinate of the start of the line,
+   *    x2: x-axis coordinate of the end of the line,
+   *    y2: y-axis coordinate of the end of the line,
+   *    subClass: postfix for the class name on the line element,
+   *    width: border width <percentage> | <length> | inherit,
+   *    @see http://www.w3.org/TR/SVG/types.html#DataTypePercentage
+   *    @see http://www.w3.org/TR/SVG/types.html#DataTypeLength
+   *    color: border color <paint>
+   *    @see http://www.w3.org/TR/SVG/painting.html#SpecifyingPaint,
+   *    style: border style <'solid'|'dashed'|'dotted'>
+   *  }
    */
   function addBorder(node, lineInfo) {
     var  className, dasharray, line;
@@ -136,7 +162,15 @@ define([
    * the node.
    * @param  {d3.selection} node
    * @param  {Object} borderInfo Contains
-   *  {style: borderStyle, color: borderColor, width: [t, r, b, l]}
+   *  {
+   *    style: border style <'solid'|'dotted'|'dashed'>,
+   *    color: border color <paint>,
+   *    @see http://www.w3.org/TR/SVG/painting.html#SpecifyingPaint
+   *    width: {Array} 4 element array corresponding to
+   *      border width of each edge top, right, bottom and left
+   *      Value : <percentage> | <length> | inherit | 0
+   *      0 represents no border
+   *  }
    */
   function applyRectBorder(node, borderInfo) {
     var strokeDashArray;
@@ -155,7 +189,15 @@ define([
    * adding svg line elements.
    * @param  {d3.selection} node
    * @param  {Object} borderInfo Contains
-   *  {style: borderStyle, color: borderColor, width: [t, r, b, l]}
+   *  {
+   *    style: border style <'solid'|'dotted'|'dashed'>,
+   *    color: border color <paint>,
+   *    @see http://www.w3.org/TR/SVG/painting.html#SpecifyingPaint
+   *    width: [t, r, b, l] {Array} 4 element array corresponding to
+   *      border width of each edge top, right, bottom and left
+   *      Value : <percentage> | <length> | inherit | 0
+   *      0 represents no border
+   *  }
    */
   function applyBorder(node, borderInfo) {
     //TODO: append this to the object
@@ -235,9 +277,13 @@ define([
 
   /**
    * d3 selection border
-   * @param  {string} style Border style
-   * @param  {color} color Border color
-   * @param  {Array} width [t, r, b, l] value array of border-width
+   * @param  {string} style Border style <'solid'|'dotted'|'dashed'>
+   * @param  {color} color Border color <paint>,
+   * @see http://www.w3.org/TR/SVG/painting.html#SpecifyingPaint
+   * @param  {Array} width 4 element array where each element
+   *  corresponding to border width of each edge top, right, bottom and left
+   *  Value : <percentage> | <length> | inherit | 0
+   *  0 represents no border
    */
   d3.selection.prototype.border = function border(style, color, width) {
     var rect, borderInfo;
