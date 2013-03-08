@@ -26,6 +26,11 @@ function (array) {
 
     isDef: function(val) {
       return val !== undefined;
+    },
+
+    isDefAndNotNull: function(val) {
+      return val != null;
+    },
     }
 
   };
