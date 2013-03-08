@@ -31,6 +31,19 @@ function (array) {
     isDefAndNotNull: function(val) {
       return val != null;
     },
+
+    get: function(obj, path) {
+      var i;
+      path = array.getArray(path);
+      for (i = 0; i < path.length; i += 1) {
+        if(this.isDefAndNotNull(obj)) {
+          obj = obj[path[i]];
+        }
+      }
+      if (obj) {
+        return obj;
+      }
+      return null;
     }
 
   };

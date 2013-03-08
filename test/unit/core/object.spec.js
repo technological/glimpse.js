@@ -120,6 +120,43 @@ function (Obj) {
 
     });
 
+    describe('.get()', function() {
+
+      var obj;
+
+      it('returns value if string is specified', function() {
+        obj = { 'hi': 'bye' };
+        expect(Obj.get(obj, 'hi')).toBe('bye');
+      });
+
+      it('returns null if non-existent key is specified', function() {
+        obj = { 'hi': 'bye' };
+        expect(Obj.get(obj, 'hello')).toBe(null);
+      });
+
+      it('returns value if path array is specified', function() {
+        obj = { 'hi': 'bye' };
+        expect(Obj.get(obj, ['hi'])).toBe('bye');
+      });
+
+      it('returns null if non-existent path array is specified', function() {
+        obj = { 'hi': 'bye' };
+        expect(Obj.get(obj, ['hello'])).toBe(null);
+      });
+
+      it('returns value if deep path array is specified', function() {
+        obj = { 'a': { b: { c: 'howdy'}}  };
+        expect(Obj.get(obj, ['a', 'b', 'c'])).toBe('howdy');
+      });
+
+      it('returns null if invalid deep path array is specified', function() {
+        obj = { 'a': { b: { c: 'howdy'}}  };
+        expect(Obj.get(obj, ['a', 'x', 'y'])).toBe(null);
+      });
+
+
+    });
+
   });
 
 });
