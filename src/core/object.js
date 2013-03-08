@@ -33,13 +33,10 @@ function (array) {
     },
 
     get: function(obj, path) {
-      var i;
-      path = array.getArray(path);
-      for (i = 0; i < path.length; i += 1) {
-        if(this.isDefAndNotNull(obj)) {
-          obj = obj[path[i]];
-        }
-      }
+      array.getArray(path).every(function(p) {
+        obj = obj[p];
+        return this.isDefAndNotNull(obj);
+      }, this);
       if (obj) {
         return obj;
       }
