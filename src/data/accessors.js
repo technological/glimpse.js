@@ -9,18 +9,18 @@ define([
 
   var cache = {};
 
-  function getAccessor(accessor) {
+  function getAccessor(dimVal) {
     var splitPath, accessorFn;
-    accessor = accessor.trim();
-    accessorFn = cache[accessor];
+    dimVal = dimVal.trim();
+    accessorFn = cache[dimVal];
     if (accessorFn) {
       return accessorFn;
     }
-    splitPath = accessor.split('.');
+    splitPath = dimVal.split('.');
     accessorFn = function(d) {
       return obj.get(d, splitPath);
     };
-    cache[accessor] = accessorFn;
+    cache[dimVal] = accessorFn;
     return accessorFn;
   }
 
