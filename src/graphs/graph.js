@@ -12,7 +12,7 @@ define([
   'components/component',
   'layout/layoutmanager',
   'd3-ext/util',
-  'data/data',
+  'data/functions',
   'data/collection'
 ],
 function(obj, config, array, assetLoader, format, components, layoutManager,

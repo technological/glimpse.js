@@ -9,7 +9,7 @@ define([
   'core/string',
   'd3-ext/util',
   'components/mixins',
-  'data/data'
+  'data/functions'
 ],
 function(array, config, obj, string, d3Util, mixins, dataFns) {
   'use strict';

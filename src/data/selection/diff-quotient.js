@@ -4,7 +4,7 @@
  */
 define([
   'core/object',
-  'data/data',
+  'data/functions',
   'data/selection/selection'
 ], function (obj, dataFns, selection) {
   'use strict';

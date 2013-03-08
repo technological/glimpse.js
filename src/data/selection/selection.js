@@ -5,7 +5,7 @@
 define([
   'data/dimension/dimension',
   'core/array',
-  'data/data'
+  'data/functions'
 ], function (dimension, array, dataFns) {
   'use strict';
 

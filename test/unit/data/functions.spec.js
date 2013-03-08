@@ -1,5 +1,5 @@
 define([
-  'data/data'
+  'data/functions'
 ], function (dataFns) {
   'use strict';
 
