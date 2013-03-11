@@ -578,6 +578,7 @@ function(graph, assetLoader, dc, compUtil) {
       beforeEach(function() {
         domain = [new Date(0), new Date(34347661000)];
         formatter = testGraph.config('xDomainLabelFormatter');
+        testGraph.data(fakeData);
         testGraph.render(jasmine.htmlFixture());
         label = testGraph.component('xDomainLabel');
         xScale = testGraph.config('xScale');

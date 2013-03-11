@@ -64,7 +64,9 @@ function(obj, config, array, assetLoader, format, components, layoutManager,
       updateStateDisplay,
       STATES,
       NO_COLORED_COMPONENTS,
-      coloredComponentsCount;
+      coloredComponentsCount,
+      isDataSet_,
+      areComponentsRendered_;
     /**
      * @enum
      * The possible states a graph can be in.
@@ -117,7 +119,7 @@ function(obj, config, array, assetLoader, format, components, layoutManager,
      * @param {component} component [description]
      */
     addComponent_ = function(component) {
-      if (component.data) {
+      if (component.data && isDataSet_) {
         component.data(dataCollection_);
       }
       if (component.xScale) {
@@ -235,12 +237,12 @@ function(obj, config, array, assetLoader, format, components, layoutManager,
       components_.forEach(function(component) {
         renderComponent_(component, selection);
       });
+      areComponentsRendered_ = true;
     };
 
     renderComponent_ = function(component, selection) {
       var renderTarget;
-      renderTarget = selection.select(
-        component.config('target') || root_);
+      renderTarget = selection.select(component.config('target')) || root_;
       component.render(renderTarget);
     };
 
@@ -570,6 +572,30 @@ function(obj, config, array, assetLoader, format, components, layoutManager,
     };
 
     /**
+     * Initializes graph components
+     * Adds legend/axes/domain label and
+     * calls render on components
+     */
+    function initGraphComponents() {
+      addLegend_();
+      addAxes_();
+      addComponent_(xDomainLabel_);
+      update_();
+      renderComponents_(root_);
+    }
+
+    /** Sets data on each component if data is set  */
+    function setComponentsData() {
+      if (isDataSet_) {
+        components_.forEach(function(c){
+          if (c.data) {
+            c.data(dataCollection_);
+          }
+        });
+      }
+    }
+
+    /**
      * Main function, sets defaults, scales and axes
      * @return {graphs.graph}
      */
@@ -689,6 +715,7 @@ function(obj, config, array, assetLoader, format, components, layoutManager,
         } else {
           upsertData_(data);
         }
+        isDataSet_ = true;
         return graph;
       }
 
@@ -764,10 +791,16 @@ function(obj, config, array, assetLoader, format, components, layoutManager,
      * @return {graphs.graph}
      */
     graph.update = function() {
-      update_();
-      components_.forEach(function(component) {
-        component.update();
-      });
+      setComponentsData();
+      if (isDataSet_) {
+        if (!areComponentsRendered_) {
+          initGraphComponents();
+        }
+        update_();
+        components_.forEach(function(component) {
+          component.update();
+        });
+      }
       return graph;
     };
 
@@ -780,12 +813,11 @@ function(obj, config, array, assetLoader, format, components, layoutManager,
     graph.render = function(selector) {
       var selection = d3util.select(selector);
       assetLoader.loadAll();
-      addLegend_();
-      addAxes_();
-      addComponent_(xDomainLabel_);
       renderPanel_(selection);
-      update_();
-      renderComponents_(root_);
+
+      if (isDataSet_) {
+        initGraphComponents();
+      }
       // Force state update.
       updateStateDisplay();
       isRendered_ = true;
