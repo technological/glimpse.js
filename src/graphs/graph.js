@@ -65,7 +65,6 @@ function(obj, config, array, assetLoader, format, components, layoutManager,
       STATES,
       NO_COLORED_COMPONENTS,
       coloredComponentsCount,
-      isDataSet_,
       areComponentsRendered_;
     /**
      * @enum
@@ -119,7 +118,7 @@ function(obj, config, array, assetLoader, format, components, layoutManager,
      * @param {component} component [description]
      */
     addComponent_ = function(component) {
-      if (component.data && isDataSet_) {
+      if (component.data && !dataCollection_.isEmpty()) {
         component.data(dataCollection_);
       }
       if (component.xScale) {
@@ -586,7 +585,7 @@ function(obj, config, array, assetLoader, format, components, layoutManager,
 
     /** Sets data on each component if data is set  */
     function setComponentsData() {
-      if (isDataSet_) {
+      if (!dataCollection_.isEmpty()) {
         components_.forEach(function(c){
           if (c.data) {
             c.data(dataCollection_);
@@ -715,7 +714,6 @@ function(obj, config, array, assetLoader, format, components, layoutManager,
         } else {
           upsertData_(data);
         }
-        isDataSet_ = true;
         return graph;
       }
 
@@ -792,7 +790,7 @@ function(obj, config, array, assetLoader, format, components, layoutManager,
      */
     graph.update = function() {
       setComponentsData();
-      if (isDataSet_) {
+      if (!dataCollection_.isEmpty()) {
         if (!areComponentsRendered_) {
           initGraphComponents();
         }
@@ -815,7 +813,7 @@ function(obj, config, array, assetLoader, format, components, layoutManager,
       assetLoader.loadAll();
       renderPanel_(selection);
 
-      if (isDataSet_) {
+      if (!dataCollection_.isEmpty()) {
         initGraphComponents();
       }
       // Force state update.
