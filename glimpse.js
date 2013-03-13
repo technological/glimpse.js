@@ -8300,7 +8300,9 @@ function () {
      * @return {Boolean}
      */
     contains: function(arr, item) {
-      return !!arr.length && arr.indexOf(item) !== -1;
+      if (item) {
+        return !!arr.length && arr.indexOf(item) !== -1;
+      }
     }
 
   };
@@ -8333,6 +8335,25 @@ function (array) {
         });
       });
       return target;
+    },
+
+    isDef: function(val) {
+      return val !== undefined;
+    },
+
+    isDefAndNotNull: function(val) {
+      return val != null;
+    },
+
+    get: function(obj, path) {
+      array.getArray(path).every(function(p) {
+        obj = obj[p];
+        return this.isDefAndNotNull(obj);
+      }, this);
+      if (obj) {
+        return obj;
+      }
+      return null;
     }
 
   };
@@ -8626,10 +8647,10 @@ function() {
   return {
 
     /**
-     * @private
      * Default formatter for a date/time domain.
      * Text is in the format:
      *    ShortMonth Day, HH:MM AM/PM - ShortMonth Day, HH:MM AM/PM UTC
+     * @private
      * @param {Array} domain Contains min and max of the domain.
      * @return {String}
      * @see https://github.com/mbostock/d3/wiki/Time-Formatting#wiki-format
@@ -8711,7 +8732,10 @@ define('components/mixins/toggle',[],function () {
     * @return {components.component}
     */
     show: function () {
-      this.root().attr('display', null);
+      var root = this.root();
+      if (root) {
+        root.attr('display', null);
+      }
       return this;
     },
 
@@ -8720,7 +8744,10 @@ define('components/mixins/toggle',[],function () {
     * @return {components.component}
     */
     hide: function () {
-      this.root().attr('display', 'none');
+      var root = this.root();
+      if (root) {
+        root.attr('display', 'none');
+      }
       return this;
     }
 
@@ -8772,6 +8799,87 @@ function(toggle, lifecycle) {
 });
 /**
  * @fileOverview
+ * Accessor generator.
+ */
+define('data/accessors',[
+  'core/object'
+], function (obj) {
+  
+
+  var cache = {};
+
+  function getAccessor(dimVal) {
+    var splitPath, accessorFn;
+    dimVal = dimVal.trim();
+    accessorFn = cache[dimVal];
+    if (accessorFn) {
+      return accessorFn;
+    }
+    splitPath = dimVal.split('.');
+    accessorFn = function(d) {
+      return obj.get(d, splitPath);
+    };
+    cache[dimVal] = accessorFn;
+    return accessorFn;
+  }
+
+  return {
+
+    /**
+     * Returns input if function.
+     * If input is string, it returns a cached accessor
+     * else generates a new accessor for the string.
+     */
+    get: function(accessor) {
+      if (typeof accessor === 'function') {
+        return accessor;
+      }
+      if (typeof accessor === 'string') {
+        return getAccessor(accessor);
+      }
+    },
+
+    /**
+     * Clears the accessors cache.
+     */
+    clear: function() {
+      cache = {};
+    }
+
+  };
+
+});
+
+/**
+ * @fileOverview
+ * Data functions.
+ */
+define('data/functions',[
+  'core/object',
+  'data/accessors'
+], function (obj, accessors) {
+  
+
+  return {
+
+    /**
+     * Gets the data using the dimension accessor.
+     */
+    dimension: function(data, dim) {
+      var dimValue;
+      dimValue = obj.get(data, ['dimensions', dim]);
+      if (!dimValue) {
+        return null;
+      }
+      return accessors.get(dimValue);
+    }
+
+  };
+
+});
+
+/**
+ * @fileOverview
  * Reusuable line component.
  */
 define('components/line',[
@@ -8780,9 +8888,10 @@ define('components/line',[
   'core/object',
   'core/string',
   'd3-ext/util',
-  'components/mixins'
+  'components/mixins',
+  'data/functions'
 ],
-function(array, config, obj, string, d3Util, mixins) {
+function(array, config, obj, string, d3Util, mixins, dataFns) {
   
 
   return function() {
@@ -8796,10 +8905,11 @@ function(array, config, obj, string, d3Util, mixins) {
       update_;
 
     defaults_ = {
+      type: 'line',
       target: '.gl-framed',
       cid: undefined,
       strokeWidth: 2,
-      color: 'steelBlue',
+      color: undefined,
       inLegend: true,
       lineGenerator: d3.svg.line(),
       interpolate: 'linear',
@@ -8849,7 +8959,8 @@ function(array, config, obj, string, d3Util, mixins) {
         'cid',
         'xScale',
         'yScale',
-        'lineGenerator'
+        'lineGenerator',
+        'color'
       ),
       mixins.lifecycle,
       mixins.toggle);
@@ -8885,14 +8996,15 @@ function(array, config, obj, string, d3Util, mixins) {
       // Configure the lineGenerator function
       config_.lineGenerator
         .x(function(d, i) {
-          return config_.xScale(dataConfig.x(d, i));
+          return config_.xScale(dataFns.dimension(dataConfig, 'x')(d, i));
         })
         .y(function(d, i) {
-          return config_.yScale(dataConfig.y(d, i));
+          return config_.yScale(dataFns.dimension(dataConfig, 'y')(d, i));
         })
         .defined(function(d, i) {
           var minX = config_.xScale.range()[0];
-          return(config_.xScale(dataConfig.x(d, i)) >= minX);
+          return (config_.xScale(
+            dataFns.dimension(dataConfig, 'x')(d, i)) >= minX);
         })
         .interpolate(config_.interpolate);
       selection = root_.select('.gl-path')
@@ -8977,6 +9089,7 @@ function(obj, config, string, util, mixins) {
     config_ = {};
 
     defaults_ = {
+      type: 'legend',
       position: 'center-left',
       target: '.gl-info',
       cid: undefined,
@@ -8987,13 +9100,8 @@ function(obj, config, string, util, mixins) {
       fontFamily: 'Arial, sans-serif',
       fontWeight: 'bold',
       fontSize: 13,
-      keySpacing: 20,
-      marginTop: 10,
-      marginRight: 0,
-      marginBottom: 0,
-      marginLeft: 10,
       layout: 'horizontal',
-      gap: 10,
+      gap: 20,
       keys: []
     };
 
@@ -9211,8 +9319,8 @@ function(obj, config, string, mixins, d3util) {
     };
 
     /**
-     * @private
      * Changes the default formatting of the d3 axis.
+     * @private
      */
     formatAxis_ = function() {
       // remove boldness from default axis path
@@ -9391,6 +9499,7 @@ function(obj, config, string, array, util, mixins) {
     config_ = {};
 
     defaults_ = {
+      type: 'label',
       cid: undefined,
       dataId: undefined,
       cssClass: undefined,
@@ -9433,8 +9542,8 @@ function(obj, config, string, array, util, mixins) {
       mixins.toggle);
 
     /**
-     * @description Gets/Sets the data source to be used with the label.
-     *    Uses the configurable "text" accessor function to retrieve text.
+     * Gets/Sets the data source to be used with the label.
+     * Uses the configurable "text" accessor function to retrieve text.
      * @param {Object} data Any data source.
      * @return {Object|components.label}
      */
@@ -9570,12 +9679,13 @@ function(obj, config, label, mixins, d3util) {
       components: [],
       layoutConfig: { type: 'horizontal', position: 'center', gap: 6 },
       opacity: 1,
-      backgroundColor: '#fff'
+      backgroundColor: '#fff',
+      type: 'overlay'
     };
 
     /**
-     * @private
      * Append background rect, all child components, and apply the layout.
+     * @private
      */
     updateChildren_ = function() {
       var parentNode,
@@ -9623,8 +9733,8 @@ function(obj, config, label, mixins, d3util) {
       mixins.toggle);
 
     /*
-     * @public
      * Gets the root selection of this component.
+     * @public
      * @return {d3.selection}
      */
     overlay.root = function () {
@@ -9632,9 +9742,9 @@ function(obj, config, label, mixins, d3util) {
     };
 
     /**
-     * @public
      * Renders the component to the specified selection,
      * or to the configured target.
+     * @public
      * @param {d3.selection|Node|String}
      * @return {components.overlay}
      */
@@ -9649,9 +9759,9 @@ function(obj, config, label, mixins, d3util) {
     };
 
     /**
-     * @public
      * Triggers an update of the component reapplying all specified config
      * updates.
+     * @public
      * @return {componnets.update}
      */
     overlay.update = function() {
@@ -9672,8 +9782,8 @@ function(obj, config, label, mixins, d3util) {
     };
 
     /**
-     * @public
      * Destroys this component and cleans up after itself.
+     * @public
      */
     overlay.destroy = function() {
       // TODO: Need a more generalized way of removing sub-components.
@@ -9741,8 +9851,8 @@ function(obj, config, mixins, d3util) {
       mixins.toggle);
 
     /*
-     * @public
      * Gets the root selection of this component.
+     * @public
      * @return {d3.selection}
      */
     asset.root = function() {
@@ -9750,9 +9860,9 @@ function(obj, config, mixins, d3util) {
     };
 
     /**
-     * @public
      * Renders the component to the specified selection,
      * or to the configured target.
+     * @public
      * @param {d3.selection|Node|String}
      * @return {components.overlay}
      */
@@ -9765,9 +9875,9 @@ function(obj, config, mixins, d3util) {
     };
 
     /**
-     * @public
      * Triggers an update of the component reapplying all specified config
      * updates.
+     * @public
      * @return {componnets.update}
      */
     asset.update = function() {
@@ -9798,8 +9908,8 @@ function(obj, config, mixins, d3util) {
     };
 
     /**
-     * @public
      * Destroys this component and cleans up after itself.
+     * @public
      */
     asset.destroy = function() {
       if(root_) {
@@ -9826,9 +9936,10 @@ define('components/area',[
   'core/object',
   'core/string',
   'd3-ext/util',
-  'components/mixins'
+  'components/mixins',
+  'data/functions'
 ],
-function(array, config, obj, string, d3util, mixins) {
+function(array, config, obj, string, d3util, mixins, dataFns) {
   
 
   return function() {
@@ -9841,6 +9952,7 @@ function(array, config, obj, string, d3util, mixins) {
       updateAreaGenerator_;
 
     defaults_ = {
+      type: 'area',
       target: '.gl-framed',
       cid: null,
       xScale: null,
@@ -9861,13 +9973,14 @@ function(array, config, obj, string, d3util, mixins) {
       if (config_.cid) {
         root_.attr('gl-cid', config_.cid);
       }
-      if (dataConfig.y0) {
+      if (dataConfig.dimensions.y0) {
         // Use y0 for baseline if supplied.
         y0 = function(d, i) {
-          return config_.yScale(dataConfig.y0(d, i));
+          return config_.yScale(dataFns.dimension(dataConfig, 'y0')(d, i));
         };
         y1 = function(d, i) {
-          return config_.yScale(dataConfig.y(d, i) + dataConfig.y0(d, i));
+          return config_.yScale(dataFns.dimension(dataConfig, 'y')(d, i) +
+            dataFns.dimension(dataConfig, 'y0')(d, i));
         };
       } else {
         // Otherwise default to bottom of range.
@@ -9875,21 +9988,21 @@ function(array, config, obj, string, d3util, mixins) {
           return config_.yScale.range()[0];
         };
         y1 = function(d, i) {
-          return config_.yScale(dataConfig.y(d, i));
+          return config_.yScale(dataFns.dimension(dataConfig, 'y')(d, i));
         };
       }
 
       // Configure the areaGenerator function
       config_.areaGenerator
         .x(function(d, i) {
-          return config_.xScale(dataConfig.x(d, i));
+          return config_.xScale(dataFns.dimension(dataConfig, 'x')(d, i));
         })
         .y0(y0)
         .y1(y1)
         .defined(function(d, i) {
           var minX, value;
           minX = 0;
-          value = dataConfig.x(d, i);
+          value = dataFns.dimension(dataConfig, 'x')(d, i);
           if (config_.xScale) {
             minX = config_.xScale.range()[0];
             value = config_.xScale(value);
@@ -10029,20 +10142,27 @@ define('layout/layouts',[],function () {
 
     'default': {
       'class': 'gl-vgroup',
-      'split': [15, 60, 10, 15],
+      'split': [10, 65, 10, 15],
       children: [{
-        padding: 1,
-        paddingLeft: 2,
+        padding: 0,
         'class': 'gl-info'
       }, {
-        'class': 'gl-framed'
+        'class': 'gl-framed',
+        paddingTop: 5,
+        border: 1,
+        borderColor: '#999',
+        backgroundColor: '#fff'
       }, {
         'class': 'gl-xaxis',
         padding: 1,
         paddingTop: 20
       }, {
         'class': 'gl-footer',
-        padding: 1
+        paddingTop: 1,
+        paddingBottom: 1,
+        padding: 1,
+        borderStyle: 'dotted',
+        borderTop: 1
       }]
     },
 
@@ -10108,7 +10228,8 @@ define('layout/layouts',[],function () {
 define('layout/layoutmanager',[
   'layout/layouts',
   'core/array'
-], function (layouts, array) {
+],
+function (layouts, array) {
   
 
   function calculateDim(splits, length) {
@@ -10160,6 +10281,54 @@ define('layout/layoutmanager',[
     return child;
   }
 
+  /**
+   * Computes border parameters required to set borders
+   * @param  {Object} nodeInfo
+   * @return {Object}
+   *  {style: borderStyle, color: borderColor, width: [t, r, b, l]}
+   */
+  function getBorderParams(nodeInfo) {
+    var borderParams = {},
+      strokeWidth,
+      width,
+      hasBorder;
+
+    width = [0, 0, 0, 0];
+    hasBorder = false;
+
+    if (nodeInfo.border) {
+      strokeWidth = parseInt(nodeInfo.border, 10);
+      width = [strokeWidth, strokeWidth, strokeWidth, strokeWidth];
+      hasBorder = true;
+    }
+    if (nodeInfo.borderTop) {
+      width[0] = parseInt(nodeInfo.borderTop, 10);
+      hasBorder = true;
+    }
+    if (nodeInfo.borderRight) {
+      width[1] = parseInt(nodeInfo.borderRight, 10);
+      hasBorder = true;
+    }
+    if (nodeInfo.borderBottom) {
+      width[2] = parseInt(nodeInfo.borderBottom, 10);
+      hasBorder = true;
+    }
+    if (nodeInfo.borderLeft) {
+      width[3] = parseInt(nodeInfo.borderLeft, 10);
+      hasBorder = true;
+    }
+
+    borderParams = {
+      color: nodeInfo.borderColor || '#999',
+      style: nodeInfo.borderStyle || 'solid',
+      width: width,
+      hasBorder: hasBorder
+    };
+
+    return borderParams;
+
+  }
+
   function applyLayout(node) {
     if (node.classed('gl-vgroup')) {
       node.layout({type: 'vertical'});
@@ -10177,7 +10346,7 @@ define('layout/layoutmanager',[
      */
     setLayout: function(layout, root, width, height) {
       /*jshint loopfunc: true */
-      var i, node, nodeInfo, dim;
+      var i, node, nodeInfo, dim, borderParams;
       if (typeof layout === 'string') {
         layout = layouts.getLayout(layout);
       }
@@ -10186,6 +10355,17 @@ define('layout/layoutmanager',[
         nodeInfo = layout[i];
         node = root.append('g');
         node.size(width, height);
+        borderParams = getBorderParams(nodeInfo);
+        if (borderParams.hasBorder) {
+          node.border(
+            borderParams.style,
+            borderParams.color,
+            borderParams.width
+          );
+        }
+        if (nodeInfo.backgroundColor) {
+          node.backgroundColor(nodeInfo.backgroundColor);
+        }
         node = getPaddingContainer(node, nodeInfo);
         node.attr({
           'class': nodeInfo['class'],
@@ -10377,8 +10557,10 @@ define('data/dimension/dimension',[
  */
 define('data/selection/selection',[
   'data/dimension/dimension',
-  'core/array'
-], function (dimension, array) {
+  'core/object',
+  'core/array',
+  'data/functions'
+], function (dimension, obj, array, dataFns) {
   
 
   var Selection;
@@ -10400,6 +10582,29 @@ define('data/selection/selection',[
     return this;
   };
 
+  /**
+   * Applies filter using dimensions on data sources.
+   * This will eventually be a more versatile function.
+   * Assumes when two inputs are given, that the first is a dimension and
+   * second is a range if it is an array.
+   * TODO: If second arg is simple value, filter if equal to that value.
+   *       If second arg is a function, use that function.
+   */
+  Selection.prototype.filter = function(dim, range) {
+    return this.map(function(dataSource) {
+      var filteredDataSource = {}, accessor;
+      obj.extend(filteredDataSource, dataSource);
+      accessor = dataFns.dimension(dataSource, dim);
+      filteredDataSource.data =  filteredDataSource.data.filter(
+        function(d) {
+          var e = accessor(d);
+          return e >= range[0] && e<= range[1];
+        }
+      );
+      return filteredDataSource;
+    });
+  };
+
   Selection.prototype.map = function(fn) {
     return new Selection(this.dataSources_.map(fn));
   };
@@ -10419,8 +10624,7 @@ define('data/selection/selection',[
 
   Selection.prototype.dim = function(dim) {
     return this.dimMap(function(dataSource) {
-      // TODO: Handle dimensions from dimensions field.
-      return dataSource.data.map(dataSource[dim]);
+      return dataSource.data.map(dataFns.dimension(dataSource, dim));
     });
   };
 
@@ -10443,8 +10647,9 @@ define('data/selection/selection',[
  */
 define('data/selection/diff-quotient',[
   'core/object',
+  'data/functions',
   'data/selection/selection'
-], function (obj, selection) {
+], function (obj, dataFns, selection) {
   
 
   var selectionPrototype = selection.getSelectionPrototype(),
@@ -10472,8 +10677,8 @@ define('data/selection/diff-quotient',[
       data = source.data;
       mutatedData = [];
       data.forEach(function(d, i) {
-        curX = source.x(d);
-        curY = source.y(d);
+        curX = dataFns.dimension(source, 'x')(d);
+        curY = dataFns.dimension(source, 'y')(d);
         if (i !== 0) {
           slope = (curY - prevY) / (curX - prevX);
           mutatedData.push({
@@ -10486,8 +10691,10 @@ define('data/selection/diff-quotient',[
       });
       obj.extend(r, source);
       r.data = mutatedData;
-      r.x = function(d) { return d.x; };
-      r.y = function(d) { return d.y; };
+      r.dimensions = {
+        x: function(d) { return d.x; },
+        y: function(d) { return d.y; }
+      };
       return r;
     });
   };
@@ -10507,8 +10714,11 @@ define('data/collection',[
   
 
   function applyDerivation(dc, data) {
-    var dataSelection = dc.select(data.sources),
-        derivedData = data.derivation(dataSelection);
+    var dataSelections, derivedData;
+    dataSelections = array.getArray(data.sources).map(function(d) {
+      return dc.select(d);
+    });
+    derivedData = data.derivation.apply(null, dataSelections);
     if (typeof derivedData === 'object' &&
          !Array.isArray(derivedData)) {
       obj.extend(derivedData, data);
@@ -10516,8 +10726,51 @@ define('data/collection',[
     return derivedData;
   }
 
-  function isDerived(data) {
-    return data.sources || data.derivation;
+  function isDerivedDataConfig(data) {
+    if (data) {
+      return  obj.isDef(data.sources) ||
+              obj.isDef(data.derivation);
+    }
+    return false;
+  }
+
+  function isWildCard(id) {
+    return id === '*' || id === '+';
+  }
+
+  /**
+   * @private
+   * Derives data source by id.
+   * Accepts the cached deps object.
+   * Results in the derivation of any non-cached dependencies
+   * of the data source.
+   */
+  function deriveDataById(id, data, deps, dataCollection, visited) {
+    var d = data[id], sources;
+    if(!dataCollection.isDerived(id)) {
+      deps[id] = true;
+      return;
+    }
+    visited = visited || [];
+    if (deps[id]) {
+      return;
+    }
+    if (array.contains(visited, id)) {
+      deps[id] = true;
+      // TODO: Make enum for errors.
+      d.glDerivation = 'gl-error-circular-dependency';
+    }
+    visited.push(id);
+    sources = [];
+    array.getArray(d.glDerive.sources).forEach(function(s) {
+      sources = sources.concat(
+        s.split(',').filter(function(id) { return !isWildCard(id); }));
+    });
+    sources.forEach(function(id) {
+      deriveDataById(id.trim(), data, deps, dataCollection, visited);
+    });
+    deps[id] = true;
+    d.glDerivation = applyDerivation(dataCollection, d.glDerive);
   }
 
   function collection() {
@@ -10532,24 +10785,27 @@ define('data/collection',[
           data.forEach(this.add);
           return;
         }
-        if (isDerived(data)) {
+        if (isDerivedDataConfig(data)) {
           dataCollection[data.id] = { glDerive: data };
         } else {
           dataCollection[data.id] = data;
         }
       },
 
+      isDerived: function(id) {
+        var data = dataCollection[id];
+        return obj.isDef(data) && obj.isDef(data.glDerive);
+      },
+
       /**
        * Recalculate derived sources.
        */
       updateDerivations: function() {
-        var data;
+        var deps = {};
         Object.keys(dataCollection).forEach(function(k) {
-          data = dataCollection[k];
-          if(data.glDerive) {
-            data.glDerivation = applyDerivation(this, data.glDerive);
-          }
+          deriveDataById(k, dataCollection, deps, this);
         }, this);
+        return deps;
       },
 
       /**
@@ -10605,32 +10861,40 @@ define('data/collection',[
       },
 
       /**
-       * Accepts sources string of ids that are
-       * delimited by a comma.
+       * Accepts the following string of comma-delimited:
+       * ids
+       * wildcards (* for all non-derived sources, + for all sources)
        */
       select: function(sources) {
         var dataSelection = selection.create(),
-            ids, dataList, data;
-        if(sources === '*') {
-          dataList = [];
-          Object.keys(dataCollection).forEach(function(k) {
-            data = dataCollection[k];
-            if(!isDerived(data) && !data.glDerive) {
-              dataList.push(data);
-            }
-          });
-          dataSelection.add(dataList);
-        } else {
-          ids = sources.split(',');
-          ids.forEach(function(id) {
-            data = dataCollection[id];
-            if(data) {
-              dataSelection.add(data);
-            }
-          });
-        }
-
+            dataList = [], ids = [];
+        array.getArray(sources).forEach(function(s) {
+          ids = ids.concat(s.split(','));
+        });
+        ids.forEach(function(id) {
+          if(isWildCard(id)) {
+            Object.keys(dataCollection).forEach(function(k) {
+              if(!this.isDerived(k) || sources === '+') {
+                dataList.push(this.get(k));
+              }
+            }, this);
+          } else {
+              id = id.trim();
+              if(dataCollection[id]) {
+                dataList.push(this.get(id));
+              }
+          }
+        }, this);
+        dataSelection.add(dataList);
         return dataSelection;
+      },
+
+      /**
+       * Checks whether dataCollection is empty
+       * @return {Boolean}
+       */
+      isEmpty: function() {
+        return Object.keys(dataCollection).length === 0;
       }
     };
   }
@@ -10657,10 +10921,11 @@ define('graphs/graph',[
   'components/component',
   'layout/layoutmanager',
   'd3-ext/util',
+  'data/functions',
   'data/collection'
 ],
 function(obj, config, array, assetLoader, format, components, layoutManager,
-  d3util, collection) {
+  d3util, dataFns, collection) {
   
 
   return function() {
@@ -10701,10 +10966,15 @@ function(obj, config, array, assetLoader, format, components, layoutManager,
       showLoadingOverlay_,
       showEmptyOverlay_,
       showErrorOverlay_,
+      showComponent,
+      hideComponent,
       dataCollection_,
       isRendered_,
-      STATES;
-
+      updateStateDisplay,
+      STATES,
+      NO_COLORED_COMPONENTS,
+      coloredComponentsCount,
+      areComponentsRendered_;
     /**
      * @enum
      * The possible states a graph can be in.
@@ -10717,13 +10987,19 @@ function(obj, config, array, assetLoader, format, components, layoutManager,
       DESTROYED: 'destroyed'
     };
 
+    /**
+     * Components that do not require a default color
+     * @type {Array}
+     */
+    NO_COLORED_COMPONENTS = ['x', 'y', 'legend', 'label'];
+
     config_ = {};
 
     defaults_ = {
       layout: 'default',
       width: 700,
-      height: 250,
-      viewBoxHeight: 250,
+      height: 230,
+      viewBoxHeight: 230,
       viewBoxWidth: 700,
       preserveAspectRatio: 'none',
       marginTop: 10,
@@ -10740,17 +11016,18 @@ function(obj, config, array, assetLoader, format, components, layoutManager,
       loadingMessage: 'Loading...',
       errorMessage: 'Error loading graph data',
       state: 'normal',
-      yDomainModifier: 1.2
+      yDomainModifier: 1.2,
+      colorPalette: d3.scale.category20().range()
     };
 
     /**
-     * @private
      * adds component to the components array
      * sets scales and data on the components
+     * @private
      * @param {component} component [description]
      */
     addComponent_ = function(component) {
-      if (component.data) {
+      if (component.data && !dataCollection_.isEmpty()) {
         component.data(dataCollection_);
       }
       if (component.xScale) {
@@ -10759,12 +11036,13 @@ function(obj, config, array, assetLoader, format, components, layoutManager,
       if (component.yScale) {
         component.yScale(config_.yScale);
       }
+      setDefaultColor(component);
       components_.push(component);
     };
 
     /**
-     * @private
      * Adds axes to the components array
+     * @private
      */
     addAxes_ = function() {
       addComponent_(xAxis_);
@@ -10772,8 +11050,8 @@ function(obj, config, array, assetLoader, format, components, layoutManager,
     };
 
     /**
-     * @private
      * Adds legend to the components array
+     * @private
      */
     addLegend_ = function() {
       if (config_.showLegend) {
@@ -10782,8 +11060,8 @@ function(obj, config, array, assetLoader, format, components, layoutManager,
     };
 
     /**
-     * @private
      * Default x accessor for data
+     * @private
      * @param  {Object} d
      * @return {Object}
      */
@@ -10792,8 +11070,8 @@ function(obj, config, array, assetLoader, format, components, layoutManager,
     };
 
     /**
-     * @private
      * Default x accessor for data
+     * @private
      * @param  {Object} d
      * @return {Object}
      */
@@ -10820,8 +11098,8 @@ function(obj, config, array, assetLoader, format, components, layoutManager,
     };
 
     /**
-     * @private
      * Calculates the frame height
+     * @private
      * @return {number}
      */
     getFrameHeight_ = function() {
@@ -10829,8 +11107,8 @@ function(obj, config, array, assetLoader, format, components, layoutManager,
     };
 
     /**
-     * @private
      * Calculates the frame width
+     * @private
      * @return {number}
      */
     getFrameWidth_ = function() {
@@ -10838,8 +11116,26 @@ function(obj, config, array, assetLoader, format, components, layoutManager,
     };
 
     /**
+     * Sets default color for on component if color not set
      * @private
+     * @param {Object} component [description]
+     */
+    function setDefaultColor(component) {
+      var colors, len;
+
+      if (!array.contains(NO_COLORED_COMPONENTS, component.config().type)){
+        colors = d3.functor(config_.colorPalette)();
+        len = colors.length;
+        if (component.hasOwnProperty('color')) {
+          component.config().color = component.config().color ?
+            component.config().color : colors[coloredComponentsCount++ % len];
+        }
+      }
+    }
+
+    /**
      * Sets the target selection and calls render on each component
+     * @private
      * @param  {d3.selection} selection
      */
     renderComponents_ = function(selection) {
@@ -10849,18 +11145,18 @@ function(obj, config, array, assetLoader, format, components, layoutManager,
       components_.forEach(function(component) {
         renderComponent_(component, selection);
       });
+      areComponentsRendered_ = true;
     };
 
     renderComponent_ = function(component, selection) {
       var renderTarget;
-      renderTarget = selection.select(
-        component.config('target') || root_);
+      renderTarget = selection.select(component.config('target')) || root_;
       component.render(renderTarget);
     };
 
     /**
-     * @private
      * Appends defs
+     * @private
      * @param  {d3.selection} selection
      */
     renderDefs_ = function(selection) {
@@ -10868,8 +11164,8 @@ function(obj, config, array, assetLoader, format, components, layoutManager,
     };
 
     /**
-     * @private
      * Appends svg node to the selection
+     * @private
      * @param  {d3.selection} selection
      */
     renderSvg_ = function(selection) {
@@ -10888,8 +11184,8 @@ function(obj, config, array, assetLoader, format, components, layoutManager,
     };
 
     /**
-     * @private
      * Sets up the panel(svg)
+     * @private
      * @param  {d3.selection} selection
      */
     renderPanel_ = function(selection) {
@@ -10931,8 +11227,8 @@ function(obj, config, array, assetLoader, format, components, layoutManager,
     };
 
     /**
-     * @private
      * Formats the keys for the legend and calls update on it
+     * @private
      */
     updateLegend_ = function() {
       var legendConfig = [];
@@ -10976,8 +11272,10 @@ function(obj, config, array, assetLoader, format, components, layoutManager,
         }
       }
 
+      xExtents = [min, max];
       config_.xScale.rangeRound([0, getFrameWidth_()])
-        .domain([min, max]);
+        .domain(xExtents);
+      return xExtents;
     };
 
     /**
@@ -10991,13 +11289,15 @@ function(obj, config, array, assetLoader, format, components, layoutManager,
         yExtents = yExtents.concat(config_.forceY);
       }
 
+      yExtents = d3.extent(yExtents);
       config_.yScale.rangeRound([getFrameHeight_(), 0])
-        .domain(d3.extent(yExtents));
+        .domain(yExtents);
+      return yExtents;
     };
 
     /**
-     * @private
      * Updates the domain on the scales
+     * @private
      */
     updateScales_ = function() {
       var xExtents = [],
@@ -11007,18 +11307,19 @@ function(obj, config, array, assetLoader, format, components, layoutManager,
         var componentData;
         if (component.data) {
           componentData = component.data();
-          if (componentData && componentData.data) {
+          if (componentData && componentData.data && componentData.dimensions) {
             xExtents = xExtents.concat(
-              d3.extent(componentData.data, componentData.x));
+              d3.extent(componentData.data,
+                dataFns.dimension(componentData, 'x')));
 
             yExtents = yExtents.concat(
               d3.extent(componentData.data,
                 function(d, i) {
-                  var value = componentData.y(d, i);
+                  var value = dataFns.dimension(componentData, 'y')(d, i);
                   // If Y-baselines are used (stacked),
                   //   use the sum of the baseline and Y.
-                  if (componentData.y0) {
-                    value += componentData.y0(d, i);
+                  if (componentData.dimensions.y0) {
+                    value += dataFns.dimension(componentData, 'y0')(d, i);
                   }
                   return value;
                 })
@@ -11026,8 +11327,18 @@ function(obj, config, array, assetLoader, format, components, layoutManager,
           }
         }
       });
-      configureXScale_(xExtents);
-      configureYScale_(yExtents);
+      xExtents = configureXScale_(xExtents);
+      yExtents = configureYScale_(yExtents);
+      dataCollection_.add({
+        id: '$domain',
+        sources: '',
+        derivation: function() {
+          return {
+            x: xExtents,
+            y: yExtents
+          };
+        }
+      });
     };
 
     /**
@@ -11045,9 +11356,9 @@ function(obj, config, array, assetLoader, format, components, layoutManager,
     };
 
     /**
-     * @private
      * Updates the text in the label showing the date range.
      * TODO: position this with layout manager
+     * @private
      */
     updateXDomainLabel_ = function() {
       xDomainLabel_
@@ -11056,15 +11367,18 @@ function(obj, config, array, assetLoader, format, components, layoutManager,
     };
 
     /**
-     * @private
      * Updates scales and legend
+     * @private
      */
     update_ = function() {
-      dataCollection_.updateDerivations();
       updateScales_();
+      dataCollection_.updateDerivations();
       updateAxes_();
       updateLegend_();
       updateXDomainLabel_();
+      if (isRendered_) {
+        updateStateDisplay();
+      }
     };
 
     /**
@@ -11073,18 +11387,21 @@ function(obj, config, array, assetLoader, format, components, layoutManager,
      */
     upsertData_ = function(data) {
       //Set default x and y accessors.
-      if (!data.x) {
-        data.x = defaultXaccessor_;
+      if(!data.dimensions) {
+        data.dimensions = {};
       }
-      if (!data.y) {
-        data.y = defaultYaccessor_;
+      if (!data.dimensions.x) {
+        data.dimensions.x = defaultXaccessor_;
+      }
+      if (!data.dimensions.y) {
+        data.dimensions.y = defaultYaccessor_;
       }
       dataCollection_.upsert(data);
     };
 
     /**
-     * @private
      * Displays the empty message over the framed area.
+     * @private
      */
     showEmptyOverlay_ = function() {
       var labelTexts,
@@ -11123,8 +11440,8 @@ function(obj, config, array, assetLoader, format, components, layoutManager,
     };
 
     /**
-     * @private
      * Displays the loading spinner and message over the framed area.
+     * @private
      */
     showLoadingOverlay_ = function() {
       var label,
@@ -11150,8 +11467,8 @@ function(obj, config, array, assetLoader, format, components, layoutManager,
     };
 
     /**
-     * @private
      * Displays the error icon and message over the framed area.
+     * @private
      */
     showErrorOverlay_ = function() {
       var label,
@@ -11175,6 +11492,30 @@ function(obj, config, array, assetLoader, format, components, layoutManager,
       addComponent_(overlay);
       overlay.render(root_.select('.gl-framed'));
     };
+
+    /**
+     * Initializes graph components
+     * Adds legend/axes/domain label and
+     * calls render on components
+     */
+    function initGraphComponents() {
+      addLegend_();
+      addAxes_();
+      addComponent_(xDomainLabel_);
+      update_();
+      renderComponents_(root_);
+    }
+
+    /** Sets data on each component if data is set  */
+    function setComponentsData() {
+      if (!dataCollection_.isEmpty()) {
+        components_.forEach(function(c){
+          if (c.data) {
+            c.data(dataCollection_);
+          }
+        });
+      }
+    }
 
     /**
      * Main function, sets defaults, scales and axes
@@ -11202,13 +11543,65 @@ function(obj, config, array, assetLoader, format, components, layoutManager,
           target: '.gl-footer',
           position: 'center-right'
         });
+      coloredComponentsCount = 0;
       return graph;
     }
 
     graph.STATES = STATES;
 
     /**
-     * Gets/sets the state of the graph.
+     * Shows a component if it is defined.
+     * @private
+     * @param {components.component}
+     */
+    showComponent = function(component) {
+      if (component) {
+        component.show();
+      }
+    };
+
+    /**
+     * Hides a component if it is defined.
+     * @private
+     * @param {components.component}
+     */
+    hideComponent = function(component) {
+      if (component) {
+        component.hide();
+      }
+    };
+
+    /**
+     * Adds/removes overlays & hides/shows components based on state.
+     * @private
+     */
+    updateStateDisplay = function() {
+      graph.removeComponent('emptyOverlay');
+      graph.removeComponent('loadingOverlay');
+      graph.removeComponent('errorOverlay');
+      showComponent(legend_);
+      showComponent(xAxis_);
+      showComponent(xDomainLabel_);
+      switch (config_.state) {
+        case STATES.EMPTY:
+          showEmptyOverlay_();
+          hideComponent(xAxis_);
+          break;
+        case STATES.LOADING:
+          hideComponent(xAxis_);
+          hideComponent(legend_);
+          hideComponent(xDomainLabel_);
+          showLoadingOverlay_();
+          break;
+        case STATES.ERROR:
+          hideComponent(xAxis_);
+          showErrorOverlay_();
+          break;
+      }
+    };
+
+    /**
+     * Configures the graph state and triggers overlays updates.
      * @public
      * @return {graph.STATES}
      */
@@ -11218,29 +11611,10 @@ function(obj, config, array, assetLoader, format, components, layoutManager,
       if (!newState) {
         return oldState;
       }
-      graph.removeComponent('emptyOverlay');
-      graph.removeComponent('loadingOverlay');
-      graph.removeComponent('errorOverlay');
-      graph.xAxis().show();
-      graph.legend().show();
-      switch (newState) {
-        case STATES.EMPTY:
-          showEmptyOverlay_();
-          break;
-        case STATES.LOADING:
-          graph.xAxis().hide();
-          graph.legend().hide();
-          showLoadingOverlay_();
-          break;
-        case STATES.ERROR:
-          graph.xAxis().hide();
-          showErrorOverlay_();
-          break;
-        default:
-          // Rest to normal if invalid state.
-          newState = STATES.NORMAL;
-      }
       config_.state = newState;
+      if (isRendered_) {
+        updateStateDisplay();
+      }
       return graph;
     };
 
@@ -11338,10 +11712,16 @@ function(obj, config, array, assetLoader, format, components, layoutManager,
      * @return {graphs.graph}
      */
     graph.update = function() {
-      update_();
-      components_.forEach(function(component) {
-        component.update();
-      });
+      setComponentsData();
+      if (!dataCollection_.isEmpty()) {
+        if (!areComponentsRendered_) {
+          initGraphComponents();
+        }
+        update_();
+        components_.forEach(function(component) {
+          component.update();
+        });
+      }
       return graph;
     };
 
@@ -11354,12 +11734,13 @@ function(obj, config, array, assetLoader, format, components, layoutManager,
     graph.render = function(selector) {
       var selection = d3util.select(selector);
       assetLoader.loadAll();
-      addLegend_();
-      addAxes_();
-      addComponent_(xDomainLabel_);
       renderPanel_(selection);
-      update_();
-      renderComponents_(root_);
+
+      if (!dataCollection_.isEmpty()) {
+        initGraphComponents();
+      }
+      // Force state update.
+      updateStateDisplay();
       isRendered_ = true;
       return graph;
     };
@@ -11487,13 +11868,22 @@ define('d3-ext/size',['d3'], function(d3) {
    * else it returns width and height attribute of the element.
    */
   d3.selection.prototype.size = function(width, height) {
+    var rect;
+
     if (this.node().tagName === 'g') {
-      this.append('rect').attr({
+      rect = this.select('.gl-layout-size');
+
+      if (rect.empty()) {
+        rect = this.append('rect');
+      }
+
+      rect.attr({
         'class': 'gl-layout-size',
         width: width,
         height: height,
         fill: 'none'
       });
+
       this.attr({ 'gl-width': width, 'gl-height': height });
     } else {
       this.attr({ width: width, height: height });
@@ -11654,11 +12044,364 @@ define('d3-ext/layout',[
   return d3;
 });
 
+/**
+ * @fileOverview
+ * d3 Selection group border helpers.
+ */
+define('d3-ext/border',[
+  'd3',
+  'core/array'
+], function(d3, array) {
+  
+  var DEFAULTS;
+
+  DEFAULTS = {
+    color: '#000',
+    style: 'solid',
+    width: [0, 0, 0, 0],
+    dasharrayDotted: [1,1],
+    dasharrayDashed: [5,5],
+    lineBorderClassName: 'gl-line-border',
+    sizingRectClassName: 'gl-layout-size'
+  };
+
+  /**
+   * Computes the stroke-dasharray value
+   * @see
+   *    https://developer.mozilla.org/en-US/docs/SVG/Attribute/stroke-dasharray
+   * @param  {d3.selection} node
+   * @param  {Object} borderInfo  Contains
+   *  {
+   *    style: border style <'solid'|'dotted'|'dashed'>,
+   *    color: border color <paint>,
+   *    @see http://www.w3.org/TR/SVG/painting.html#SpecifyingPaint
+   *    width: {Array} 4 element array corresponding to
+   *      border width of each edge top, right, bottom and left
+   *      Value : <percentage> | <length> | inherit | 0
+   *      0 represents no border
+   *  }
+   */
+  function getStrokeDashArray(node, borderInfo) {
+    var stroke = [], t, r, b, l, height, width;
+
+    if (borderInfo.style === 'solid') {
+      t = !!borderInfo.width[0];
+      r = !!borderInfo.width[1];
+      b = !!borderInfo.width[2];
+      l = !!borderInfo.width[3];
+      height = node.height();
+      width = node.width();
+
+      if (t) {
+        stroke.push(width);
+      } else {
+        stroke = stroke.concat([0, width]);
+      }
+
+      computeDashOrGap(stroke, r);
+      stroke.push(height);
+
+      computeDashOrGap(stroke, b);
+      stroke.push(width);
+
+      computeDashOrGap(stroke, l);
+      stroke.push(height);
+
+    } else {
+      //TODO: accept dasharray
+      stroke = (borderInfo.style === 'dotted') ?
+        DEFAULTS.dasharrayDotted : DEFAULTS.dasharrayDashed;
+    }
+    return stroke;
+  }
+
+  /**
+   * Computes if a gap needs to be added to the strokedasharray
+   * @param  {Array}  stroke
+   * @param  {Boolean} hasEdge
+   */
+  function computeDashOrGap(stroke, hasEdge) {
+    var mod2 = stroke.length % 2;
+    if (hasEdge && mod2 !== 0 || !hasEdge && mod2 === 0) {
+      stroke.push(0);
+    }
+  }
+
+  /**
+   * Computes the stroke-width attribute
+   * @param {Array} 4 element array corresponding to
+   *      border width of each edge top, right, bottom and left
+   *      Value : <percentage> | <length> | inherit | 0
+   *      0 represents no border
+   */
+  function getStrokeWidth(width) {
+    var strokeWidth = 1;
+
+    if (!!width[0]) {
+      strokeWidth = parseInt(width[0], 10);
+    } else if (!!width[1])  {
+      strokeWidth = parseInt(width[1], 10);
+    } else if (!!width[2]) {
+      strokeWidth = parseInt(width[2], 10);
+    } else if (!!width[3]) {
+      strokeWidth = parseInt(width[3], 10);
+    }
+
+    return strokeWidth;
+  }
+
+  /**
+   * Computes the class name for border
+   * @param  {string} style  Style of the border <'solid'|'dashed'|'dotted'>
+   * @param  {string} subClass Subclass to append class name
+   * @return {string} class name for border
+   */
+  function getBorderClass(style, subClass) {
+    return 'gl-' + style + '-border-' + subClass;
+  }
+
+  /**
+   * Adds svg line element based on the coordinates array
+   * @param  {d3.selection} node
+   * @param  {Object} lineInfo
+   *  contains
+   *  {
+   *    x1: x-axis coordinate of the start of the line,
+   *    y1: y-axis coordinate of the start of the line,
+   *    x2: x-axis coordinate of the end of the line,
+   *    y2: y-axis coordinate of the end of the line,
+   *    subClass: postfix for the class name on the line element,
+   *    width: border width <percentage> | <length> | inherit,
+   *    @see http://www.w3.org/TR/SVG/types.html#DataTypePercentage
+   *    @see http://www.w3.org/TR/SVG/types.html#DataTypeLength
+   *    color: border color <paint>
+   *    @see http://www.w3.org/TR/SVG/painting.html#SpecifyingPaint,
+   *    style: border style <'solid'|'dashed'|'dotted'>
+   *  }
+   */
+  function addBorder(node, lineInfo) {
+    var  className, dasharray, line;
+
+    className = getBorderClass(lineInfo.style, lineInfo.subClass);
+    dasharray = getStrokeDashArray(node, lineInfo);
+    line = node.select('.' + className);
+
+    if (line.empty()) {
+      line = node.append('line');
+    }
+
+    line.attr({
+      x1: lineInfo.x1,
+      y1: lineInfo.y1,
+      x2: lineInfo.x2,
+      y2: lineInfo.y2,
+      'class': className + ' ' + DEFAULTS.lineBorderClassName,
+      'stroke': lineInfo.color,
+      'stroke-width': lineInfo.width,
+      'stroke-dasharray': dasharray.toString()
+    });
+  }
+
+  /**
+   * Applies solid border node by setting the
+   * stroke-dasharray attribute on the rect inside
+   * the node.
+   * @param  {d3.selection} node
+   * @param  {Object} borderInfo Contains
+   *  {
+   *    style: border style <'solid'|'dotted'|'dashed'>,
+   *    color: border color <paint>,
+   *    @see http://www.w3.org/TR/SVG/painting.html#SpecifyingPaint
+   *    width: {Array} 4 element array corresponding to
+   *      border width of each edge top, right, bottom and left
+   *      Value : <percentage> | <length> | inherit | 0
+   *      0 represents no border
+   *  }
+   */
+  function applyRectBorder(node, borderInfo) {
+    var strokeDashArray;
+
+    strokeDashArray = getStrokeDashArray(node, borderInfo);
+
+    node.attr({
+      'stroke': borderInfo.color,
+      'stroke-width': getStrokeWidth(borderInfo.width),
+      'stroke-dasharray': strokeDashArray.toString()
+    });
+  }
+
+  /**
+   * Applies styled border to the node by
+   * adding svg line elements.
+   * @param  {d3.selection} node
+   * @param  {Object} borderInfo Contains
+   *  {
+   *    style: border style <'solid'|'dotted'|'dashed'>,
+   *    color: border color <paint>,
+   *    @see http://www.w3.org/TR/SVG/painting.html#SpecifyingPaint
+   *    width: [t, r, b, l] {Array} 4 element array corresponding to
+   *      border width of each edge top, right, bottom and left
+   *      Value : <percentage> | <length> | inherit | 0
+   *      0 represents no border
+   *  }
+   */
+  function applyBorder(node, borderInfo) {
+    //TODO: append this to the object
+    var lineInfo = {
+      color: borderInfo.color,
+      style: borderInfo.style
+    };
+
+    if (!!borderInfo.width[0]) {
+      lineInfo = {
+        x1: 0,
+        y1: 0,
+        x2: node.width(),
+        y2: 0,
+        subClass: 'top',
+        width: borderInfo.width[0],
+        color: borderInfo.color,
+        style: borderInfo.style
+      };
+      addBorder(node, lineInfo);
+    }
+
+    if (!!borderInfo.width[1]) {
+      lineInfo = {
+        x1: node.width(),
+        y1: 0,
+        x2: node.width(),
+        y2: node.height(),
+        subClass: 'right',
+        width: borderInfo.width[1],
+        color: borderInfo.color,
+        style: borderInfo.style
+      };
+      addBorder(node, lineInfo);
+    }
+
+    if (!!borderInfo.width[2]) {
+      lineInfo = {
+        x1: 0,
+        y1: node.height(),
+        x2: node.width(),
+        y2: node.height(),
+        subClass: 'bottom',
+        width: borderInfo.width[2],
+        color: borderInfo.color,
+        style: borderInfo.style
+      };
+      addBorder(node, lineInfo);
+    }
+
+    if (!!borderInfo.width[3]) {
+      lineInfo = {
+        x1: 0,
+        y1: 0,
+        x2: 0,
+        y2: node.height(),
+        subClass: 'left',
+        width: borderInfo.width[3],
+        color: borderInfo.color,
+        style: borderInfo.style
+      };
+      addBorder(node, lineInfo);
+    }
+  }
+
+  /**
+   * Removes any existing borders
+   * @param  {d3.selection} node
+   */
+  function removeExistingBorders(node) {
+    node.selectAll('.' + DEFAULTS.lineBorderClassName)
+      .remove();
+
+    node.select('.' + DEFAULTS.sizingRectClassName)
+      .attr('stroke-dasharray', null);
+  }
+
+  /**
+   * d3 selection border
+   * @param  {string} style Border style <'solid'|'dotted'|'dashed'>
+   * @param  {color} color Border color <paint>,
+   * @see http://www.w3.org/TR/SVG/painting.html#SpecifyingPaint
+   * @param  {Array} width 4 element array where each element
+   *  corresponding to border width of each edge top, right, bottom and left
+   *  Value : <percentage> | <length> | inherit | 0
+   *  0 represents no border
+   */
+  d3.selection.prototype.border = function border(style, color, width) {
+    var rect, borderInfo;
+
+    rect = this.select('.' + DEFAULTS.sizingRectClassName);
+
+    if (!rect.empty()) {
+      borderInfo = {
+        style: style || DEFAULTS.style,
+        color: color || DEFAULTS.color,
+        width: array.getArray(width) || DEFAULTS.width
+      };
+
+      removeExistingBorders(this);
+
+      if (style === 'solid') {
+        applyRectBorder(rect, borderInfo);
+      } else {
+        applyBorder(this, borderInfo);
+      }
+
+      this.attr({
+        'gl-border-color': borderInfo.color,
+        'gl-border-style': borderInfo.style,
+        'gl-border-width': borderInfo.width.toString()
+      });
+    }
+
+    return this;
+  };
+
+  return d3;
+});
+
+
+/**
+ * @fileOverview
+ * d3 Selection group backgroundColor helpers.
+ */
+define('d3-ext/background-color',['d3'], function(d3) {
+  
+
+  /**
+   * d3 selection backgroundColor
+   * Sets the fill attr for the node and
+   *   sets the gl-background-color attribute.
+   */
+  d3.selection.prototype.backgroundColor = function(color) {
+    var rect;
+
+    if (this.node().tagName === 'g') {
+      rect = this.select('.gl-layout-size');
+      if (rect.empty()) {
+        this.size(this.width(), this.height());
+        rect = this.select('.gl-layout-size');
+      }
+      rect.attr('fill', color);
+      this.attr('gl-background-color', color);
+    }
+    return this;
+  };
+
+  return d3;
+});
+
 define('d3-ext/d3-ext',[
   'd3',
   'd3-ext/size',
   'd3-ext/layout',
-  'd3-ext/position'
+  'd3-ext/position',
+  'd3-ext/border',
+  'd3-ext/background-color'
 ], function(d3) {
   
   return d3;
