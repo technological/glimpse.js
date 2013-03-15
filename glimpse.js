@@ -408,7 +408,7 @@ var requirejs, require, define;
 
 d3 = function() {
   var π = Math.PI, ε = 1e-6, d3 = {
-    version: "3.0.6"
+    version: "3.0.8"
   }, d3_radians = π / 180, d3_degrees = 180 / π, d3_document = document, d3_window = window;
   function d3_target(d) {
     return d.target;
@@ -532,7 +532,7 @@ d3 = function() {
   function d3_rebind(target, source, method) {
     return function() {
       var value = method.apply(source, arguments);
-      return arguments.length ? target : value;
+      return value === source ? target : value;
     };
   }
   d3.ascending = function(a, b) {
@@ -6202,9 +6202,15 @@ d3 = function() {
   function d3_geo_clipPolygon(segments, interpolate, listener) {
     var subject = [], clip = [];
     segments.forEach(function(segment) {
-      var n = segment.length;
-      if (n <= 1) return;
-      var p0 = segment[0], p1 = segment[n - 1], a = {
+      if ((n = segment.length) <= 1) return;
+      var n, p0 = segment[0], p1 = segment[n - 1];
+      if (d3_geo_sphericalEqual(p0, p1)) {
+        listener.lineStart();
+        for (var i = 0; i < n; ++i) listener.point((p0 = segment[i])[0], p0[1]);
+        listener.lineEnd();
+        return;
+      }
+      var a = {
         point: p0,
         points: segment,
         other: null,
@@ -6538,15 +6544,20 @@ d3 = function() {
       });
     };
   }
+  function d3_geo_haversin(x) {
+    return (x = Math.sin(x / 2)) * x;
+  }
   d3.geo.interpolate = function(source, target) {
     return d3_geo_interpolate(source[0] * d3_radians, source[1] * d3_radians, target[0] * d3_radians, target[1] * d3_radians);
   };
   function d3_geo_interpolate(x0, y0, x1, y1) {
-    var cy0 = Math.cos(y0), sy0 = Math.sin(y0), cy1 = Math.cos(y1), sy1 = Math.sin(y1), kx0 = cy0 * Math.cos(x0), ky0 = cy0 * Math.sin(x0), kx1 = cy1 * Math.cos(x1), ky1 = cy1 * Math.sin(x1), d = Math.acos(Math.max(-1, Math.min(1, sy0 * sy1 + cy0 * cy1 * Math.cos(x1 - x0)))), k = 1 / Math.sin(d);
-    function interpolate(t) {
+    var cy0 = Math.cos(y0), sy0 = Math.sin(y0), cy1 = Math.cos(y1), sy1 = Math.sin(y1), kx0 = cy0 * Math.cos(x0), ky0 = cy0 * Math.sin(x0), kx1 = cy1 * Math.cos(x1), ky1 = cy1 * Math.sin(x1), d = 2 * Math.asin(Math.sqrt(d3_geo_haversin(y1 - y0) + cy0 * cy1 * d3_geo_haversin(x1 - x0))), k = 1 / Math.sin(d);
+    var interpolate = d ? function(t) {
       var B = Math.sin(t *= d) * k, A = Math.sin(d - t) * k, x = A * kx0 + B * kx1, y = A * ky0 + B * ky1, z = A * sy0 + B * sy1;
-      return [ Math.atan2(y, x) / d3_radians, Math.atan2(z, Math.sqrt(x * x + y * y)) / d3_radians ];
-    }
+      return [ Math.atan2(y, x) * d3_degrees, Math.atan2(z, Math.sqrt(x * x + y * y)) * d3_degrees ];
+    } : function() {
+      return [ x0 * d3_degrees, y0 * d3_degrees ];
+    };
     interpolate.distance = d;
     return interpolate;
   }
@@ -7918,7 +7929,7 @@ d3 = function() {
     return format;
   };
   var d3_time_formatIso = d3.time.format.utc("%Y-%m-%dT%H:%M:%S.%LZ");
-  d3.time.format.iso = Date.prototype.toISOString ? d3_time_formatIsoNative : d3_time_formatIso;
+  d3.time.format.iso = Date.prototype.toISOString && +new Date("2000-01-01T00:00:00.000Z") ? d3_time_formatIsoNative : d3_time_formatIso;
   function d3_time_formatIsoNative(date) {
     return date.toISOString();
   }
@@ -8354,6 +8365,29 @@ function (array) {
         return obj;
       }
       return null;
+    },
+
+    /**
+     * Overrides a method on an object. Passes a reference to the original
+     *  "super" method as the first argument to the new method. The "super"
+     *  will be bound to the original o object.
+     *
+     * @param {Object} o The object.
+     * @param {String} methodName The name of the method to override.
+     * @param {function} newFn The new function to replace it with.
+     */
+    override: function(o, methodName, newFn) {
+      var supr;
+
+      // supr method is the original method.
+      supr = o[methodName].bind(o);
+      // Replace the original method with the new one.
+      o[methodName] = function() {
+        var args = array.convertArgs(arguments, 0);
+        // Pass reference to super method as 1st arg.
+        args.unshift(supr);
+        return newFn.apply(o, args);
+      };
     }
 
   };
@@ -8692,6 +8726,19 @@ function () {
     classes: function () {
       var r = Array.prototype.join.call(arguments, ' gl-');
       return r ? 'gl-' + r : '';
+    },
+
+    /**
+     * Determins if a string starts with a prefix or not.
+     *
+     * @param {String} str The string to check.
+     * @param {String} prefix The prefix to search for.
+     * @return {Boolean}
+     */
+    startsWith: function(str, prefix) {
+      return typeof str === 'string' &&
+        typeof prefix === 'string' &&
+        str.slice(0, prefix.length) === prefix;
     }
 
   };
@@ -11644,28 +11691,6 @@ function(obj, config, array, assetLoader, format, components, layoutManager,
     };
 
     /**
-     * Removes any specified data sets from the data collection.
-     * @public
-     * @param {String|Array} id Single id or array of ids.
-     * @return {graphs.graph}
-     */
-    graph.removeData = function(id) {
-      dataCollection_.remove(id);
-      return graph;
-    };
-
-    /**
-     * Append data to an existing data object
-     * @param  {string} id
-     * @param  {Array|Object} dataToAppend
-     * @return {graphs.graph}
-     */
-    graph.appendData = function (id, dataToAppend) {
-      dataCollection_.append(id, dataToAppend);
-      return graph;
-    };
-
-    /**
      * Creates and adds a component to the graph based on the type
      * or returns the component based on the cid.
      * @param  {string|Object} componentConfig
@@ -11747,6 +11772,10 @@ function(obj, config, array, assetLoader, format, components, layoutManager,
 
     graph.destroy = function() {
       config_.state = STATES.DESTROYED;
+      graph.root().remove();
+      config_ = null;
+      defaults_ = null;
+      // TODO: destroy all internal components too
     };
 
     /**
@@ -11822,6 +11851,252 @@ function(obj, config, array, assetLoader, format, components, layoutManager,
     return graph();
   };
 
+});
+
+/**
+ * @fileOverview
+ * An object that constructs/configures graphs by encapsulating complexity
+ * in order to simplify the end-user api when generating typical graphs.
+ *
+ * "internal" refers to data/components added by this build and not by the user.
+ */
+define('graphs/graph-builder',[
+  'core/object',
+  'core/array',
+  'core/string',
+  'graphs/graph'
+],
+function(obj, array, string, graph) {
+  
+
+    var defaults,
+      config,
+      INTERNAL_DATA_CONFIG,
+      INTERNAL_COMPONENTS_CONFIG,
+      GRAPH_TYPES;
+
+    defaults = {
+      layout: 'default',
+    };
+
+    config = {};
+
+    /**
+     * The supported types of pre-configured graphs.
+     */
+    GRAPH_TYPES = ['line', 'area'];
+
+    /**
+     * Dataset configurations automatically applied to graphs.
+     */
+    INTERNAL_DATA_CONFIG = [{
+      id: 'gl-stats',
+      sources: ['*', '$domain'],
+      derivation: function(sources, domain) {
+        var xDomain, points, result;
+
+        result = {
+          min: 0,
+          max: 0,
+          avg: 0
+        };
+        if (sources.all().length) {
+          xDomain = domain.get().x;
+          points = sources.filter('x', xDomain).dim('y').concat();
+          result.min = points.min().round().get();
+          result.max = points.max().round().get();
+          result.avg = points.avg().round().get();
+        }
+        return result;
+      }
+    }];
+
+    /**
+     * Component configurations automatically applied to graphs.
+     *
+     * TODO: Externalize this once a component manager is available.
+     */
+    INTERNAL_COMPONENTS_CONFIG = [{
+      cid: 'gl-stats',
+      type: 'label',
+      dataId: 'gl-stats',
+      position: 'center-left',
+      target: '.gl-footer',
+      text: function(d) {
+        return 'Min: ' + d.min + ' / Max: ' + d.max + ' / Avg: ' + d.avg;
+      }
+    }];
+
+    /**
+     * Determines if a data set corresponding to the data id is an internal
+     * data set or not.
+     *
+     * @private
+     * @param {String} dataId
+     * @return {Boolean}
+     */
+    function isInternalData(dataId) {
+      var foundData;
+      foundData = array.find(INTERNAL_DATA_CONFIG, function(d) {
+        return d.id === dataId;
+      });
+      return foundData || string.startsWith(dataId, '$') ? true : false;
+    }
+
+    /**
+     * Checks if a component alread exists in the componets collection with the
+     * same data id.
+     *
+     * @param {String} dataId
+     * @param {graphs.graph} g
+     * @return {Boolean}
+     */
+    function componentExists(dataId, g) {
+      var components, foundComponent;
+      components = g.component();
+      foundComponent = array.find(components, function(c) {
+        return c.dataId === dataId;
+      });
+      return foundComponent ? true : false;
+    }
+
+    /**
+     * Adds a new component of the specified type for every supplied data id
+     * that is not an internal data source.
+     *
+     * @private
+     * @param {Array|Object} dataSources
+     * @param {String} componentType
+     * @param {graphs.graph} g
+     */
+    function addComponentsForDataSources(dataSources, componentType, g) {
+      array.getArray(dataSources).forEach(function(dataSource) {
+        if (!isInternalData(dataSource.id) &&
+            !componentExists(dataSource.id, g)) {
+          g.component({
+            type: componentType,
+            dataId: dataSource.id,
+            cid: dataSource.id,
+            color: dataSource.color || null
+          });
+        }
+      });
+    }
+
+    /**
+     * Overrides the removeData() funciton on the graph.
+     * Additionally removes any corresponding components when called.
+     *
+     * TOOD: remove this in favor of data collection events?
+     *
+     * @private
+     * @param {graphs.graph} g
+     */
+    function overrideRemoveDataFn(g) {
+      var dataCollection = g.data();
+      obj.override(dataCollection, 'remove', function(supr, dataId) {
+        var args = array.convertArgs(arguments, 1);
+        g.removeComponent(dataId);
+        return supr.apply(g, args);
+      });
+    }
+
+    /**
+     * Overrides the add() function on the graph's data collection. Anytime
+     * add() is called a new component of the specified type will be added too.
+     *
+     * TOOD: remove this in favor of data collection events?
+     *
+     * @private
+     * @param {String} componentType
+     * @param {graphs.graph} g
+     */
+    function overrideAddDataFn(componentType, g) {
+      var dataCollection = g.data();
+      obj.override(dataCollection, 'add', function(supr, data) {
+        var args, retVal;
+        args = array.convertArgs(arguments, 1);
+        retVal = supr.apply(dataCollection, args);
+        addComponentsForDataSources(data, componentType, g);
+        return retVal;
+      });
+    }
+
+    /**
+     * Adds all pre-configured internal data sources to the graph.
+     *
+     * @private
+     * @param {graphs.graph} g
+     */
+    function addInternalData(g) {
+      INTERNAL_DATA_CONFIG.forEach(function(dataConfig) {
+        g.data().add(dataConfig);
+      });
+    }
+
+    /**
+     * Adds all pre-configured internal components to the graph.
+     *
+     * @private
+     * @param {graphs.graph} g
+     */
+    function addInternalComponents(g) {
+      INTERNAL_COMPONENTS_CONFIG.forEach(function(componentConfig) {
+        g.component(componentConfig);
+      });
+    }
+
+    /**
+     * An object that constructs/configures graphs by encapsulating complexity
+     *   in order to simplify the end-user api.
+     *
+     * @public
+     * @return {graphs.graphBuilder}
+     */
+    function graphBuilder() {
+      obj.extend(config, defaults);
+      return graphBuilder;
+    }
+
+    /**
+     * Gets the available valid types to build pre-configured graphs.
+     *
+     * @public
+     * @return {Array}
+     */
+    graphBuilder.types = function() {
+      return GRAPH_TYPES;
+    };
+
+    /**
+     * Build and return a new graph of the specified type.
+     *
+     * @param {String} type A valid pre-configured graph type.
+     * @param {layout.layouts} layout The layout to use.
+     * @return {graphs.graph}
+     */
+    graphBuilder.create = function(type, optLayout) {
+      var g;
+
+      g = graph()
+        .config({
+          forceY: [0],
+          layout: optLayout || 'default'
+        });
+      addInternalData(g);
+      addInternalComponents(g);
+
+      switch (type) {
+        case 'line':
+        case 'area':
+          overrideRemoveDataFn(g);
+          overrideAddDataFn(type, g);
+          break;
+      }
+      return g;
+    };
+
+    return graphBuilder();
 });
 
 /**
@@ -12410,14 +12685,16 @@ define('d3-ext/d3-ext',[
 // d3-ext is extending d3. Do not remove the require.
 define('core/core',[
   'graphs/graph',
+  'graphs/graph-builder',
   'components/component',
   'd3-ext/d3-ext'
 ],
-function (graph, component) {
+function(graph, graphBuilder, component) {
   
 
   var core = {
     version: '0.0.1',
+    graphBuilder: graphBuilder,
     graph: graph,
     components: component
   };
