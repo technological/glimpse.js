@@ -9,21 +9,36 @@ Glimpse.js requires very little code and has virtually no learning curve, yet is
 We leverage countless hours of work that have already gone into the open-source community by building on top of the immensely popular
 [d3.js](http://d3js.org/) library (a lower-level data visualization library).
 We take that work one step further by providing a simpler API and by drastically reducing the amount of code necessary for the end-user to write.
-Interactive time-series graphs can be created in as little as 2-3 lines of code.
+Interactive time-series graphs can be created in as little as 2-3 lines of code.  
+
+[Read the docs to get started.](https://github.com/racker/glimpse.js/wiki)
 
 
 ## Features
-- Includes a custom subset build of d3 (for a smaller footprint - we only include what we use)
-- Can optionally omit d3 from being bundled if you already include it in your page
-- d3 plugin support
+- Includes a bundled version of d3.js.
+- d3 plugin support.
+- Pure SVG graphs (no CSS or HTML).
+- Line graphs.
+- Area graphs.
+
+
+## Browser Support
+- IE9, IE10
+- Safari (latest)
+- Chrome (latest)
+- Firefox (latest)
 
 
 ## Dependencies
-- d3 (comes bundled)
+- d3.js (comes bundled)
 
 
 ## Contribute
 See the [contributing docs](https://github.com/racker/glimpse.js/blob/master/CONTRIBUTING.md)
+
+
+## Versioning
+glimpse.js uses [semantic versioning](http://semver.org/).
 
 
 ## License
