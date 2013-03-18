@@ -19,6 +19,7 @@
 
 **Style Guide**
 
-- JavaScript code should follow the [Idiomatic.js style guide](https://github.com/rwldrn/idiomatic.js/)
-- Commit messages should follow the [Angular JS convention](https://docs.google.com/document/d/1QrDFcIiPjSLDn3EL15IJygNPiHORgU1_OOAqWjiDU5Y/edit?pli=1#)
+- JavaScript code should follow the [Idiomatic.js style guide](https://github.com/rwldrn/idiomatic.js/).
+- JavaScript code should also follow our additional [code guidelines](https://github.com/racker/glimpse.js/wiki/Code-Guidelines).
+- Commit messages should follow the [Angular JS convention](https://docs.google.com/document/d/1QrDFcIiPjSLDn3EL15IJygNPiHORgU1_OOAqWjiDU5Y/edit?pli=1#).
 - JSDocs should follow [???TBD???]()
