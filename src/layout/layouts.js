@@ -16,7 +16,6 @@ define(function () {
         'class': 'gl-info'
       }, {
         'class': 'gl-framed',
-        paddingTop: 5,
         border: 1,
         borderColor: '#999',
         backgroundColor: '#fff'
