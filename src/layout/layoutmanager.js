@@ -142,6 +142,9 @@ function (layouts, array) {
         if (nodeInfo.backgroundColor) {
           node.backgroundColor(nodeInfo.backgroundColor);
         }
+        if (nodeInfo.clip === true) {
+          node.clip();
+        }
         node = getPaddingContainer(node, nodeInfo);
         node.attr({
           'class': nodeInfo['class'],

@@ -197,6 +197,16 @@ function (lm) {
             '</g>'
           ]));
       });
+
+      it('adds a gl-clip attribute', function() {
+        applyLayout({
+          'class': 'someclass',
+          clip: true,
+        });
+        expect(jasmine.svgFixture().select('.someclass').node())
+          .toHaveAttr('gl-clip', 'true');
+      });
+
     });
 
   });
