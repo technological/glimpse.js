@@ -14,7 +14,7 @@ define([
    * @return {Boolean}
    */
   function isValidDate(d) {
-    if (Object.prototype.toString.call(d) !== '[object Date]') {
+    if (!d instanceof Date) {
       return false;
     }
     return !isNaN(d.getTime());

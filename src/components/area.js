@@ -9,10 +9,9 @@ define([
   'core/string',
   'd3-ext/util',
   'components/mixins',
-  'data/functions',
-  'util/util'
+  'data/functions'
 ],
-function(array, config, obj, string, d3util, mixins, dataFns, util) {
+function(array, config, obj, string, d3util, mixins, dataFns) {
   'use strict';
 
   return function() {
@@ -72,7 +71,7 @@ function(array, config, obj, string, d3util, mixins, dataFns, util) {
         .x(function(d, i) {
           var value;
           value = dataFns.dimension(dataConfig, 'x')(d, i);
-          return util.isTimeScale(config_.xScale) ?
+          return d3util.isTimeScale(config_.xScale) ?
             config_.xScale(dataFns.toUTCDate(value)) : config_.xScale(value);
         })
         .y0(y0)
@@ -83,7 +82,7 @@ function(array, config, obj, string, d3util, mixins, dataFns, util) {
           value = dataFns.dimension(dataConfig, 'x')(d, i);
           if (config_.xScale) {
             minX = config_.xScale.range()[0];
-            value = util.isTimeScale(config_.xScale) ?
+            value = d3util.isTimeScale(config_.xScale) ?
               config_.xScale(dataFns.toUTCDate(value)) : config_.xScale(value);
           }
           return value >= minX;

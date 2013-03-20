@@ -13,11 +13,10 @@ define([
   'layout/layoutmanager',
   'd3-ext/util',
   'data/functions',
-  'data/collection',
-  'util/util'
+  'data/collection'
 ],
 function(obj, config, array, assetLoader, format, components, layoutManager,
-  d3util, dataFns, collection, util) {
+  d3util, dataFns, collection) {
   'use strict';
 
   return function() {
@@ -639,7 +638,7 @@ function(obj, config, array, assetLoader, format, components, layoutManager,
     function hasTimeScale() {
       //TODO: Maybe determine this based on some config value directly
       if (hasTimeScale_ === null) {
-        hasTimeScale_ = util.isTimeScale(config_.xScale);
+        hasTimeScale_ = d3util.isTimeScale(config_.xScale);
       }
       return hasTimeScale_;
     }

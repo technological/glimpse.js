@@ -109,10 +109,6 @@ function(d3, object, line, dc) {
       beforeEach(function() {
         selection = jasmine.svgFixture();
         lineGenerator = testLine.lineGenerator();
-        accessor = {
-          x: function(d) { return d.x + 1; },
-          y: function(d) { return d.y + 1; }
-        };
         mockScale = d3.scale.linear();
         setData();
         testLine.xScale(d3.scale.linear());
