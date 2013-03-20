@@ -84,18 +84,18 @@ define([
       });
 
       it('returns null if data is null', function() {
-        var date = dataFns.toUTCDate();
+        var date = dataFns.toUTCDate(null);
         expect(date).toBe(null);
       });
 
-      it('returns null if data is undefined', function() {
+      it('returns undefined if data is undefined', function() {
         var date = dataFns.toUTCDate(undefined);
-        expect(date).toBe(null);
+        expect(date).toBe(undefined);
       });
 
-      it('returns null if data is an invalid data', function() {
+      it('returns data if data is an invalid data', function() {
         var date = dataFns.toUTCDate('test');
-        expect(date).toBe(null);
+        expect(date).toBe('test');
       });
 
     });

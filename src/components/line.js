@@ -9,9 +9,11 @@ define([
   'core/string',
   'd3-ext/util',
   'components/mixins',
-  'data/functions'
+  'data/functions',
+  'util/util'
 ],
-function(array, config, obj, string, d3util, mixins, dataFns) {
+function(array, config, obj, string, d3Util, mixins, dataFns, util) {
+
   'use strict';
 
   return function() {
@@ -72,7 +74,7 @@ function(array, config, obj, string, d3util, mixins, dataFns) {
       var x, dataConfig;
       dataConfig = line.data();
       x = dataFns.dimension(dataConfig, 'x')(data, index);
-      if (d3.scale.type(config_.xScale) === d3.scale.types.TIME) {
+      if (util.isTimeScale(config_.xScale)) {
         return dataFns.toUTCDate(x);
       }
       return x;

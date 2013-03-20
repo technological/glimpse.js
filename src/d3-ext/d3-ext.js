@@ -5,8 +5,7 @@ define([
   'd3-ext/position',
   'd3-ext/border',
   'd3-ext/background-color',
-  'd3-ext/clip',
-  'd3-ext/scale-type'
+  'd3-ext/clip'
 ], function(d3) {
   'use strict';
   return d3;

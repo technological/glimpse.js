@@ -10,7 +10,7 @@ define([
 
   /**
    * Checks if the provided date is a valid date
-   * @param  {Date}  d
+   * @param  {*|Object}  d
    * @return {Boolean}
    */
   function isValidDate(d) {
@@ -35,7 +35,7 @@ define([
       );
       return dateUtc;
     }
-    return null;
+    return value;
   }
 
   return {
@@ -53,6 +53,8 @@ define([
 
     /**
      * Converts given data into UTC date
+     * If it cannot be converted into a valid date
+     * then it returns the data
      * @param  {Array|number|string} data
      * @return {Array<Date>|Date}
      */
@@ -64,7 +66,7 @@ define([
           return convertToUTCDate(data);
         }
       }
-      return null;
+      return data;
     }
 
   };

@@ -9,9 +9,10 @@ define([
   'core/string',
   'd3-ext/util',
   'components/mixins',
-  'data/functions'
+  'data/functions',
+  'util/util'
 ],
-function(array, config, obj, string, d3util, mixins, dataFns) {
+function(array, config, obj, string, d3util, mixins, dataFns, util) {
   'use strict';
 
   return function() {
@@ -71,7 +72,7 @@ function(array, config, obj, string, d3util, mixins, dataFns) {
         .x(function(d, i) {
           var value;
           value = dataFns.dimension(dataConfig, 'x')(d, i);
-          return d3.scale.type(config_.xScale === d3.scale.types.TIME) ?
+          return util.isTimeScale(config_.xScale) ?
             config_.xScale(dataFns.toUTCDate(value)) : config_.xScale(value);
         })
         .y0(y0)
@@ -82,7 +83,7 @@ function(array, config, obj, string, d3util, mixins, dataFns) {
           value = dataFns.dimension(dataConfig, 'x')(d, i);
           if (config_.xScale) {
             minX = config_.xScale.range()[0];
-            value = d3.scale.type(config_.xScale === d3.scale.types.TIME) ?
+            value = util.isTimeScale(config_.xScale) ?
               config_.xScale(dataFns.toUTCDate(value)) : config_.xScale(value);
           }
           return value >= minX;
