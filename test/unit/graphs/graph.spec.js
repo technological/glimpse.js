@@ -123,6 +123,10 @@ function(graph, assetLoader, dc, compUtil) {
       expect(testGraph.yAxis()).toBeDefinedAndNotNull();
     });
 
+    it('sets default unit on Y-Axis', function() {
+      expect(testGraph.yAxis().config('unit')).toBe('ms');
+    });
+
     describe('config()', function() {
       var config;
 

@@ -139,6 +139,19 @@ function(axisComponent) {
         expect(transform.translate[1]).toBe(-10);
       });
 
+      it('it applies unit to 0 tick', function() {
+        var zeroTick, transform;
+        axis.config({
+          type: 'y',
+          scale: d3.scale.linear(),
+          unit: 'ms'
+        });
+        axis.render(container);
+        zeroTick = d3.select(getComponentNode()).select('.gl-axis g');
+        transform = d3.transform(zeroTick.attr('transform'));
+        expect(zeroTick.select('text').text()).toBe('0.0 ms');
+      });
+
       describe('axis label background', function() {
 
         it('is inserted into the d3 svg axis component', function() {
