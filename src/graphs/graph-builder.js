@@ -68,7 +68,9 @@ function(obj, array, string, graph) {
       position: 'center-left',
       target: '.gl-footer',
       text: function(d) {
-        return 'Min: ' + d.min + ' / Max: ' + d.max + ' / Avg: ' + d.avg;
+        return 'Avg: ' + d.avg +
+          'ms    Min: ' +  d.min +
+          'ms    Max: ' + d.max + 'ms';
       }
     }];
 
