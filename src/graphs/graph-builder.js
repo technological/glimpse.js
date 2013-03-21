@@ -66,12 +66,7 @@ function(obj, array, string, graph) {
       type: 'label',
       dataId: 'gl-stats',
       position: 'center-left',
-      target: '.gl-footer',
-      text: function(d) {
-        return 'Avg: ' + d.avg +
-          'ms    Min: ' +  d.min +
-          'ms    Max: ' + d.max + 'ms';
-      }
+      target: '.gl-footer'
     }];
 
     /**
@@ -188,8 +183,15 @@ function(obj, array, string, graph) {
      * @param {graphs.graph} g
      */
     function addInternalComponents(g) {
+      var unit;
       INTERNAL_COMPONENTS_CONFIG.forEach(function(componentConfig) {
         g.component(componentConfig);
+      });
+      unit = g.config('yAxisUnit') ? g.config('yAxisUnit') : '';
+      g.component('gl-stats').text(function(d) {
+        return 'Avg: ' + d.avg + unit +
+               '      Min: ' +  d.min + unit +
+               '    Max: ' + d.max + unit;
       });
     }
 
@@ -228,7 +230,8 @@ function(obj, array, string, graph) {
       g = graph()
         .config({
           forceY: [0],
-          layout: optLayout || 'default'
+          layout: optLayout || 'default',
+          yAxisUnit: 'ms'
         });
       addInternalData(g);
       addInternalComponents(g);
