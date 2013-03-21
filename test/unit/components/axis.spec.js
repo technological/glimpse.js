@@ -140,7 +140,7 @@ function(axisComponent) {
       });
 
       it('it applies unit to 0 tick', function() {
-        var zeroTick, transform;
+        var zeroTick;
         axis.config({
           type: 'y',
           scale: d3.scale.linear(),
@@ -148,7 +148,6 @@ function(axisComponent) {
         });
         axis.render(container);
         zeroTick = d3.select(getComponentNode()).select('.gl-axis g');
-        transform = d3.transform(zeroTick.attr('transform'));
         expect(zeroTick.select('text').text()).toBe('0.0 ms');
       });
 
