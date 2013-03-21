@@ -46,7 +46,7 @@ function(graph, assetLoader, dc, compUtil) {
 
     function setGraph() {
       testGraph
-        .config({colorPalette: ['green']})
+        .config({colorPalette: ['green'], yAxisUnit: 'ms'})
         .data([
           {
             id: 'fakeData',
@@ -123,7 +123,9 @@ function(graph, assetLoader, dc, compUtil) {
       expect(testGraph.yAxis()).toBeDefinedAndNotNull();
     });
 
-    it('sets default unit on Y-Axis', function() {
+    it('sets unit on Y-Axis', function() {
+      setGraph();
+      testGraph.render(jasmine.htmlFixture());
       expect(testGraph.yAxis().config('unit')).toBe('ms');
     });
 

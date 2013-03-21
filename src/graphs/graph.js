@@ -110,7 +110,7 @@ function(obj, config, array, assetLoader, format, components, layoutManager,
       yDomainModifier: 1.2,
       colorPalette: d3.scale.category20().range(),
       xAxisUnit: null,
-      yAxisUnit: 'ms'
+      yAxisUnit: null
     };
 
     /**
