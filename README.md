@@ -1,5 +1,3 @@
-**DO NOT USE THIS!** This is currently an unstable work in progress.  
-
 # glimpse.js [![Build Status](https://travis-ci.org/racker/glimpse.js.png?branch=master)](https://travis-ci.org/racker/glimpse.js)  
 
 A JavaScript library for making beautiful graphs and visualizations effortlessly.  
