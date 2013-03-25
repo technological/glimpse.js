@@ -174,6 +174,12 @@ function (layouts, array) {
         node = root.append('g');
 
         node.size(width, height);
+        if (nodeInfo.backgroundColor) {
+          node.backgroundColor(nodeInfo.backgroundColor);
+        }
+        if (nodeInfo.clip === true) {
+          node.clip();
+        }
         borderParams = getBorderParams(nodeInfo);
         if (borderParams.hasBorder) {
           node.border(
@@ -181,14 +187,9 @@ function (layouts, array) {
             borderParams.color,
             borderParams.width
           );
+          node = resizeBorderedContainer(node, borderParams);
+
         }
-        if (nodeInfo.backgroundColor) {
-          node.backgroundColor(nodeInfo.backgroundColor);
-        }
-        if (nodeInfo.clip === true) {
-          node.clip();
-        }
-        node = resizeBorderedContainer(node, borderParams);
         node = getPaddingContainer(node, nodeInfo);
 
         node.attr({

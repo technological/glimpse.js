@@ -17,8 +17,7 @@ define(function () {
       }, {
         'class': 'gl-framed',
         clip: true,
-        border: 15,
-        borderStyle: 'solid',
+        border: 1,
         borderColor: '#999',
         backgroundColor: '#fff'
       }, {
