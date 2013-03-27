@@ -440,7 +440,8 @@ function(obj, config, array, assetLoader, components, layoutManager,
       xAxis_.config({
         scale: config_.xScale,
         ticks: config_.xTicks,
-        unit: config_.xAxisUnit
+        unit: config_.xAxisUnit,
+        hiddenStates: ['empty', 'loading', 'error']
       });
       yAxis_.config({
         scale: config_.yScale,
