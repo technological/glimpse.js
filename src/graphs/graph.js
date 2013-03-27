@@ -441,12 +441,14 @@ function(obj, config, array, assetLoader, components, layoutManager,
         scale: config_.xScale,
         ticks: config_.xTicks,
         unit: config_.xAxisUnit,
-        hiddenStates: ['empty', 'loading', 'error']
+        hiddenStates: ['empty', 'loading', 'error'],
+        axisType: 'x'
       });
       yAxis_.config({
         scale: config_.yScale,
         ticks: config_.yTicks,
-        unit: config_.yAxisUnit
+        unit: config_.yAxisUnit,
+        axisType: 'y'
       });
     };
 
