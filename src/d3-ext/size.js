@@ -5,10 +5,21 @@
 define(['d3'], function(d3) {
   'use strict';
 
+  /**
+   * Determines if the selection's node is a <g> node.
+   * @param {d3.selection} selection
+   * @return {Boolean}
+   */
   function isGnode(selection) {
     return !selection.empty() && selection.node().tagName === 'g';
   }
 
+  /**
+   * Appends a layout rect if it doesn't exist, otherwise returns
+   *   the existing one.
+   * @param {d3.selection} selection
+   * @return {d3.selection}
+   */
   function lazyAddLayoutRect(selection) {
     var layoutRect;
 
@@ -29,7 +40,7 @@ define(['d3'], function(d3) {
    * If element is a group,
    *   it returns the 'gl-width' attribute, if it's defined.
    *   else it returns the bounding box width.
-   * @param {Number} h
+   * @param {Number} w
    * @return {Number|d3.selection}
    */
   d3.selection.prototype.width = function(w) {
