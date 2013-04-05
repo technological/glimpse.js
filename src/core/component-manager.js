@@ -14,6 +14,13 @@ function(obj, array, string, func, components) {
 
   var staticMethods;
 
+  /**
+   * Determins if something is a config object or not.
+   *
+   * @private
+   * @param {*} obj
+   * @return {Boolean}
+   */
   function isConfig(obj) {
     // All components are functions.
     var first = obj;
@@ -23,14 +30,35 @@ function(obj, array, string, func, components) {
     return typeof first === 'object' ? true : false;
   }
 
-  function comparer(x, c) {
+  /**
+   * Compares a component to a cid.
+   *
+   * @private
+   * @param {String} x
+   * @param {components.*} c
+   * @return {Boolean}
+   */
+  function cidComparer(x, c) {
     return c.cid() === x;
   }
 
+  /**
+   * Maps a component to its cid.
+   *
+   * @private
+   * @param {components.*} c
+   * @return {String|null}
+   */
   function cidMapper(c) {
     return c.cid();
   }
 
+  /**
+   * Adds a random string as a cid for any component which lacks a cid.
+   *
+   * @private
+   * @param {Array} components
+   */
   function validateCids(components) {
     components.forEach(function(c) {
       if (!c.cid()) {
@@ -40,6 +68,7 @@ function(obj, array, string, func, components) {
   }
 
   staticMethods = {
+
     /**
      * Creates a new instance of a component manager object.
      *
@@ -108,7 +137,8 @@ function(obj, array, string, func, components) {
           return componentList.concat();
         }
         if (typeof cids === 'string') {
-          component = array.find(componentList, func.partial(comparer, cids));
+          component = array.find(componentList,
+            func.partial(cidComparer, cids));
           return component ? [component] : [];
         }
         return this.filter(function(c) {
@@ -116,6 +146,13 @@ function(obj, array, string, func, components) {
         }, this);
       },
 
+      /**
+       * Gets the first element in the resulting list of matching cids.
+       *
+       * @public
+       * @param {Array} cids
+       * @return {components.*|null}
+       */
       first: function(cids) {
         var values;
         values = this.get(cids);
