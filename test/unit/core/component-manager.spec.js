@@ -425,6 +425,120 @@ function(componentManager, lineComponent) {
 
     });
 
+    describe('.registerSharedObject', function() {
+      var sharedObj, newComp;
+
+      beforeEach(function() {
+        sharedObj = 'test shared object';
+        newComp = lineComponent().config('cid', 'newComp');
+        newComp.test = function() {};
+        spyOn(newComp, 'test');
+      });
+
+      it('registers a shared object', function() {
+        compMgr.registerSharedObject('test', sharedObj);
+        result = compMgr.getSharedObjects();
+        expect(Object.keys(result).length).toBe(1);
+        expect(result.test.value).toBe(sharedObj);
+      });
+
+      it('defaults autoApply to false', function() {
+        compMgr.registerSharedObject('test', sharedObj);
+        result = compMgr.getSharedObjects();
+        expect(result.test.autoApply).toBe(false);
+      });
+
+      it(
+      'applies shared objects configured to be auto-applied to new components',
+      function() {
+        compMgr.registerSharedObject('test', sharedObj, true);
+        compMgr.add(newComp);
+        expect(newComp.test).toHaveBeenCalledWith(sharedObj);
+      });
+
+      it('doesnt apply shared objects configured not to be auto-applied',
+      function() {
+        compMgr.registerSharedObject('test', sharedObj);
+        compMgr.add(newComp);
+        expect(newComp.test).not.toHaveBeenCalled();
+      });
+
+    });
+
+    describe('.applySharedObject', function() {
+
+      var sharedObj = 'test shared object';
+
+      beforeEach(function() {
+        fooLine.test = function() {};
+        barLine.test = function() {};
+        spyOn(fooLine, 'test');
+        spyOn(fooLine, 'update');
+        spyOn(barLine, 'test');
+        spyOn(barLine, 'update');
+        compMgr.registerSharedObject('test', sharedObj);
+      });
+
+      it('applies the shared object to all existing components', function() {
+        compMgr.applySharedObject('test');
+        expect(fooLine.test).toHaveBeenCalledWith(sharedObj);
+        expect(barLine.test).toHaveBeenCalledWith(sharedObj);
+      });
+
+      it('applies the shared object only to cids specified', function() {
+        compMgr.applySharedObject('test', ['foo']);
+        expect(fooLine.test).toHaveBeenCalledWith(sharedObj);
+        expect(barLine.test).not.toHaveBeenCalled();
+      });
+
+      it('calls update() by default', function() {
+        compMgr.applySharedObject('test', ['foo']);
+        expect(fooLine.update).toHaveBeenCalledOnce();
+      });
+
+      it('optionally supresses the update() call', function() {
+        compMgr.applySharedObject('test', ['foo'], true);
+        expect(fooLine.update).not.toHaveBeenCalled();
+      });
+
+    });
+
+    describe('.applyAutoSharedObjects', function() {
+
+      var sharedObj;
+
+      beforeEach(function() {
+        sharedObj = 'test shared object';
+        compMgr.registerSharedObject('autoApplyMethod', sharedObj, true);
+        compMgr.registerSharedObject('nonAutoApplyMethod', sharedObj, false);
+        fooLine.autoApplyMethod = function() {};
+        fooLine.nonAutoApplyMethod = function() {};
+        spyOn(fooLine, 'autoApplyMethod');
+        spyOn(fooLine, 'nonAutoApplyMethod');
+        barLine.autoApplyMethod = function() {};
+        barLine.nonAutoApplyMethod = function() {};
+        spyOn(barLine, 'autoApplyMethod');
+        spyOn(barLine, 'nonAutoApplyMethod');
+      });
+
+      it('applies all the auto-apply shared objects', function() {
+        compMgr.applyAutoSharedObjects();
+        expect(fooLine.autoApplyMethod).toHaveBeenCalledWith(sharedObj);
+      });
+
+      it('doesnt apply the non-auto-apply shared objects', function() {
+        compMgr.applyAutoSharedObjects();
+        expect(fooLine.nonAutoApplyMethod).not.toHaveBeenCalled();
+      });
+
+      it('filters by cids', function() {
+        compMgr.applyAutoSharedObjects(['foo']);
+        expect(fooLine.autoApplyMethod).toHaveBeenCalledWith(sharedObj);
+        expect(barLine.autoApplyMethod).not.toHaveBeenCalled();
+      });
+
+    });
+
   });
 
 });

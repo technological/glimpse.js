@@ -115,6 +115,8 @@ function(obj, array, string, func, components) {
         sharedObjects;
 
     // Key value pair of all registered object refs shared across components.
+    // Are in the format:
+    //   { 'methodName': { value: sharedObjectValue, autoApply: false } }
     sharedObjects = {};
 
     // Internal array of all the components.
@@ -266,6 +268,16 @@ function(obj, array, string, func, components) {
           autoApply: optAutoApply || false
         };
         return this;
+      },
+
+      /**
+       * Gets all the registered shared objects.
+       *
+       * @public
+       * @return {Object}
+       */
+      getSharedObjects: function() {
+        return sharedObjects;
       },
 
       /**
