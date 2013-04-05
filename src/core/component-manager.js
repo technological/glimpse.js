@@ -85,12 +85,12 @@ function(obj, array, string, func, components) {
     },
 
     /**
-     * Deserialize a component or list of components from config(s).
-     * TODO: Recursively deserialize child components too.
+     * Parses a component or list of components from config(s).
+     * TODO: Recursively parse child components too.
      *
      * @return {Array} An array of components.
      */
-    deserialize: function(configs) {
+    parse: function(configs) {
       return array.getArray(configs).map(function(cnf) {
         return components[cnf.type]().config(cnf);
       });
@@ -174,7 +174,7 @@ function(obj, array, string, func, components) {
 
         instances = config;
         if (isConfig(instances)) {
-          instances = staticMethods.deserialize(instances);
+          instances = staticMethods.parse(instances);
         } else {
           instances = array.getArray(instances);
         }

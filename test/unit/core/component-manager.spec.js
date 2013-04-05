@@ -56,18 +56,18 @@ function(componentManager, lineComponent) {
 
       });
 
-      describe('.deserialize()', function() {
+      describe('.parse()', function() {
 
-        it('deserializes a component instance from a config', function() {
-          result = componentManager.deserialize({ type: 'line' });
+        it('parse a component instance from a config', function() {
+          result = componentManager.parse({ type: 'line' });
           expect(result.length).toBe(1);
           expect(result[0].config('type')).toBe('line');
           expect(result[0].render).toBeDefined();
         });
 
-        it('deserializes an array of component configs', function() {
+        it('parses an array of component configs', function() {
           var c1, c2;
-          result = componentManager.deserialize([
+          result = componentManager.parse([
             { type: 'line', cid: 'c1' },
             { type: 'area', cid: 'c2' }
           ]);
@@ -146,26 +146,26 @@ function(componentManager, lineComponent) {
         expect(result.indexOf(c2)).not.toBe(-1);
       });
 
-      it('deserializes and adds a component from a config', function() {
+      it('parses and adds a component from a config', function() {
         result = compMgr.first('foo');
         expect(result.cid()).toBe('foo');
         expect(result.config('type')).toBe('line');
       });
 
-      it('returns the deserialized instance', function() {
+      it('returns the parsed instance', function() {
         result = compMgr.add({ type: 'line', cid: 'line-cid' });
         expect(result.length).toBe(1);
         expect(result[0].cid()).toBe('line-cid');
         expect(result[0].config('type')).toBe('line');
       });
 
-      it('deserializes and adds multiple components from an array', function() {
+      it('parses and adds multiple components from an array', function() {
         // Gets added in the top-level beforeEach()
         expect(compMgr.first('foo')).toBeDefined();
         expect(compMgr.first('bar')).toBeDefined();
       });
 
-      it('returns an array of the deserialized instances', function() {
+      it('returns an array of the parsed instances', function() {
         var cids;
         compMgr.remove();
         result = compMgr.add([
