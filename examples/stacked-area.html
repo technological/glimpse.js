@@ -18,8 +18,9 @@
 
         var sampleData = [
           {
-            "name": "sys",
-            "values": [
+            "id" : "cpu-sys",
+            "title" : "sys",
+            "data": [
               { "x": 1317279600000, "y": 30 },
               { "x": 1317695968421, "y": 31 },
               { "x": 1318112336842, "y": 30 },
@@ -29,8 +30,9 @@
             ]
           },
           {
-            "name": "user",
-            "values": [
+            "id": "cpu-user",
+            "title": "user",
+            "data": [
               { "x": 1317279600000, "y": 20 },
               { "x": 1317695968421, "y": 19 },
               { "x": 1318112336842, "y": 21 },
@@ -40,8 +42,8 @@
             ]
           },
           {
-            "name": "stolen",
-            "values": [
+            "id": "cpu-stolen",
+            "data": [
               { "x": 1317279600000, "y": 1 },
               { "x": 1317695968421, "y": 1 },
               { "x": 1318112336842, "y": 0 },
@@ -51,8 +53,8 @@
             ]
           },
           {
-            "name": "wait",
-            "values": [
+            "id": "cpu-wait",
+            "data": [
               { "x": 1317279600000, "y": 9 },
               { "x": 1317695968421, "y": 9 },
               { "x": 1318112336842, "y": 9 },
@@ -62,8 +64,8 @@
             ]
           },
           {
-            "name": "idle",
-            "values": [
+            "id": "cpu-idle",
+            "data": [
               { "x": 1317279600000, "y": 40 },
               { "x": 1317695968421, "y": 40 },
               { "x": 1318112336842, "y": 40 },
@@ -74,61 +76,81 @@
           }
         ];
 
-        // Create copy for mutating.
-        var mappedData = sampleData.concat();
-
-        // d3 stack function to calculate Y-baselines and Y-offsets.
-        var stack = d3.layout.stack()
-          .values(function(d) {
-            return d.values;
-          });
-        stack(mappedData);
-
-        // Utility for accessing individual data series.
-        function filterData(processName) {
-          return mappedData.filter(function(d) {
-            return d.name === processName;
-          })[0].values;
+        function getById(arr, id) {
+          return arr.filter(function(item) {
+            return item.id === id;
+          })[0];
         }
 
-        var areaGraph = glimpse.graph()
+        var derivedDataConfig = [
+          // ****************************************************
+          // TODO: automate this config in graphBuilder
+          // ****************************************************
+          {
+            id: 'stacks',
+            sources: '*',
+            derivation: function(sources) {
+              var stackedData = sources.stack();
+              return stackedData.all();
+            }
+          },
+
+          // ****************************************************
+          // TODO: automate this config in graphBuilder
+          // ****************************************************
+          {
+            id: 'cpu-sys-stack',
+            sources: 'stacks',
+            derivation: function(sources) {
+              var val = getById(sources.get(), 'cpu-sys-stack');
+              return val;
+            }
+          },
+          {
+            id: 'cpu-user-stack',
+            sources: 'stacks',
+            derivation: function(sources) {
+              return getById(sources.get(), 'cpu-user-stack');
+            }
+          },
+          {
+            id: 'cpu-idle-stack',
+            sources: 'stacks',
+            derivation: function(sources) {
+              return getById(sources.get(), 'cpu-idle-stack');
+            }
+          },
+          {
+            id: 'cpu-wait-stack',
+            sources: 'stacks',
+            derivation: function(sources) {
+              return getById(sources.get(), 'cpu-wait-stack');
+            }
+          },
+          {
+            id: 'cpu-stolen-stack',
+            sources: 'stacks',
+            derivation: function(sources) {
+              return getById(sources.get(), 'cpu-stolen-stack');
+            }
+          }
+        ];
+
+        sampleData.push(derivedDataConfig);
+
+
+        var areaGraph = glimpse.graph() //graphBuilder.create('stacked-area')
           .config({
             'forceY': [0, 100],
             'yDomainModifier': 1
           })
-          .data([
-            { id: 'cpu-sys',
-              title: 'System',
-              data: filterData('sys'),
-              dimensions: { y0: 'y0' }
-            },
-            { id: 'cpu-user',
-              title: 'User',
-              data: filterData('user'),
-              dimensions: { y0: 'y0' }
-            },
-            { id: 'cpu-idle',
-              title: 'Idle',
-              data: filterData('idle'),
-              dimensions: { y0: 'y0' }
-            },
-            { id: 'cpu-wait',
-              title: 'Wait',
-              data: filterData('wait'),
-              dimensions: { y0: 'y0' }
-            },
-            { id: 'cpu-stolen',
-              title: 'Stolen',
-              data: filterData('stolen'),
-              dimensions: { y0: 'y0' }
-            }
-          ])
+          .data(sampleData)
           .component([
-            { cid: 'idle', type: 'area', dataId: 'cpu-idle', color: '#EFEFEF' },
-            { cid: 'user', type: 'area', dataId: 'cpu-user', color: '#89D6FF' },
-            { cid: 'sys', type: 'area', dataId: 'cpu-sys', color: '#FFB578' },
-            { cid: 'wait', type: 'area', dataId: 'cpu-wait', color: '#F5F692' },
-            { cid: 'stolen', type: 'area', dataId: 'cpu-stolen', color: '#FF5A86' }
+            { cid: 'idle', type: 'area', dataId: 'cpu-idle-stack' },
+            { cid: 'user', type: 'area', dataId: 'cpu-user-stack' },
+            { cid: 'sys', type: 'area', dataId: 'cpu-sys-stack' },
+            { cid: 'wait', type: 'area', dataId: 'cpu-wait-stack' },
+            { cid: 'stolen', type: 'area', dataId: 'cpu-stolen-stack' }
           ])
           .render('#container');
 

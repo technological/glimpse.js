@@ -31,7 +31,7 @@ function(obj, array, string, format, d3util, graph) {
     /**
      * The supported types of pre-configured graphs.
      */
-    GRAPH_TYPES = ['line', 'area'];
+    GRAPH_TYPES = ['line', 'area', 'stacked-area'];
 
     /**
      * Dataset configurations automatically applied to graphs.
@@ -293,6 +293,8 @@ function(obj, array, string, format, d3util, graph) {
         case 'area':
           overrideRemoveDataFn(g);
           overrideAddDataFn(type, g);
+          break;
+        case 'stacked-area':
           break;
       }
       return g;
