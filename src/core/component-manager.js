@@ -253,6 +253,12 @@ function(obj, array, string, func, components) {
       /**
        * Registers a new shared object which may be set on any/all of the
        *   components.
+       *
+       * @public
+       * @param {String} name
+       * @param {*} value
+       * @param {Boolean|undefined} optAutoApply
+       * @return {core.component-manager}
        */
       registerSharedObject: function(name, value, optAutoApply) {
         sharedObjects[name] = {
@@ -264,7 +270,13 @@ function(obj, array, string, func, components) {
 
       /**
        * Sets the matching shared object on all components.
-       * Assumes that "name" is a setter method on the component.
+       *   Assumes that "name" is a setter method on the component.
+       *
+       * @public
+       * @param {String} name
+       * @param {Array} cids
+       * @param {Boolean} optSupressUpdate
+       * @return {core.component-manager}
        */
       applySharedObject: function(name, cids, optSupressUpdate) {
         if (sharedObjects[name]) {
@@ -276,6 +288,14 @@ function(obj, array, string, func, components) {
         return this;
       },
 
+      /**
+       * Applies all the shared objects configured to be automatically applied.
+       *   Optionally limits to cids.
+       *
+       * @public
+       * @param {Array|undefined} cids
+       * @return {core.component-manager}
+       */
       applyAutoSharedObjects: function(cids) {
         Object.keys(sharedObjects).forEach(function(name) {
           if (sharedObjects[name].autoApply) {
