@@ -313,7 +313,7 @@ function(obj, config, array, assetLoader, componentManager, components,
           });
         }
       });
-      componentManager_.get('gl-legend')[0]
+      componentManager_.first('gl-legend')
         .config({ keys: legendConfig })
         .update();
     }
@@ -322,13 +322,13 @@ function(obj, config, array, assetLoader, componentManager, components,
      * Updates all the special components.
      */
     function updateComponents() {
-      componentManager_.get('gl-xaxis')[0]
+      componentManager_.first('gl-xaxis')
         .config({
           scale: config_.xScale,
           ticks: config_.xTicks,
           unit: config_.xAxisUnit
         });
-      componentManager_.get('gl-yaxis')[0]
+      componentManager_.first('gl-yaxis')
         .config({
           scale: config_.yScale,
           ticks: config_.yTicks,
