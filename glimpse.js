@@ -8730,6 +8730,27 @@ function () {
 
 });
 
+define('core/function',[
+  'core/array'
+],
+function (array) {
+  
+
+  return {
+
+    partial: function (fn) {
+      var args = array.convertArgs(arguments, 1);
+      return function() {
+        var newArgs = array.convertArgs(arguments);
+        newArgs.unshift.apply(newArgs, args);
+        return fn.apply(this, newArgs);
+      };
+    }
+
+  };
+
+});
+
 /**
  * @fileOverview
  * Utility selector to select a single node which has an attr with a
@@ -8871,6 +8892,14 @@ define('components/mixins/lifecycle',[],function () {
     render: function() {
       // noop
       return this;
+    },
+
+    root: function() {
+      // noop
+    },
+
+    isRendered: function() {
+      return !!this.root();
     },
 
     update: function() {
@@ -9762,7 +9791,7 @@ function(obj, config, string, array, d3util, mixins) {
         return label;
       }
       // Find corresponding data group if dataId is set.
-      if (config_.dataId) {
+      if (dataCollection_ && config_.dataId) {
         return dataCollection_.get(config_.dataId);
       }
       // Otherwise return the entire raw data.
@@ -10539,12 +10568,16 @@ function(obj, configMixin, string, format, d3util, mixins, label) {
         root.attr('gl-cid', config.cid);
       }
       innerLabel
-        .config('dataId', config.dataId)
-        .data(dataCollection)
-        .text(function(domainData) {
-          return config.formatter(domainData[config.dimension], config.suffix);
-        })
-        .update();
+        .config('dataId', config.dataId);
+
+      if (dataCollection) {
+        innerLabel.data(dataCollection)
+          .text(function(domainData) {
+            return config.formatter(domainData[config.dimension],
+              config.suffix);
+          });
+      }
+      innerLabel.update();
       root.position(config.position);
       return domainLabel;
     };
@@ -10608,6 +10641,374 @@ function(line, legend, axis, label, overlay, asset, area, domainLabel) {
     area: area,
     domainLabel: domainLabel
   };
+
+});
+
+/**
+ * @fileOverview
+ * Manages a collection of components.
+ */
+define('core/component-manager',[
+  'core/object',
+  'core/array',
+  'core/string',
+  'core/function',
+  'components/component'
+],
+function(obj, array, string, func, components) {
+  
+
+  var staticMethods;
+
+  /**
+   * Determins if something is a config object or not.
+   *
+   * @private
+   * @param {*} obj
+   * @return {Boolean}
+   */
+  function isConfig(obj) {
+    // All components are functions.
+    var first = obj;
+    if (Array.isArray(obj)) {
+      first = obj[0];
+    }
+    return typeof first === 'object' ? true : false;
+  }
+
+  /**
+   * Compares a component to a cid.
+   *
+   * @private
+   * @param {String} x
+   * @param {components.*} c
+   * @return {Boolean}
+   */
+  function cidComparer(x, c) {
+    return c.cid() === x;
+  }
+
+  /**
+   * Maps a component to its cid.
+   *
+   * @private
+   * @param {components.*} c
+   * @return {String|null}
+   */
+  function cidMapper(c) {
+    return c.cid();
+  }
+
+  /**
+   * Adds a random string as a cid for any component which lacks a cid.
+   *
+   * @private
+   * @param {Array} components
+   */
+  function validateCids(components) {
+    components.forEach(function(c) {
+      if (!c.cid()) {
+        c.cid(string.random());
+      }
+    });
+  }
+
+  staticMethods = {
+
+    /**
+     * Creates a new instance of a component manager object.
+     *
+     * @param {Array} optComponents An array of components to add
+     *    to the colleciton.
+     * @return {core.component-manager}
+     */
+    create: function(optComponents) {
+      var mgr = componentManager();
+      if (optComponents) {
+        mgr.add(optComponents);
+      }
+      return mgr;
+    },
+
+    /**
+     * Parses a component or list of components from config(s).
+     * TODO: Recursively parse child components too.
+     *
+     * @return {Array} An array of components.
+     */
+    parse: function(configs) {
+      return array.getArray(configs).map(function(cnf) {
+        return components[cnf.type]().config(cnf);
+      });
+    },
+
+    /**
+     * Serializes out all of the components into a group of configs.
+     * TODO: Deep serialization by including child components.
+     *
+     * @return {Array} An array of component config JSON objects.
+     */
+    serialize: function(components) {
+      return array.getArray(components).map(function(c) {
+        return c.config();
+      });
+    }
+
+  };
+
+  function componentManager() {
+    var componentList,
+        sharedObjects;
+
+    // Key value pair of all registered object refs shared across components.
+    // Are in the format:
+    //   { 'methodName': { value: sharedObjectValue, autoApply: false } }
+    sharedObjects = {};
+
+    // Internal array of all the components.
+    componentList= [];
+
+    return obj.extend({
+
+      /**
+       * Gets all components.
+       * Optionally filters by cids.
+       *
+       * @param {Array|string|undefined} cids An array of cids.
+       * @return {Array} All the matching components.
+       */
+      get: function(cids) {
+        var component;
+
+        if (!cids) {
+          // Return a copy of all.
+          return componentList.concat();
+        }
+        if (typeof cids === 'string') {
+          component = array.find(componentList,
+            func.partial(cidComparer, cids));
+          return component ? [component] : [];
+        }
+        return this.filter(function(c) {
+          return array.contains(cids, c.cid());
+        }, this);
+      },
+
+      /**
+       * Gets the first element in the resulting list of matching cids.
+       *
+       * @public
+       * @param {Array} cids
+       * @return {components.*|null}
+       */
+      first: function(cids) {
+        var values;
+        values = this.get(cids);
+        return values.length ? values[0] : null;
+      },
+
+      /**
+       * Adds a new component to the collection.
+       *
+       * Example:
+       *   add(component)
+       *   add(componentConfig)
+       *
+       * @param {Array|Object|components.*} A component or a component config.
+       * @return {Array} An array of created components.
+      */
+      add: function(config) {
+        var instances, newCids;
+
+        instances = config;
+        if (isConfig(instances)) {
+          instances = staticMethods.parse(instances);
+        } else {
+          instances = array.getArray(instances);
+        }
+        array.append(componentList, instances);
+        validateCids(instances);
+        newCids = instances.map(cidMapper);
+        this.applyAutoSharedObjects(newCids);
+        return instances;
+      },
+
+      /**
+       * Get all the cids of all the components.
+       *
+       * @return {Array} An array of cid strings.
+       */
+      cids: function() {
+        return componentList.map(cidMapper);
+      },
+
+      /**
+       * Applies a custom filter to the collection.
+       *
+       * @param {Function} fn
+       * @param {Object} context
+       * @return {Array} An array of matching components.
+       */
+      filter: function(fn, context) {
+        return componentList.filter(fn, context);
+      },
+
+      /**
+       * Removes components from the collection (without destroying them).
+       *
+       * @param {Array|undefined} cids The cids of the comonents to remove.
+       *    If not provided will remove all components.
+       * @return {core.comopnent-manager}
+       */
+      remove: function(cids) {
+        array.remove(componentList, this.get(cids));
+        return this;
+      },
+
+      /**
+       * Destroys and removes specified component(s).
+       *
+       * @param {Array} cids
+       * @return {core.component-manger}
+       */
+      destroy: function(cids) {
+        this.get(cids).forEach(function(c) {
+          c.destroy();
+        });
+        this.remove(cids);
+        return this;
+      },
+
+      /**
+       * Calls the same method on all the components.
+       * Optionally filters by cids.
+       *
+       * @param {String} method The method name.
+       * @param {Array|undefined} cids The cids to filter by.
+       * @param {arguments} ... Any other args to pass to the method.
+       * @return {core.component-manager}
+       */
+      applyMethod: function(method, cids) {
+        var args = array.convertArgs(arguments, 2);
+        this.get(cids).forEach(function(c) {
+          if (typeof c[method] === 'function') {
+            c[method].apply(c, args);
+          }
+        });
+        return this;
+      },
+
+      /**
+       * Registers a new shared object which may be set on any/all of the
+       *   components.
+       *
+       * @public
+       * @param {String} name
+       * @param {*} value
+       * @param {Boolean|undefined} optAutoApply
+       * @return {core.component-manager}
+       */
+      registerSharedObject: function(name, value, optAutoApply) {
+        sharedObjects[name] = {
+          value: value,
+          autoApply: optAutoApply || false
+        };
+        return this;
+      },
+
+      /**
+       * Gets all the registered shared objects.
+       *
+       * @public
+       * @return {Object}
+       */
+      getSharedObjects: function() {
+        return sharedObjects;
+      },
+
+      /**
+       * Sets the matching shared object on all components.
+       *   Assumes that "name" is a setter method on the component.
+       *
+       * @public
+       * @param {String} name
+       * @param {Array} cids
+       * @param {Boolean} optSupressUpdate
+       * @return {core.component-manager}
+       */
+      applySharedObject: function(name, cids, optSupressUpdate) {
+        if (sharedObjects[name]) {
+          this.applyMethod(name, cids, sharedObjects[name].value);
+          if (!optSupressUpdate) {
+            this.update(cids);
+          }
+        }
+        return this;
+      },
+
+      /**
+       * Applies all the shared objects configured to be automatically applied.
+       *   Optionally limits to cids.
+       *
+       * @public
+       * @param {Array|undefined} cids
+       * @return {core.component-manager}
+       */
+      applyAutoSharedObjects: function(cids) {
+        Object.keys(sharedObjects).forEach(function(name) {
+          if (sharedObjects[name].autoApply) {
+            this.applySharedObject(name, cids, true);
+          }
+        }, this);
+        this.update(cids);
+        return this;
+      },
+
+      /**
+       * Sets data for components. Optionally filters by cid(s).
+       *
+       * @param {data.collection} data The data colleciton to set.
+       * @param {Array|undefined} cids Optionally filter by cids.
+       */
+      data: function(data, cids) {
+        return this.applyMethod('data', cids, data);
+      },
+
+      /**
+       * Renders component(s).
+       *
+       * @param {d3.selection|string} selection
+       * @param {Array} cids Optional array of component ids.
+       */
+      render: function(selection, cids) {
+        return this.applyMethod('render', cids, selection);
+      },
+
+      /**
+       * Updates all components by default, or limit to cids
+       */
+      update: function(cids) {
+        return this.applyMethod('update', cids);
+      },
+
+      /**
+       * Show component(s) optionally restricted to provided cids.
+       */
+      show: function(cids) {
+        return this.applyMethod('show', cids);
+      },
+
+      /**
+       * Hide component(s) optionally restricted to provided cids.
+       */
+      hide: function(cids) {
+        return this.applyMethod('hide', cids);
+      }
+
+    });
+  }
+
+  return staticMethods;
 
 });
 
@@ -11455,14 +11856,16 @@ define('graphs/graph',[
   'core/config',
   'core/array',
   'core/asset-loader',
+  'core/component-manager',
   'components/component',
   'layout/layoutmanager',
   'd3-ext/util',
+  'components/mixins',
   'data/functions',
   'data/collection'
 ],
-function(obj, config, array, assetLoader, components, layoutManager,
-  d3util, dataFns, collection) {
+function(obj, config, array, assetLoader, componentManager, components,
+  layoutManager, d3util, mixins, dataFns, collection) {
   
 
   return function() {
@@ -11472,41 +11875,24 @@ function(obj, config, array, assetLoader, components, layoutManager,
      */
     var config_,
       defaults_,
-      components_,
       root_,
-      xAxis_,
-      yAxis_,
-      legend_,
-      addComponent_,
-      addAxes_,
-      addLegend_,
       configureXScale_,
       configureYScale_,
       defaultXaccessor_,
       defaultYaccessor_,
-      getComponent_,
-      renderComponents_,
       renderDefs_,
       renderPanel_,
       renderSvg_,
-      toggle_,
-      update_,
       updateScales_,
-      updateLegend_,
       upsertData_,
-      updateAxes_,
       showLoadingOverlay_,
       showEmptyOverlay_,
       showErrorOverlay_,
-      showComponent,
-      hideComponent,
       dataCollection_,
-      isRendered_,
-      updateStateDisplay,
       STATES,
       NO_COLORED_COMPONENTS,
       coloredComponentsCount,
-      areComponentsRendered_;
+      componentManager_;
 
     /**
      * @enum
@@ -11552,48 +11938,6 @@ function(obj, config, array, assetLoader, components, layoutManager,
     };
 
     /**
-     * adds component to the components array
-     * sets scales and data on the components
-     * @private
-     * @param {component} component [description]
-     */
-    addComponent_ = function(component) {
-      if (component.data && !dataCollection_.isEmpty()) {
-        component.data(dataCollection_);
-      }
-      if (component.xScale) {
-        component.xScale(config_.xScale);
-      }
-      if (component.yScale) {
-        component.yScale(config_.yScale);
-      }
-      if (!component.config('target')) {
-        component.config('target', config_.primaryContainer);
-      }
-      setDefaultColor(component);
-      components_.push(component);
-    };
-
-    /**
-     * Adds axes to the components array
-     * @private
-     */
-    addAxes_ = function() {
-      addComponent_(xAxis_);
-      addComponent_(yAxis_);
-    };
-
-    /**
-     * Adds legend to the components array
-     * @private
-     */
-    addLegend_ = function() {
-      if (config_.showLegend) {
-        addComponent_(legend_);
-      }
-    };
-
-    /**
      * Default x accessor for data
      * @private
      * @param  {Object} d
@@ -11611,24 +11955,6 @@ function(obj, config, array, assetLoader, components, layoutManager,
      */
     defaultYaccessor_ = function(d) {
       return d.y;
-    };
-
-    /**
-     * Returns the component in the array
-     * @param  {string|Array} cid
-     * @return {Array|components.component}
-     */
-    getComponent_ = function(cid) {
-      var cids,
-          matches;
-      cids = array.getArray(cid);
-      matches = components_.filter(function(c) {
-        return cids.indexOf(c.cid()) !== -1;
-      });
-      if (!matches.length) {
-        return null;
-      }
-      return Array.isArray(cid) ? matches : matches[0];
     };
 
     /**
@@ -11685,20 +12011,6 @@ function(obj, config, array, assetLoader, components, layoutManager,
     }
 
     /**
-     * Sets the target selection and calls render on each component
-     * @private
-     */
-    renderComponents_ = function() {
-      if (!components_) {
-        return;
-      }
-      components_.forEach(function(component) {
-        component.render(root_);
-      });
-      areComponentsRendered_ = true;
-    };
-
-    /**
      * Appends defs
      * @private
      * @param  {d3.selection} selection
@@ -11740,53 +12052,6 @@ function(obj, config, array, assetLoader, components, layoutManager,
         root_,
         config_.viewBoxWidth,
         config_.viewBoxHeight);
-    };
-
-    /**
-     * Toggles visibility of graph/components
-     * @param  {string|Array} cid
-     * @param  {bool} isVisible
-     */
-    toggle_ = function(cid, isVisible) {
-      var display, comp;
-
-      if (!cid) {
-        display = isVisible ? null : 'none';
-        root_.attr('display', display);
-        return;
-      }
-
-      cid = array.getArray(cid);
-
-      cid.forEach(function(id) {
-        comp = getComponent_(id);
-        if (comp) {
-          if (isVisible) {
-            comp.show();
-          } else {
-            comp.hide();
-          }
-        }
-      });
-    };
-
-    /**
-     * Formats the keys for the legend and calls update on it
-     * @private
-     */
-    updateLegend_ = function() {
-      var legendConfig = [];
-      components_.forEach(function(c) {
-        var cData = c.data ? c.data() : null;
-        if (c.config('inLegend') && cData) {
-          legendConfig.push({
-            color: c.config('color'),
-            label: c.data().title || ''
-          });
-        }
-      });
-      legend_.config({ cid: 'legend', keys: legendConfig })
-        .update();
     };
 
     /**
@@ -11845,7 +12110,8 @@ function(obj, config, array, assetLoader, components, layoutManager,
       var xExtents = [],
         yExtents = [];
 
-      components_.forEach(function(component) {
+      // TODO: Move this extent calculation into the data collection.
+      componentManager_.get().forEach(function(component) {
         var componentData;
         if (component.data) {
           componentData = component.data();
@@ -11881,34 +12147,45 @@ function(obj, config, array, assetLoader, components, layoutManager,
     };
 
     /**
-     * Updates the config for the axes
-     */
-    updateAxes_ = function() {
-      xAxis_.config({
-        scale: config_.xScale,
-        ticks: config_.xTicks,
-        unit: config_.xAxisUnit
-      });
-      yAxis_.config({
-        scale: config_.yScale,
-        ticks: config_.yTicks,
-        unit: config_.yAxisUnit
-      });
-    };
-
-    /**
-     * Updates scales and legend
+     * Formats the keys for the legend and calls update on it
      * @private
      */
-    update_ = function() {
-      updateScales_();
-      dataCollection_.updateDerivations();
-      updateAxes_();
-      updateLegend_();
-      if (isRendered_) {
-        updateStateDisplay();
-      }
-    };
+    function updateLegend() {
+      var legendConfig = [];
+      componentManager_.get().forEach(function(c) {
+        var cData = c.data ? c.data() : null;
+        if (c.config('inLegend') && cData) {
+          legendConfig.push({
+            color: c.config('color'),
+            label: c.data().title || ''
+          });
+        }
+      });
+      componentManager_.first('gl-legend')
+        .config({ keys: legendConfig })
+        .update();
+    }
+
+    /**
+     * Updates all the special components.
+     */
+    function updateComponents() {
+      componentManager_.first('gl-xaxis')
+        .config({
+          scale: config_.xScale,
+          ticks: config_.xTicks,
+          unit: config_.xAxisUnit
+        });
+      componentManager_.first('gl-yaxis')
+        .config({
+          scale: config_.yScale,
+          ticks: config_.yTicks,
+          unit: config_.yAxisUnit,
+          target: config_.primaryContainer
+        });
+      componentManager_.update();
+      updateLegend();
+    }
 
     /**
      * Inserts/Updates object in data array
@@ -11934,7 +12211,6 @@ function(obj, config, array, assetLoader, components, layoutManager,
      */
     showEmptyOverlay_ = function() {
       var labelTexts,
-          overlay,
           labels,
           layoutConfig;
 
@@ -11958,14 +12234,13 @@ function(obj, config, array, assetLoader, components, layoutManager,
         }
         return label;
       });
-      overlay = components.overlay()
-        .config({
-          cid: 'emptyOverlay',
+      graph.component({
+          type: 'overlay',
+          cid: 'gl-empty-overlay',
           layoutConfig: layoutConfig,
           components: labels
         });
-      addComponent_(overlay);
-      overlay.render(root_);
+      componentManager_.render(root_, 'gl-empty-overlay');
     };
 
     /**
@@ -11974,8 +12249,7 @@ function(obj, config, array, assetLoader, components, layoutManager,
      */
     showLoadingOverlay_ = function() {
       var label,
-          spinner,
-          overlay;
+          spinner;
 
       spinner = components.asset().config({
         assetId: 'gl-asset-spinner'
@@ -11986,13 +12260,12 @@ function(obj, config, array, assetLoader, components, layoutManager,
           color: '#666',
           fontSize: 13
         });
-      overlay = components.overlay()
-        .config({
-          cid: 'loadingOverlay',
+      graph.component({
+          type: 'overlay',
+          cid: 'gl-loading-overlay',
           components: [spinner, label]
         });
-      addComponent_(overlay);
-      overlay.render(root_);
+      componentManager_.render(root_, 'gl-loading-overlay');
     };
 
     /**
@@ -12001,8 +12274,7 @@ function(obj, config, array, assetLoader, components, layoutManager,
      */
     showErrorOverlay_ = function() {
       var label,
-          icon,
-          overlay;
+          icon;
 
       icon = components.asset().config({
         assetId: 'gl-asset-icon-error'
@@ -12013,105 +12285,29 @@ function(obj, config, array, assetLoader, components, layoutManager,
           color: '#C40022',
           fontSize: 13
         });
-      overlay = components.overlay()
-        .config({
-          cid: 'errorOverlay',
+      graph.component({
+          type: 'overlay',
+          cid: 'gl-error-overlay',
           components: [icon, label]
         });
-      addComponent_(overlay);
-      overlay.render(root_);
-    };
-
-    /**
-     * Initializes graph components
-     * Adds legend/axes/domain label and
-     * calls render on components
-     */
-    function initGraphComponents() {
-      addLegend_();
-      addAxes_();
-      update_();
-      renderComponents_();
-    }
-
-    /** Sets data on each component if data is set  */
-    function setComponentsData() {
-      if (!dataCollection_.isEmpty()) {
-        components_.forEach(function(c){
-          if (c.data) {
-            c.data(dataCollection_);
-          }
-        });
-      }
-    }
-
-    /**
-     * Main function, sets defaults, scales and axes
-     * @return {graphs.graph}
-     */
-    function graph() {
-      obj.extend(config_, defaults_);
-      components_ = [];
-      dataCollection_ = collection.create();
-      xAxis_ = components.axis()
-        .config({
-          axisType: 'x',
-          orient: 'bottom',
-          target: 'gl-xaxis',
-          hiddenStates: ['empty', 'error', 'loading']
-        });
-      yAxis_ = components.axis()
-        .config({
-          axisType: 'y',
-          orient: 'right',
-          tickPadding: 5
-        });
-      legend_ = components.legend()
-        .config({
-          target: 'gl-info'
-        });
-      coloredComponentsCount = 0;
-      return graph;
-    }
-
-    graph.STATES = STATES;
-
-    /**
-     * Shows a component if it is defined.
-     * @private
-     * @param {components.component}
-     */
-    showComponent = function(component) {
-      if (component) {
-        component.show();
-      }
-    };
-
-    /**
-     * Hides a component if it is defined.
-     * @private
-     * @param {components.component}
-     */
-    hideComponent = function(component) {
-      if (component) {
-        component.hide();
-      }
+      componentManager_.render(root_, 'gl-error-overlay');
     };
 
     /**
      * Adds/removes overlays & hides/shows components based on state.
      * @private
      */
-    updateStateDisplay = function() {
-      graph.removeComponent('emptyOverlay');
-      graph.removeComponent('loadingOverlay');
-      graph.removeComponent('errorOverlay');
-      components_.forEach(function(c) {
+    function updateStateDisplay() {
+      componentManager_.destroy([
+          'gl-empty-overlay',
+          'gl-loading-overlay',
+          'gl-error-overlay']);
+      componentManager_.get().forEach(function(c) {
         var hiddenStates = c.config('hiddenStates');
         if (array.contains(hiddenStates, config_.state)) {
-          hideComponent(c);
+          c.hide();
         } else {
-          showComponent(c);
+          c.show();
         }
       });
       switch (config_.state) {
@@ -12125,7 +12321,53 @@ function(obj, config, array, assetLoader, components, layoutManager,
           showErrorOverlay_();
           break;
       }
-    };
+    }
+
+    /**
+     * Main function, sets defaults, scales and axes
+     * @return {graphs.graph}
+     */
+    function graph() {
+      obj.extend(config_, defaults_);
+      dataCollection_ = collection.create();
+      // TODO: move these specific components to graphBuilder.
+      componentManager_ = componentManager.create([
+        {
+          cid: 'gl-xaxis',
+          type: 'axis',
+          axisType: 'x',
+          orient: 'bottom',
+          target: 'gl-xaxis',
+          hiddenStates: ['empty', 'loading', 'error']
+        },
+        {
+          cid: 'gl-yaxis',
+          axisType: 'y',
+          type: 'axis',
+          orient: 'right',
+          tickPadding: 5
+        }
+      ]);
+      if (config_.showLegend) {
+        componentManager_.add({
+          cid: 'gl-legend',
+          type: 'legend',
+          target: 'gl-info'
+        });
+      }
+      componentManager_
+        .registerSharedObject('xScale', config_.xScale, true)
+        .registerSharedObject('yScale', config_.yScale, true);
+      coloredComponentsCount = 0;
+      return graph;
+    }
+
+    obj.extend(
+      graph,
+      config.mixin(config_, 'id', 'width', 'height'),
+      mixins.toggle);
+
+    graph.STATES = STATES;
 
     /**
      * Configures the graph state and triggers overlays updates.
@@ -12139,7 +12381,7 @@ function(obj, config, array, assetLoader, components, layoutManager,
         return oldState;
       }
       config_.state = newState;
-      if (isRendered_) {
+      if (graph.isRendered()) {
         updateStateDisplay();
       }
       return graph;
@@ -12164,6 +12406,9 @@ function(obj, config, array, assetLoader, components, layoutManager,
         } else {
           upsertData_(data);
         }
+        componentManager_
+          .registerSharedObject('data', dataCollection_, true)
+          .applySharedObject('data');
         return graph;
       }
 
@@ -12177,36 +12422,33 @@ function(obj, config, array, assetLoader, components, layoutManager,
      * @return {component|graphs.graph}
      */
     graph.component = function(componentConfig) {
-      var component;
-      // No args. Return all components.
+      var components;
+      // No args. Return component manager.
       if (!componentConfig) {
-        // TODO: clone this?
-        return components_;
+        return componentManager_;
       }
       // Single string indicates cid of component to return.
       if (typeof componentConfig === 'string') {
-        return array.find(components_, function(c) {
-          return c.cid() === componentConfig;
-        });
+        components = componentManager_.get(componentConfig);
+        if (components.length) {
+          return components[0];
+        }
       }
-      component = components[componentConfig.type]();
-      component.config(componentConfig);
-      addComponent_(component);
-      if (isRendered_) {
-        component.render(root_);
-      }
-      return graph;
-    };
 
-    /**
-     * @public
-     * @param {String|Array} cid Component cid or array of cids to remove.
-     * @return {graphs.graph}
-     */
-    graph.removeComponent = function(cid) {
-      array.remove(components_, getComponent_(cid)).forEach(function(c) {
-        c.destroy();
+      // Add component(s).
+      components = componentManager_.add(componentConfig);
+      components.forEach(function(c) {
+        if (!c.config('target')) {
+          c.config('target', config_.primaryContainer);
+        }
+        setDefaultColor(c);
+
+        // TODO: Remove this once extents/domain is calculated properly.
+        if (graph.isRendered()) {
+          c.render(root_);
+        }
       });
+
       return graph;
     };
 
@@ -12215,15 +12457,11 @@ function(obj, config, array, assetLoader, components, layoutManager,
      * @return {graphs.graph}
      */
     graph.update = function() {
-      setComponentsData();
-      if (!dataCollection_.isEmpty()) {
-        if (!areComponentsRendered_) {
-          initGraphComponents();
-        }
-        update_();
-        components_.forEach(function(component) {
-          component.update();
-        });
+      updateScales_();
+      dataCollection_.updateDerivations();
+      updateComponents();
+      if (graph.isRendered()) {
+        updateStateDisplay();
       }
       return graph;
     };
@@ -12238,61 +12476,34 @@ function(obj, config, array, assetLoader, components, layoutManager,
       var selection = d3util.select(selector);
       assetLoader.loadAll();
       renderPanel_(selection);
-
-      if (!dataCollection_.isEmpty()) {
-        initGraphComponents();
-      }
+      graph.update();
+      componentManager_.render(graph.root());
+      // Update y-axis once more to ensure ticks are above everything else.
+      componentManager_.update(['gl-yaxis']);
       // Force state update.
       updateStateDisplay();
-      isRendered_ = true;
       return graph;
     };
 
+    /**
+     * Has the graph been rendered or not.
+     * @return {Boolean}
+     */
+    graph.isRendered = function() {
+      return !!root_;
+    };
+
+    /**
+     * Removes everything from the DOM, cleans up all references.
+     * @public
+     */
     graph.destroy = function() {
       config_.state = STATES.DESTROYED;
+      componentManager_.destroy();
       graph.root().remove();
       config_ = null;
       defaults_ = null;
-      // TODO: destroy all internal components too
-    };
-
-    /**
-     * X-Axis
-     * @param  {Object|} config
-     * @return {components.axis|graphs.graph}
-     */
-    graph.xAxis = function(config) {
-      if (config) {
-        xAxis_.config(config);
-        return graph;
-      }
-      return xAxis_;
-    };
-
-    /**
-     * Y-Axis
-     * @param  {Object} config
-     * @return {graphs.graph|components.axis}
-     */
-    graph.yAxis = function(config) {
-      if (config) {
-        yAxis_.config(config);
-        return graph;
-      }
-      return yAxis_;
-    };
-
-    /**
-     * Legend
-     * @param  {Object} config
-     * @return {graphs.graph|component.legend}
-     */
-    graph.legend = function(config) {
-      if (config) {
-        legend_.config(config);
-        return graph;
-      }
-      return legend_;
+      componentManager_ = null;
     };
 
      /**
@@ -12303,29 +12514,6 @@ function(obj, config, array, assetLoader, components, layoutManager,
       return root_;
     };
 
-    /**
-     * Shows components with provided cid/cids
-     *   if no cid is provided, shows the graph
-     * @param  {string|Array} cid
-     * @return {graphs.graph}
-     */
-    graph.show = function(cid) {
-      toggle_(cid, true);
-      return graph;
-    };
-
-     /**
-     * Hides components with provided cid/cids
-     *   if no cid is provided, hides the graph
-     * @param  {string|Array} cid
-     * @return {graphs.graph}
-     */
-    graph.hide = function(cid) {
-      toggle_(cid, false);
-      return graph;
-    };
-
-    obj.extend(graph, config.mixin(config_, 'id', 'width', 'height'));
     return graph();
   };
 
@@ -12372,7 +12560,7 @@ function(obj, array, string, d3util, graph) {
       id: 'gl-stats',
       sources: ['*', '$domain'],
       derivation: function(sources, domain) {
-        var xDomain, points, result;
+        var xDomain, points, pointValues, result;
 
         result = {
           min: 0,
@@ -12382,9 +12570,12 @@ function(obj, array, string, d3util, graph) {
         if (sources.all().length) {
           xDomain = domain.get().x;
           points = sources.filter('x', xDomain).dim('y').concat();
-          result.min = points.min().round().get();
-          result.max = points.max().round().get();
-          result.avg = points.avg().round().get();
+          pointValues = points.get();
+          if (pointValues && pointValues.length) {
+            result.min = points.min().round().get();
+            result.max = points.max().round().get();
+            result.avg = points.avg().round().get();
+          }
         }
         return result;
       }
@@ -12481,7 +12672,7 @@ function(obj, array, string, d3util, graph) {
       var dataCollection = g.data();
       obj.override(dataCollection, 'remove', function(supr, dataId) {
         var args = array.convertArgs(arguments, 1);
-        g.removeComponent(dataId);
+        g.component().remove(dataId);
         return supr.apply(g, args);
       });
     }
@@ -12532,9 +12723,19 @@ function(obj, array, string, d3util, graph) {
       });
       unit = g.config('yAxisUnit') || '';
       g.component('gl-stats').text(function(d) {
-        return 'Avg: ' + d.avg + unit +
-               '    Min: ' +  d.min + unit +
-               '    Max: ' + d.max + unit;
+        var values = {
+          avg: 0,
+          min: 0,
+          max: 0
+        };
+        if (d) {
+          values.avg = d.avg || 0;
+          values.min = d.min || 0;
+          values.max = d.max || 0;
+        }
+        return 'Avg: ' + values.avg + unit +
+               '    Min: ' +  values.min + unit +
+               '    Max: ' + values.max + unit;
       });
     }
 
@@ -12721,27 +12922,6 @@ define('d3-ext/size',['d3'], function(d3) {
   };
 
   return d3;
-});
-
-define('core/function',[
-  'core/array'
-],
-function (array) {
-  
-
-  return {
-
-    partial: function (fn) {
-      var args = array.convertArgs(arguments, 1);
-      return function() {
-        var newArgs = array.convertArgs(arguments);
-        newArgs.unshift.apply(newArgs, args);
-        return fn.apply(this, newArgs);
-      };
-    }
-
-  };
-
 });
 
 /**
@@ -13263,7 +13443,7 @@ function(graph, graphBuilder, component) {
   
 
   var core = {
-    version: '0.0.1',
+    version: '0.0.2',
     graphBuilder: graphBuilder,
     graph: graph,
     components: component

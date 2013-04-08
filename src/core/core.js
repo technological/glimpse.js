@@ -9,7 +9,7 @@ function(graph, graphBuilder, component) {
   'use strict';
 
   var core = {
-    version: '0.0.2',
+    version: '0.0.3',
     graphBuilder: graphBuilder,
     graph: graph,
     components: component
