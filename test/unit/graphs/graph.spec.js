@@ -445,6 +445,22 @@ function(graph, assetLoader, dc, compUtil, dataFns, lineComponent) {
         expect(testLineComponent.show).toHaveBeenCalledOnce();
       });
 
+      it('doesnt show the x-axis if there is no data', function() {
+        var testGraph = graph();
+        testGraph.render(selection);
+        expect(testGraph.root().select('.gl-x-axis').node())
+          .toHaveAttr('display', 'none');
+      });
+
+      it('shows the x-axis if there is data', function() {
+        var testGraph = graph()
+          .data(fakeData)
+          .component({ type: 'line', dataId: 'fakeData' })
+          .render(selection);
+        expect(testGraph.root().select('.gl-x-axis').attr('display'))
+          .toBeNull();
+      });
+
       //TODO: tests for the layout of components.
       //dependency layout manager.
 
