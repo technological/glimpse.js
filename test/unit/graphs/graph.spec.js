@@ -3,9 +3,10 @@ define([
   'core/asset-loader',
   'data/collection',
   'test-util/component',
-  'data/functions'
+  'data/functions',
+  'components/line'
 ],
-function(graph, assetLoader, dc, compUtil, dataFns) {
+function(graph, assetLoader, dc, compUtil, dataFns, lineComponent) {
   'use strict';
 
   describe('graphs.graph', function() {
@@ -372,12 +373,15 @@ function(graph, assetLoader, dc, compUtil, dataFns) {
     });
 
     describe('render()', function() {
-      var selection, panel;
+      var selection, panel, testLineComponent;
 
       beforeEach(function() {
         setGraph();
         setSpies();
         selection = jasmine.htmlFixture();
+        testLineComponent = lineComponent();
+        spyOn(testLineComponent, 'show');
+        testGraph.component(testLineComponent);
         testGraph.render(selection.node());
         panel = selection.select('svg');
       });
@@ -435,6 +439,10 @@ function(graph, assetLoader, dc, compUtil, dataFns) {
 
       it('calls render on y-axis component', function() {
         expect(yAxis.render).toHaveBeenCalled();
+      });
+
+      it('updates the state display once', function() {
+        expect(testLineComponent.show).toHaveBeenCalledOnce();
       });
 
       //TODO: tests for the layout of components.

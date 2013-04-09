@@ -44,7 +44,8 @@ function(obj, config, array, assetLoader, componentManager, components,
       STATES,
       NO_COLORED_COMPONENTS,
       coloredComponentsCount,
-      componentManager_;
+      componentManager_,
+      isRendered;
 
     /**
      * @enum
@@ -634,6 +635,7 @@ function(obj, config, array, assetLoader, componentManager, components,
       componentManager_.update(['gl-yaxis']);
       // Force state update.
       updateStateDisplay();
+      isRendered = true;
       return graph;
     };
 
@@ -642,7 +644,7 @@ function(obj, config, array, assetLoader, componentManager, components,
      * @return {Boolean}
      */
     graph.isRendered = function() {
-      return !!root_;
+      return isRendered;
     };
 
     /**
