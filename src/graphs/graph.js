@@ -281,8 +281,8 @@ function(obj, config, array, assetLoader, componentManager, components,
     function appyDomainIntervalPeriod(extents) {
       var max, min, offset, newMin;
 
-      max = d3.max(extents) || config_.xScale.domain()[1];
-      min = d3.min(extents) || config_.xScale.domain()[0];
+      max = d3.max(extents) ? d3.max(extents) : config_.xScale.domain()[1];
+      min = d3.min(extents) ? d3.min(extents) : config_.xScale.domain()[0];
 
       offset = config_.domainIntervalUnit.offset(
         max,
