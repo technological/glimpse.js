@@ -81,10 +81,8 @@ define([
   }
 
   function collection() {
-    var xExtents_, yExtents_, dataCollection;
+    var dataCollection;
 
-    xExtents_ = [];
-    yExtents_ = [];
     dataCollection = {};
     return {
 
@@ -216,11 +214,8 @@ define([
        */
       xExtents: function(sources) {
         var dataSelection;
-        if (sources) {
-          dataSelection = this.select(sources);
-          xExtents_ = getExtents(dataSelection.dim('x').extent().all());
-        }
-        return xExtents_;
+        dataSelection = this.select(sources ? sources : '*');
+        return getExtents(dataSelection.dim('x').extent().all());
       },
 
       /**
@@ -231,23 +226,19 @@ define([
        */
       yExtents: function(sources) {
         var dataSelection, yExtentsSelection;
-        if (sources) {
-          dataSelection = this.select(sources);
-          yExtentsSelection = dataSelection.map(function(ds) {
-            return d3.extent(ds.data, function(d, i) {
-              var value = dataFns.dimension(ds, 'y')(d, i);
-              // If Y-baselines are used (stacked),
-              //   use the sum of the baseline and Y.
-              if (ds.dimensions.y0) {
-                value += dataFns.dimension(ds, 'y0')(d, i);
-              }
-              return value;
-            });
+        dataSelection = this.select(sources ? sources : '*');
+        yExtentsSelection = dataSelection.map(function(ds) {
+          return d3.extent(ds.data, function(d, i) {
+            var value = dataFns.dimension(ds, 'y')(d, i);
+            // If Y-baselines are used (stacked),
+            //   use the sum of the baseline and Y.
+            if (ds.dimensions.y0) {
+              value += dataFns.dimension(ds, 'y0')(d, i);
+            }
+            return value;
           });
-
-          yExtents_ = getExtents(yExtentsSelection.all());
-        }
-        return yExtents_;
+        });
+        return getExtents(yExtentsSelection.all());
       }
     };
   }

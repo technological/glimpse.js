@@ -637,10 +637,6 @@ define([
         expect(xExtents).toEqual([10, 250]);
       });
 
-      it('returns the xExtents if called without parameters', function() {
-        dataCollection.xExtents(['data1', 'data2']);
-        expect(dataCollection.xExtents()).toEqual([10, 250]);
-      });
 
       it('returns the xExtents of all non-derived sources if called with *',
         function() {
@@ -649,14 +645,13 @@ define([
         }
       );
 
+      it('returns the xExtents of * if called without parameters', function() {
+        expect(dataCollection.xExtents()).toEqual([10, 500]);
+      });
+
       it('calculates the yExtents for the provided sources', function() {
         yExtents = dataCollection.yExtents(['data1', 'data2']);
         expect(yExtents).toEqual([5, 40]);
-      });
-
-      it('returns the yExtents if called without parameters', function() {
-        dataCollection.yExtents(['data1', 'data2']);
-        expect(dataCollection.yExtents()).toEqual([5, 40]);
       });
 
       it('returns the yExtents of all non-derived sources if called with *',
@@ -665,6 +660,12 @@ define([
           expect(dataCollection.yExtents()).toEqual([5, 50]);
         }
       );
+
+      it('returns the yExtents of * if called without parameters', function() {
+        dataCollection.yExtents(['data1', 'data2']);
+        expect(dataCollection.yExtents()).toEqual([5, 50]);
+      });
+
 
     });
 
