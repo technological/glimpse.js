@@ -459,7 +459,7 @@ function(obj, config, array, assetLoader, componentManager, components,
 
       d0 = domain[0];
       d1 = domain[1];
-      if (d0 instanceof Date) {
+      if (d0 instanceof Date && d1 instanceof Date) {
         return d0.getTime() === 0 && d1.getTime() === 0;
       }
       return d0 === 0 && d1 === 0;
