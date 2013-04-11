@@ -77,7 +77,8 @@ function(obj, config, array, assetLoader, componentManager, components,
       colorPalette: d3.scale.category20().range(),
       xAxisUnit: null,
       yAxisUnit: null,
-      primaryContainer: 'gl-main'
+      primaryContainer: 'gl-main',
+      domainIntervalUnit: null
     };
 
     /**
