@@ -3,7 +3,7 @@
 - Install [nodejs](http://nodejs.org)
 - Install [PhantomJS](http://phantomjs.org)
 - Install [grunt](http://gruntjs.com) `npm install -g grunt-cli`
-- Install [Testacular](https://github.com/testacular/testacular) `npm install -g testacular@canary`
+- Install [Testacular](https://github.com/testacular/testacular) `npm install -g testacular@0.5.10`
 - Install [Bower](https://github.com/twitter/bower) `npm install -g bower`
 - Install other build dependencies `npm install`
 - Install bower dependencies `bower install`
