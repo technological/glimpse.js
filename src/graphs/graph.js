@@ -321,6 +321,7 @@ function(obj, config, array, assetLoader, componentManager, components,
      * Updates all the special components.
      */
     function updateComponents() {
+      var statsLabel;
       componentManager_.first('gl-xaxis')
         .config({
           scale: config_.xScale,
@@ -334,6 +335,12 @@ function(obj, config, array, assetLoader, componentManager, components,
           unit: config_.yAxisUnit,
           target: config_.primaryContainer
         });
+      statsLabel =  componentManager_.first('gl-stats');
+      if (statsLabel) {
+        statsLabel.config({
+          unit: config_.yAxisUnit
+        });
+      }
       componentManager_.update();
       updateLegend();
     }

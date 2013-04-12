@@ -60,6 +60,7 @@ function(graph, assetLoader, dc, compUtil, lineComponent) {
           { cid: 'testComponent', type: 'line', dataId: 'fakeData' },
           { cid: 'testComponentWithColor', type: 'line',
             dataId: 'fakeData', color: 'red' },
+          { cid: 'gl-stats', type: 'label', dataId: 'fakeData' }
         ]);
     }
 
@@ -122,6 +123,12 @@ function(graph, assetLoader, dc, compUtil, lineComponent) {
       setGraph();
       testGraph.render(jasmine.htmlFixture());
       expect(testGraph.component('gl-yaxis').config('unit')).toBe('ms');
+    });
+
+    it('sets unit on stats label', function() {
+      setGraph();
+      testGraph.render(jasmine.htmlFixture());
+      expect(testGraph.component('gl-stats').config('unit')).toBe('ms');
     });
 
     it('auto-sets data on new components via the data collection', function() {

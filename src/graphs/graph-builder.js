@@ -196,17 +196,17 @@ function(obj, array, string, d3util, graph) {
      * @param {graphs.graph} g
      */
     function addInternalComponents(g) {
-      var unit;
       INTERNAL_COMPONENTS_CONFIG.forEach(function(componentConfig) {
         g.component(componentConfig);
       });
-      unit = g.config('yAxisUnit') || '';
-      g.component('gl-stats').text(function(d) {
-        var values = {
+      g.component('gl-stats').text(function(d, config) {
+        var unit, values;
+        values = {
           avg: 0,
           min: 0,
           max: 0
         };
+        unit = config.unit || '';
         if (d) {
           values.avg = d.avg || 0;
           values.min = d.min || 0;
@@ -253,8 +253,7 @@ function(obj, array, string, d3util, graph) {
       g = graph()
         .config({
           forceY: [0],
-          layout: optLayout || 'default',
-          yAxisUnit: 'ms'
+          layout: optLayout || 'default'
         });
       addInternalData(g);
       addInternalComponents(g);
