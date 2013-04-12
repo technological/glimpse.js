@@ -1,13 +1,15 @@
 define([
   'mixins/toggle',
+  'mixins/dispatch',
   'mixins/lifecycle'
 ],
-function(toggle, lifecycle) {
+function(toggle, dispatch, lifecycle) {
   'use strict';
 
   return {
     toggle: toggle,
-    lifecycle: lifecycle
+    lifecycle: lifecycle,
+    dispatch: dispatch
   };
 
 });
