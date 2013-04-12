@@ -46,6 +46,12 @@ function(obj, config, string, mixins, d3util) {
       mixins.lifecycle,
       mixins.toggle);
 
+    /**
+     * Event dispatcher.
+     * @public
+     */
+    asset.dispatch = mixins.dispatch();
+
     /*
      * Gets the root selection of this component.
      * @public
@@ -72,6 +78,7 @@ function(obj, config, string, mixins, d3util) {
         });
       }
       asset.update();
+      asset.dispatch.render.call(this);
       return asset;
     };
 
@@ -102,6 +109,7 @@ function(obj, config, string, mixins, d3util) {
         'xlink:href': '#' + config_.assetId
       });
       root_.position(config_.position);
+      asset.dispatch.update.call(this);
       return asset;
     };
 
@@ -116,6 +124,7 @@ function(obj, config, string, mixins, d3util) {
       root_ = null;
       config_ = null;
       defaults_ = null;
+      asset.dispatch.destroy.call(this);
     };
 
     return asset();
