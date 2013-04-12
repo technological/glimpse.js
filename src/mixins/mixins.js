@@ -1,6 +1,6 @@
 define([
-  'components/mixins/toggle',
-  'components/mixins/lifecycle'
+  'mixins/toggle',
+  'mixins/lifecycle'
 ],
 function(toggle, lifecycle) {
   'use strict';

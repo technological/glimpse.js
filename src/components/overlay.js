@@ -8,7 +8,7 @@ define([
   'core/config',
   'core/string',
   'components/label',
-  'components/mixins',
+  'mixins/mixins',
   'd3-ext/util'
 ],
 function(obj, config, string, label, mixins, d3util) {

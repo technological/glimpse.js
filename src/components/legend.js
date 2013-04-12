@@ -8,7 +8,7 @@ define([
   'core/config',
   'core/string',
   'd3-ext/util',
-  'components/mixins'
+  'mixins/mixins'
 ],
 function(obj, config, string, d3util, mixins) {
   'use strict';

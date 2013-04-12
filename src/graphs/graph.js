@@ -12,7 +12,7 @@ define([
   'components/component',
   'layout/layoutmanager',
   'd3-ext/util',
-  'components/mixins',
+  'mixins/mixins',
   'data/functions',
   'data/collection'
 ],

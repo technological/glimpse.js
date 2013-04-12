@@ -6,7 +6,7 @@ define([
   'core/object',
   'core/config',
   'core/string',
-  'components/mixins',
+  'mixins/mixins',
   'd3-ext/util'
 ],
 function(obj, config, string, mixins, d3util) {
