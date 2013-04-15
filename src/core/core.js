@@ -14,8 +14,8 @@ function(graph, graphBuilder, component, collection, assets) {
     version: '0.0.3',
     graphBuilder: graphBuilder,
     graph: graph,
-    components: component, 
-    dataCollection: collection, 
+    components: component,
+    dataCollection: collection,
     assetLoader :assets
   };
 
