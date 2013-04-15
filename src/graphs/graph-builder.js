@@ -199,14 +199,15 @@ function(obj, array, string, d3util, graph) {
       INTERNAL_COMPONENTS_CONFIG.forEach(function(componentConfig) {
         g.component(componentConfig);
       });
-      g.component('gl-stats').text(function(d, config) {
-        var unit, values;
+      g.component('gl-stats').text(function() {
+        var unit, values, d;
         values = {
           avg: 0,
           min: 0,
           max: 0
         };
-        unit = config.unit || '';
+        d = this.data();
+        unit = this.config().unit || '';
         if (d) {
           values.avg = d.avg || 0;
           values.min = d.min || 0;
@@ -253,7 +254,8 @@ function(obj, array, string, d3util, graph) {
       g = graph()
         .config({
           forceY: [0],
-          layout: optLayout || 'default'
+          layout: optLayout || 'default',
+          yAxisUnit: 'ms'
         });
       addInternalData(g);
       addInternalComponents(g);

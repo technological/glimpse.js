@@ -168,35 +168,15 @@ function(label, dc) {
       });
 
       it('sets text as a function from data', function() {
-        var fn = function(d) { return d.text; };
+        var fn = function() { return this.data().text; };
         dataCollection.add({ id: 'testData', text: 'bang' });
         testLabel.data(dataCollection)
           .config('dataId', 'testData').text(fn).update();
         expect(root.select('text').text()).toBe('bang');
       });
 
-      it('applies the data function', function() {
-        var fn = function(d) { return d.text; };
-        dataCollection.add({ id: 'testData', text: 'bang' });
-        testLabel.data(dataCollection)
-          .config('dataId', 'testData').text(fn).update();
-        expect(testLabel.text()).toBe('bang');
-      });
-
-      it('passes the config while calling the text', function() {
-        var fn, data, config;
-        fn = jasmine.createSpy();
-        dataCollection.add({ id: 'testData', text: 'bang' });
-        testLabel.data(dataCollection)
-          .config('dataId', 'testData').text(fn).update();
-        data = testLabel.data();
-        config = testLabel.config();
-        testLabel.text();
-        expect(fn).toHaveBeenCalledWith(data, config);
-      });
-
       it('has access to the config values', function() {
-        var fn = function(d, config) { return config.unit; };
+        var fn = function() { return this.config().unit; };
         dataCollection.add({ id: 'testData', text: 'bang' });
         testLabel.data(dataCollection)
           .config({
