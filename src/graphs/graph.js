@@ -14,10 +14,11 @@ define([
   'd3-ext/util',
   'mixins/mixins',
   'data/functions',
-  'data/collection'
+  'data/collection',
+  'data/domain'
 ],
 function(obj, config, array, assetLoader, componentManager, components,
-  layoutManager, d3util, mixins, dataFns, collection) {
+  layoutManager, d3util, mixins, dataFns, collection, domain) {
   'use strict';
 
   return function() {
@@ -186,8 +187,7 @@ function(obj, config, array, assetLoader, componentManager, components,
      * @private
      */
     function updateScales() {
-      var xExtents = [],
-        yExtents = [],
+      var graphDomain,
         dataIds = [];
 
       componentManager_.get().forEach(function(component) {
@@ -200,101 +200,40 @@ function(obj, config, array, assetLoader, componentManager, components,
         }
       });
 
+      domain.addDomainDerivation({
+        x: {
+          sources: dataIds.join(','),
+          compute: 'interval',
+          modifier: {
+            force: config_.forceX
+          },
+          interval: {
+            time: d3util.isTimeScale(config_.xScale),
+            unit: config_.domainIntervalUnit,
+            period: config_.domainIntervalPeriod
+          },
+          'default': [0, 0]
+        },
+        y: {
+          sources: dataIds.join(','),
+          compute: 'extent',
+          modifier: {
+            force: config_.forceY,
+            max: config_.yDomainModifier
+          },
+          'default': [0, 0]
+        }
+      }, dataCollection_);
+
+      dataCollection_.updateDerivations();
+      graphDomain = dataCollection_.get('$domain');
       if (dataIds.length > 0) {
-        xExtents = calculateXExtents(dataIds);
         config_.xScale.rangeRound([0, getPrimaryContainerSize()[0]])
-          .domain(xExtents);
+          .domain(graphDomain.x);
 
-        yExtents = calculateYExtents(dataIds);
         config_.yScale.rangeRound([getPrimaryContainerSize()[1], 0])
-          .domain(yExtents);
-        updateDomain(xExtents, yExtents);
-      } else {
-        updateDomain([0,0], [0,0]);
+          .domain(graphDomain.y);
       }
-    }
-
-    /**
-     * Updates $domain in the data collection
-     * @param  {Array<number>} xExtents
-     * @param  {Array<number>} yExtents
-     */
-    function updateDomain(xExtents, yExtents) {
-      dataCollection_.add({
-        id: '$domain',
-        sources: '',
-        derivation: function() {
-          return {
-            x: xExtents,
-            y: yExtents
-          };
-        }
-      });
-    }
-
-    /**
-     * Calculates the Y extents
-     * @param  {Array<string>} dataIds
-     * @return {Array<number>}
-     */
-    function calculateYExtents(dataIds) {
-      var yExtents;
-
-      yExtents = dataCollection_.yExtents(dataIds);
-
-      //TODO: move yDomainModifier and forceY to datacollection
-      yExtents.push(Math.round(d3.max(yExtents) * config_.yDomainModifier));
-      if (config_.forceY) {
-        yExtents = yExtents.concat(config_.forceY);
-      }
-      return d3.extent(yExtents);
-    }
-
-    /**
-     * Calculates the X extents
-     * @param  {Array<string>} dataIds
-     * @return {Array<number>}
-     */
-    function calculateXExtents(dataIds) {
-      var xExtents;
-
-      xExtents = dataCollection_.xExtents(dataIds);
-
-      //TODO: move domainIntervalPeriod and forceX to datacollection
-      if (config_.forceX) {
-        xExtents = xExtents.concat(config_.forceX);
-      }
-
-      if (d3util.isTimeScale(config_.xScale)) {
-        if (config_.domainIntervalUnit) {
-          xExtents = appyDomainIntervalPeriod(xExtents);
-        }
-      }
-      if (xExtents) {
-        return d3.extent(xExtents);
-      }
-      return [0, 0];
-    }
-
-    /**
-     * Applies domain interval period to the x domain
-     * @param  {Array} extents
-     * @return {Array}
-     */
-    function appyDomainIntervalPeriod(extents) {
-      var max, min, offset, newMin;
-
-      max = d3.max(extents) ? d3.max(extents) : config_.xScale.domain()[1];
-      min = d3.min(extents) ? d3.min(extents) : config_.xScale.domain()[0];
-
-      offset = config_.domainIntervalUnit.offset(
-        max,
-        -(config_.domainIntervalPeriod || 1)
-      );
-      newMin = +min > +offset ? min : offset;
-      min = newMin;
-
-      return [min, max];
     }
 
     /**
@@ -641,7 +580,6 @@ function(obj, config, array, assetLoader, componentManager, components,
      */
     graph.update = function() {
       updateScales();
-      dataCollection_.updateDerivations();
       updateComponents();
       if (graph.isRendered()) {
         updateComponentVisibility();
