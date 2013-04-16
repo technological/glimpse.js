@@ -220,6 +220,23 @@ function(obj, array, string, d3util, graph) {
     }
 
     /**
+     * Updates config for stats label
+     */
+    function updateStatsLabel() {
+      var graph, componentManager, statsLabel;
+      /*jshint validthis:true */
+      graph = this;
+      componentManager = graph.component();
+      statsLabel =  componentManager.first('gl-stats');
+      if (statsLabel) {
+        statsLabel.config({
+          unit: graph.config().yAxisUnit
+        });
+      }
+      componentManager.update();
+    }
+
+    /**
      * An object that constructs/configures graphs by encapsulating complexity
      *   in order to simplify the end-user api.
      *
@@ -257,6 +274,7 @@ function(obj, array, string, d3util, graph) {
           layout: optLayout || 'default',
           yAxisUnit: 'ms'
         });
+      g.dispatch.on('update', updateStatsLabel);
       addInternalData(g);
       addInternalComponents(g);
 
