@@ -12,7 +12,7 @@
     <svg height="50px" id="container"></svg>
 
     <h5>2. Axis with ticks and ticksize configured</h5>
-    <svg height="50px" id="container-1"></svg>
+    <svg id="container-1"></svg>
 
 
     <h5>3. Axis component with font, color, opacity, etc. configured.</h5>
@@ -64,13 +64,18 @@
             
         axisComponent.render('#container');
      
-        //2. axis component with ticks and tickSize
+        //2. axis component Y-axis with ticks and tickSize
         axisComponent1 = glimpse.components.axis();
 
+        //needs orient property
         axisComponent1.scale(x).config({
+          'cid': 'yaxis',
           'ticks' : 5,
-          'tickSize' : 6
+          'tickSize' : 6, 
+          'axisType' :'y', 
+          'orient' : 'right'
         });
+
 
         axisComponent1.render('#container-1');
 

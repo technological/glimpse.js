@@ -41,9 +41,8 @@
             ];
 
         // 1. Area componenet with basic config.
-        var d3 = glimpse.d3,
-            timeScale =  glimpse.d3.time.scale(),
-            linearScale = glimpse.d3.scale.linear(), 
+        var timeScale = d3.time.scale(),
+            linearScale = d3.scale.linear(), 
             dataCollection = glimpse.dataCollection.create(),
             areaComponent = glimpse.components.area(),
             x, 
