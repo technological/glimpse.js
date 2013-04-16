@@ -9,10 +9,11 @@ define([
   'core/object',
   'core/array',
   'core/string',
+  'core/format',
   'd3-ext/util',
   'graphs/graph'
 ],
-function(obj, array, string, d3util, graph) {
+function(obj, array, string, format, d3util, graph) {
   'use strict';
 
     var defaults,
@@ -22,7 +23,7 @@ function(obj, array, string, d3util, graph) {
       GRAPH_TYPES;
 
     defaults = {
-      layout: 'default',
+      layout: 'default'
     };
 
     config = {};
@@ -58,6 +59,14 @@ function(obj, array, string, d3util, graph) {
         }
         return result;
       }
+    },{
+      id: 'gl-domain-range',
+      sources: ['*', '$domain'],
+      derivation: function(sources, domain) {
+        return {
+          domain: domain.get()
+        };
+      }
     }];
 
     /**
@@ -75,11 +84,11 @@ function(obj, array, string, d3util, graph) {
         hiddenStates: ['empty', 'loading', 'error']
       },
       {
-        cid: 'gl-domain-label',
-        type: 'domainLabel',
-        target: 'gl-footer',
+        cid: 'gl-domain-range',
+        type: 'label',
+        dataId: 'gl-domain-range',
         position: 'center-right',
-        suffix: 'UTC',
+        target: 'gl-footer',
         hiddenStates: ['empty',  'loading', 'error']
       }
     ];
@@ -218,6 +227,13 @@ function(obj, array, string, d3util, graph) {
         return 'Avg: ' + values.avg + unit +
                '    Min: ' +  values.min + unit +
                '    Max: ' + values.max + unit;
+      });
+      g.component('gl-domain-range').text(function(d) {
+        var domain = d.domain;
+        if (domain) {
+          return format.timeDomainUTC(domain.x, 'UTC');
+        }
+        return '';
       });
     }
 
