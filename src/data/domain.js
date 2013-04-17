@@ -55,8 +55,8 @@ define([
         }
         domain = d3.extent(domain);
       }
-      if (modifier.max) {
-        domain[1] = Math.round(domain[1] * modifier.max);
+      if (modifier.maxMultiplier) {
+        domain[1] = Math.round(domain[1] * modifier.maxMultiplier);
       }
     }
     return domain;

@@ -219,7 +219,7 @@ function(obj, config, array, assetLoader, componentManager, components,
           compute: 'extent',
           modifier: {
             force: config_.forceY,
-            max: config_.yDomainModifier
+            maxMultiplier: config_.yDomainModifier
           },
           'default': [0, 0]
         }

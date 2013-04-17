@@ -163,6 +163,44 @@ define([
         }
       );
 
+      describe('modifiers', function() {
+
+        describe('maxMultiplier', function() {
+
+          it('applies maxMultiplier of 1.2', function() {
+            domain.addDomainDerivation({
+              y: {
+                sources: '*',
+                compute: 'extent',
+                modifier: {
+                  maxMultiplier: 1.2
+                },
+                'default': [0, 0]
+              }
+            }, dc);
+            dc.updateDerivations();
+            expect(dc.get('$domain').y).toEqual([5, 60]);
+          });
+
+          it('applies maxMultiplier of 0.5', function() {
+            domain.addDomainDerivation({
+              y: {
+                sources: '*',
+                compute: 'extent',
+                modifier: {
+                  maxMultiplier: 0.5
+                },
+                'default': [0, 0]
+              }
+            }, dc);
+            dc.updateDerivations();
+            expect(dc.get('$domain').y).toEqual([5, 25]);
+          });
+
+        });
+
+      });
+
    });
 
   });
