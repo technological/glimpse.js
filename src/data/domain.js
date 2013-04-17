@@ -16,7 +16,7 @@ define([
 
     'interval': function(sel, dim, config) {
       var extent = computeFn.extent(sel, dim) || [0, 1],
-          isTimeScale = obj.get(config, 'time'),
+          isTimeScale = obj.get(config, 'isTimeScale'),
           unitStr = obj.get(config, 'unit'),
           unit = obj.get(d3.time, unitStr),
           period = obj.get(config, 'period'),
