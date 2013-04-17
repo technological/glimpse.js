@@ -7,10 +7,12 @@ define([
 
   describe('data collection', function () {
 
-    var dataCollection;
+    var dataCollection, 
+        handlerSpy;
 
     beforeEach(function() {
       dataCollection = dc.create();
+      handlerSpy = jasmine.createSpy();
     });
 
     describe('.create()', function() {
@@ -55,6 +57,34 @@ define([
     });
 
     describe('.add()', function() {
+
+      beforeEach(function() {
+        dataCollection.dispatch.on('error', handlerSpy);
+      });
+
+      it('dispatches a "error" event if id not unique', function() {
+        var data = {id: 'test', data: 'nice' },
+            data1 = {id: 'test', data: 'nice' };
+        dataCollection.add(data);
+        dataCollection.add(data1);
+        expect(handlerSpy).toHaveBeenCalledOnce();
+      });
+
+      it('does not dispatch a "error" event if id is unique', function() {
+        var data = {id: 'test', data: 'nice' },
+            data1 = {id: 'test1', data: 'nice' };
+        dataCollection.add(data);
+        dataCollection.add(data1);
+        expect(handlerSpy).not.toHaveBeenCalled();
+      });
+
+      it('does not add or overwrite data to collection if id is not unique', function() {
+        var data = {id: 'test', data: 'nice' },
+            data1 = {id: 'test', data: 'not nice' };
+        dataCollection.add(data);
+        dataCollection.add(data1);
+        expect(dataCollection.get('test')).toBe(data);
+      });
 
       it('adds a non-derived source wouth mutating it', function() {
         var data = {id: 'test', data: 'nice' };
