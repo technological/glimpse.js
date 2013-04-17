@@ -7,7 +7,7 @@ define([
 
   describe('data collection', function () {
 
-    var dataCollection, 
+    var dataCollection,
         handlerSpy;
 
     beforeEach(function() {
@@ -78,7 +78,7 @@ define([
         expect(handlerSpy).not.toHaveBeenCalled();
       });
 
-      it('does not add or overwrite data to collection if id is not unique', function() {
+      it('does not add/overwrite data to Coll if id not unique', function() {
         var data = {id: 'test', data: 'nice' },
             data1 = {id: 'test', data: 'not nice' };
         dataCollection.add(data);

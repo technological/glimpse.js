@@ -23,7 +23,7 @@ function(graphBuilder, graph, format) {
           x: 'x',
           y: 'y'
         }
-      }, 
+      },
       testData1 = {
         id: 'test-data1',
         data: [{ x: 1, y: 1 }, { x: 2, y: 50 }, { x: 3, y: 100 }],
