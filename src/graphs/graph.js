@@ -204,13 +204,13 @@ function(obj, config, array, assetLoader, componentManager, components,
         x: {
           sources: dataIds.join(','),
           compute: 'interval',
-          modifier: {
-            force: config_.forceX
-          },
-          interval: {
+          args: {
             time: d3util.isTimeScale(config_.xScale),
             unit: config_.domainIntervalUnit,
             period: config_.domainIntervalPeriod
+          },
+          modifier: {
+            force: config_.forceX
           },
           'default': [0, 0]
         },

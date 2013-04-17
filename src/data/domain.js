@@ -40,7 +40,7 @@ define([
     if (domainConfig.sources === '') {
       return domainConfig['default'];
     } else {
-      return fn(dc.select(domainConfig.sources), dim, domainConfig[fnName]);
+      return fn(dc.select(domainConfig.sources), dim, domainConfig.args);
     }
   }
 
