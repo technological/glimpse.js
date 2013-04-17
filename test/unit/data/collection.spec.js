@@ -84,6 +84,7 @@ define([
         dataCollection.add(data);
         dataCollection.add(data1);
         expect(dataCollection.get('test')).toBe(data);
+        expect(dataCollection.get().length).toBe(1);
       });
 
       it('adds a non-derived source wouth mutating it', function() {
