@@ -37,7 +37,10 @@ function(obj, config, string, mixins, d3util) {
       hiddenStates: null
     };
 
-
+    /**
+     * Translates the zero tick on the Y-axis by 10
+     * @private
+     */
     function setZeroTickTranslate(selection) {
       var transform, translate, x, y;
       transform = selection.attr('transform');
