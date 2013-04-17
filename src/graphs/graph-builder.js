@@ -232,8 +232,8 @@ function(obj, array, string, d3util, graph) {
         statsLabel.config({
           unit: graph.config().yAxisUnit
         });
+        componentManager.update('gl-stats');
       }
-      componentManager.update();
     }
 
     /**
