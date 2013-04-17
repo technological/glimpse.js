@@ -23,7 +23,7 @@ define([
           offset;
 
       if (isTimeScale && unit) {
-        offset = unit.offset(
+        offset = +unit.offset(
           extent[1],
           -(period || 1)
         );
