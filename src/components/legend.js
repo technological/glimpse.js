@@ -170,9 +170,7 @@ function(obj, config, string, d3util, mixins) {
       // The selection of legend keys.
       selection = root_
         .selectAll('.gl-legend-key')
-        .data(config_.keys, function(d) {
-          return d3.functor(d.color)();
-        });
+        .data(config_.keys);
       remove_(selection);
       enter_(selection);
       update_(selection);
