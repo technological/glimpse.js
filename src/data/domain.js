@@ -10,10 +10,20 @@ define([
 
   var computeFn = {
 
+    /**
+     * Computes the extent for the given dimension.
+     * Config arguments: none
+     */
     'extent': function(sel, dim) {
       return sel.dim(dim).concat().extent().get();
     },
 
+    /**
+     * Computes the time interval.
+     * Config arguments:
+     * unit: may be 'day', 'month', 'year' etc
+     * period: an integer multiplier for the unit
+     */
     'interval': function(sel, dim, config) {
       var extent = computeFn.extent(sel, dim) || [0, 1],
           isTimeScale = obj.get(config, 'isTimeScale'),
@@ -34,6 +44,12 @@ define([
 
   };
 
+  /**
+   * Applies the appropriate compute function as specified
+   * in the config.
+   * If a compute function is not specified, the extents is
+   * computed.
+   */
   function compute(dc, dim, domainConfig) {
     var fnName = domainConfig.compute || 'extent',
         fn = computeFn[fnName];
@@ -44,6 +60,10 @@ define([
     }
   }
 
+  /**
+   * Applies the modifiers specified in the domain config.
+   * Modifiers may be force or maxMultiplier.
+   */
   function modify(domain, domainConfig) {
     var modifier = domainConfig.modifier;
     if (modifier) {
@@ -62,6 +82,11 @@ define([
     return domain;
   }
 
+  /**
+   * Compute the overall data source dependencies for the domain.
+   * This is required to generate the correct dependency graph for
+   * domain evaluation.
+   */
   function domainDeps(config) {
     var deps = {};
     Object.keys(config).forEach(function(dim) {
