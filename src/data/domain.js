@@ -117,7 +117,7 @@ define([
      * Compute domains based on configuration.
      */
     addDomainDerivation: function(config, dc) {
-      dc.add({
+      dc.upsert({
         id: '$domain',
         sources: domainDeps(config),
         derivation: function() {

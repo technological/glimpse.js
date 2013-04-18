@@ -101,6 +101,21 @@ define([
         }
       },
 
+      /**
+       * Adds a data source if it doesn't exist.
+       * Replace a data source if it does.
+       */
+      upsert: function(data) {
+        if (!dataCollection[data.id]) {
+          this.add(data);
+        }
+        if (isDerivedDataConfig(data)) {
+          dataCollection[data.id] = { glDerive: data };
+        } else {
+          dataCollection[data.id] = data;
+        }
+      },
+
       isDerived: function(id) {
         var data = dataCollection[id];
         return obj.isDef(data) && obj.isDef(data.glDerive);
@@ -128,9 +143,10 @@ define([
       },
 
       /**
-       * Update an item in place.
+       * Extend a data-source in place.
+       * If data source doesn't exist, it's added.
        */
-      upsert: function(data) {
+      extend: function(data) {
         var id = data.id;
         if (dataCollection[id]) {
           obj.extend(dataCollection[id], data);

@@ -281,7 +281,7 @@ function(obj, config, array, assetLoader, componentManager, components,
      * Inserts/Updates object in data array
      * @param  {object} data
      */
-    function upsertData(data) {
+    function extendData(data) {
       //Set default x and y accessors.
       if(!data.dimensions) {
         data.dimensions = {};
@@ -292,7 +292,7 @@ function(obj, config, array, assetLoader, componentManager, components,
       if (!data.dimensions.y) {
         data.dimensions.y = defaultYaccessor_;
       }
-      dataCollection_.upsert(data);
+      dataCollection_.extend(data);
     }
 
     /**
@@ -525,10 +525,10 @@ function(obj, config, array, assetLoader, componentManager, components,
         if (Array.isArray(data)) {
           var i, len = data.length;
           for (i = 0; i < len; i += 1) {
-            upsertData(data[i]);
+            extendData(data[i]);
           }
         } else {
-          upsertData(data);
+          extendData(data);
         }
         componentManager_.applySharedObject('data');
         return graph;

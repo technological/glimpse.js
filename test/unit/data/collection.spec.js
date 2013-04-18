@@ -243,7 +243,7 @@ define([
 
     });
 
-    describe('.upsert()', function() {
+    describe('.extend()', function() {
 
       it('adds an data attribute in place', function() {
         var depX = {id: 'data1', data: [1, 2, 3] },
@@ -252,7 +252,7 @@ define([
         expect(dataCollection.get('data1')).toEqual({
           id: 'data1', data: [1,2,3]
         });
-        dataCollection.upsert({ id: 'data1', 'title': 'What!!'});
+        dataCollection.extend({ id: 'data1', 'title': 'What!!'});
         expect(dataCollection.get('data1')).toEqual({
           id: 'data1', data: [1,2,3], title: 'What!!'
         });
@@ -265,7 +265,7 @@ define([
         expect(dataCollection.get('data1')).toEqual({
           id: 'data1', data: [1,2,3]
         });
-        dataCollection.upsert({ id: 'data1', 'title': 'What!!', color: 'blue'});
+        dataCollection.extend({ id: 'data1', 'title': 'What!!', color: 'blue'});
         expect(dataCollection.get('data1')).toEqual({
           id: 'data1', data: [1,2,3], title: 'What!!', color: 'blue'
         });
@@ -278,10 +278,42 @@ define([
         expect(dataCollection.get('data1')).toEqual({
           id: 'data1', data: [1,2,3]
         });
-        dataCollection.upsert({ id: 'data1', data: [4,5,6], 'title': 'What!!'});
+        dataCollection.extend({ id: 'data1', data: [4,5,6], 'title': 'What!!'});
         expect(dataCollection.get('data1')).toEqual({
           id: 'data1', data: [4,5,6], title: 'What!!'
         });
+      });
+
+    });
+
+    describe('.upsert()', function() {
+
+      it('replaces an existing data-source in place', function() {
+        var depX = {id: 'data1', data: [1, 2, 3] },
+            depY = {id: 'data2', data: [1, 2, 3] };
+        dataCollection.add([depX, depY]);
+        expect(dataCollection.get('data1')).toEqual({
+          id: 'data1', data: [1,2,3]
+        });
+        dataCollection.upsert({ id: 'data1', 'title': 'What!!'});
+        expect(dataCollection.get('data1')).toEqual({
+          id: 'data1', title: 'What!!'
+        });
+      });
+
+      it('adding data src that does exist doesnt delegate to add', function() {
+        var depX = {id: 'data1', data: [1, 2, 3] };
+        dataCollection.add(depX);
+        spyOn(dataCollection, 'add').andCallThrough();
+        dataCollection.upsert(depX);
+        expect(dataCollection.add).not.toHaveBeenCalled();
+      });
+
+      it('adding data src that does not exist delegates to add', function() {
+         spyOn(dataCollection, 'add').andCallThrough();
+        var depX = {id: 'data1', data: [1, 2, 3] };
+        dataCollection.upsert(depX);
+        expect(dataCollection.add).toHaveBeenCalled();
       });
 
     });
