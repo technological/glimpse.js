@@ -31,8 +31,24 @@ define([
     return false;
   }
 
-  function isWildCard(id) {
-    return id === '*' || id === '+';
+  /**
+   * Adds a data source.
+   * Tags non-derived sources with * and +.
+   * Tags derived sources with +.
+   */
+  function addDataSource(dataCollection, data) {
+    var id = data.id;
+    if (isDerivedDataConfig(data)) {
+      if (!obj.isDef(data.tags)) {
+        data.tags = '+';
+      }
+      dataCollection[id] = { glDerive: data };
+    } else {
+      if (!obj.isDef(data.tags)) {
+        data.tags = ['*', '+'];
+      }
+      dataCollection[id] = data;
+    }
   }
 
   /**
@@ -60,8 +76,7 @@ define([
     visited.push(id);
     sources = [];
     array.getArray(d.glDerive.sources).forEach(function(s) {
-      sources = sources.concat(
-        s.split(',').filter(function(id) { return !isWildCard(id); }));
+      sources = sources.concat(s.split(','));
     });
     sources.forEach(function(id) {
       deriveDataById(id.trim(), data, deps, dataCollection, visited);
@@ -94,11 +109,7 @@ define([
           this.dispatch.error();
           return;
         }
-        if (isDerivedDataConfig(data)) {
-          dataCollection[data.id] = { glDerive: data };
-        } else {
-          dataCollection[data.id] = data;
-        }
+        addDataSource(dataCollection, data);
       },
 
       /**
@@ -109,11 +120,7 @@ define([
         if (!dataCollection[data.id]) {
           this.add(data);
         }
-        if (isDerivedDataConfig(data)) {
-          dataCollection[data.id] = { glDerive: data };
-        } else {
-          dataCollection[data.id] = data;
-        }
+        addDataSource(dataCollection, data);
       },
 
       isDerived: function(id) {
@@ -200,17 +207,21 @@ define([
           ids = ids.concat(s.split(','));
         });
         ids.forEach(function(id) {
-          if(isWildCard(id)) {
+          id = id.trim();
+          if(dataCollection[id]) {
+            dataList.push(this.get(id));
+          } else {
             Object.keys(dataCollection).forEach(function(k) {
-              if(!this.isDerived(k) || sources === '+') {
+              var data;
+              if(this.isDerived(k)) {
+                data = dataCollection[k].glDerive;
+              } else {
+                data = dataCollection[k];
+              }
+              if(array.contains(data.tags, id)) {
                 dataList.push(this.get(k));
               }
             }, this);
-          } else {
-              id = id.trim();
-              if(dataCollection[id]) {
-                dataList.push(this.get(id));
-              }
           }
         }, this);
         dataSelection.add(dataList);

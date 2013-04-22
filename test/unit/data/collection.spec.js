@@ -233,6 +233,135 @@ define([
 
     });
 
+    describe('tagging', function() {
+
+      var domain1, domain2, lat1, lat2, lat3;
+
+      beforeEach(function() {
+        domain1 = {id: 'd1', tags: ['#domain'], data: 'domainData1'};
+        domain2 = {id: 'd2', tags: ['#domain'], data: 'domainData2'};
+        lat1 = {id: 'l1', tags: ['#lat'], data: 'latData1'};
+        lat2 = {id: 'l2', tags: ['#lat'], data: 'latData2'};
+        lat3 = {id: 'l3', tags: ['#lat'], data: 'latData3'};
+        dataCollection.add([domain1, domain2, lat1, lat2, lat3]);
+      });
+
+      it('* source returns empty', function() {
+        expect(dataCollection.select('*')).toEqual(sel.create());
+      });
+
+      it('selection by tag #domain returns correct selection', function() {
+        expect(dataCollection.select('#domain'))
+          .toEqual(sel.create([domain1, domain2]));
+      });
+
+      it('selection of #domain by ids returns correct selection', function() {
+        expect(dataCollection.select('d1'))
+          .toEqual(sel.create(domain1));
+        expect(dataCollection.select('d2'))
+          .toEqual(sel.create(domain2));
+        expect(dataCollection.select('d1,d2'))
+          .toEqual(sel.create([domain1, domain2]));
+      });
+
+      it('selection by tag #lat returns correct selection', function() {
+        expect(dataCollection.select('#lat'))
+          .toEqual(sel.create([lat1, lat2, lat3]));
+      });
+
+      it('selection of #lat by ids returns correct selection', function() {
+        expect(dataCollection.select('l1'))
+          .toEqual(sel.create(lat1));
+        expect(dataCollection.select('l2'))
+          .toEqual(sel.create(lat2));
+        expect(dataCollection.select('l3'))
+          .toEqual(sel.create(lat3));
+        expect(dataCollection.select('l1,l2,l3'))
+          .toEqual(sel.create([lat1, lat2, lat3]));
+      });
+
+      it('returns empty sel if non-valid sources selected on dc', function() {
+        expect(dataCollection.select('ORD, DFW')).toEqual(sel.create());
+      });
+
+      it('selection by tag and id works', function() {
+        expect(dataCollection.select('#lat, d1'))
+          .toEqual(sel.create([lat1, lat2, lat3, domain1]));
+        expect(dataCollection.select('l1,#domain'))
+          .toEqual(sel.create([lat1, domain1, domain2]));
+      });
+
+      it('id and tag id collision resolution', function() {
+        var c = dc.create(),
+        dsId = {id: 'ds', tags: ['#domain'], data: 'domainData1'},
+        ds1 = {id: 'l1', tags: ['ds'], data: 'latData1'},
+        ds2 = {id: 'l2', tags: ['ds'], data: 'latData2'};
+        c.add([dsId, ds1, ds2]);
+        expect(c.select('ds'))
+          .toEqual(sel.create(dsId));
+      });
+
+      describe('default tags', function() {
+
+        var newDc;
+
+        beforeEach(function() {
+          newDc = dc.create();
+        });
+
+        it('adding non-derived src results in default tag of * and +',
+          function() {
+            newDc.add({id: 'test1', data: 'nothing'});
+            expect(newDc.get('test1')).toEqual({
+              id: 'test1', data: 'nothing', tags: ['*', '+']
+            });
+          }
+        );
+
+        it('specifying tags in non-derived src results in overriding default',
+          function() {
+            newDc.add({id: 'test1', tags: 'test', data: 'nothing'});
+            expect(newDc.get('test1')).toEqual({
+              id: 'test1', data: 'nothing', tags: 'test'
+            });
+          }
+        );
+
+
+        it('adding a derived src results in default tag of +',
+          function() {
+            newDc.add({
+              id: 'test1',
+              sources: '',
+              derivation: function() {
+                return { value: 'hello' };
+              }
+            });
+            newDc.updateDerivations();
+            expect(newDc.get('test1').tags).toEqual('+');
+          }
+        );
+
+        it('specifying tags in a derived src results in overriding default',
+          function() {
+            newDc.add({
+              id: 'test1',
+              sources: '',
+              tags: ['domain', 'test'],
+              derivation: function() {
+                return { value: 'hello' };
+              }
+            });
+            newDc.updateDerivations();
+            expect(newDc.get('test1').tags).toEqual(['domain', 'test']);
+          }
+        );
+
+      });
+
+    });
+
+
     describe('.append()', function() {
 
       it('appends the data to correct data source array by id', function() {
@@ -256,42 +385,46 @@ define([
 
     describe('.extend()', function() {
 
-      it('adds an data attribute in place', function() {
-        var depX = {id: 'data1', data: [1, 2, 3] },
-            depY = {id: 'data2', data: [1, 2, 3] };
+      it('adds a data attribute in place', function() {
+        var depX = {id: 'data1', tags: [], data: [1, 2, 3] },
+            depY = {id: 'data2', tags: [], data: [1, 2, 3] };
         dataCollection.add([depX, depY]);
         expect(dataCollection.get('data1')).toEqual({
-          id: 'data1', data: [1,2,3]
+          id: 'data1', tags: [], data: [1,2,3]
         });
         dataCollection.extend({ id: 'data1', 'title': 'What!!'});
         expect(dataCollection.get('data1')).toEqual({
-          id: 'data1', data: [1,2,3], title: 'What!!'
+          id: 'data1',  tags: [], data: [1,2,3], title: 'What!!'
         });
       });
 
      it('adds many data attributes in place', function() {
-        var depX = {id: 'data1', data: [1, 2, 3] },
-            depY = {id: 'data2', data: [1, 2, 3] };
+        var depX = {id: 'data1', tags: ['lat'], data: [1, 2, 3] },
+            depY = {id: 'data2', tags: ['lat'], data: [1, 2, 3] };
         dataCollection.add([depX, depY]);
         expect(dataCollection.get('data1')).toEqual({
-          id: 'data1', data: [1,2,3]
+          id: 'data1', tags: ['lat'], data: [1,2,3]
         });
         dataCollection.extend({ id: 'data1', 'title': 'What!!', color: 'blue'});
         expect(dataCollection.get('data1')).toEqual({
-          id: 'data1', data: [1,2,3], title: 'What!!', color: 'blue'
+          id: 'data1', tags: ['lat'],
+          data: [1,2,3], title: 'What!!', color: 'blue'
         });
       });
 
       it('replaces a data attribute in place', function() {
-        var depX = {id: 'data1', data: [1, 2, 3] },
-            depY = {id: 'data2', data: [1, 2, 3] };
+        var depX = {id: 'data1', tags: [], data: [1, 2, 3] },
+            depY = {id: 'data2', tags: [], data: [1, 2, 3] };
         dataCollection.add([depX, depY]);
         expect(dataCollection.get('data1')).toEqual({
-          id: 'data1', data: [1,2,3]
+          id: 'data1', tags: [], data: [1,2,3]
         });
-        dataCollection.extend({ id: 'data1', data: [4,5,6], 'title': 'What!!'});
+        dataCollection.extend({
+          id: 'data1', tags: ['lat'],
+          data: [4,5,6], 'title': 'What!!'
+        });
         expect(dataCollection.get('data1')).toEqual({
-          id: 'data1', data: [4,5,6], title: 'What!!'
+          id: 'data1', tags:['lat'], data: [4,5,6], title: 'What!!'
         });
       });
 
@@ -300,15 +433,15 @@ define([
     describe('.upsert()', function() {
 
       it('replaces an existing data-source in place', function() {
-        var depX = {id: 'data1', data: [1, 2, 3] },
-            depY = {id: 'data2', data: [1, 2, 3] };
+        var depX = {id: 'data1', tags: [], data: [1, 2, 3] },
+            depY = {id: 'data2', tags: [], data: [1, 2, 3] };
         dataCollection.add([depX, depY]);
         expect(dataCollection.get('data1')).toEqual({
-          id: 'data1', data: [1,2,3]
+          id: 'data1', tags: [], data: [1,2,3]
         });
-        dataCollection.upsert({ id: 'data1', 'title': 'What!!'});
+        dataCollection.upsert({ id: 'data1', tags: ['lat'], 'title': 'What!!'});
         expect(dataCollection.get('data1')).toEqual({
-          id: 'data1', title: 'What!!'
+          id: 'data1', tags: ['lat'], title: 'What!!'
         });
       });
 
