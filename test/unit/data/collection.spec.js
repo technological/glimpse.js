@@ -65,6 +65,35 @@ define([
         expect(dataCollection.get('test2')).toBe(data2);
       });
 
+      it('returns errors string on getting an uncomputed derived source',
+        function() {
+          dataCollection.add({
+            id: 'newds',
+            sources: '',
+            derivation: function() {
+              return 'result';
+            }
+          });
+          expect(dataCollection.get('newds'))
+            .toBe('gl-error-not-computed');
+        }
+      );
+
+      it('returns computed value on gettting a derived source',
+        function() {
+          dataCollection.add({
+            id: 'newds',
+            sources: '',
+            derivation: function() {
+              return 'result';
+            }
+          });
+          dataCollection.updateDerivations();
+          expect(dataCollection.get('newds')).toBe('result');
+        }
+      );
+
+
     });
 
     describe('.add()', function() {

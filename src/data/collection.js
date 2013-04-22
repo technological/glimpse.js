@@ -180,11 +180,12 @@ define([
        * Get data source by id.
        */
       get: function(id) {
-        if (id) {
-          if (dataCollection[id]) {
-            return dataCollection[id].glDerivation || dataCollection[id];
+        if (obj.get(dataCollection, id)) {
+          if (this.isDerived(id)) {
+            return dataCollection[id].glDerivation ||
+                   'gl-error-not-computed';
           }
-          return  null;
+          return dataCollection[id];
         }
         if (arguments.length === 0) {
           return Object.keys(dataCollection).map(function(k) {
