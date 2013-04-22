@@ -179,10 +179,13 @@ define([
           }
           return  null;
         }
-        return Object.keys(dataCollection).map(function(k) {
-          var data = dataCollection[k];
-          return data.glDerivation || data;
-        });
+        if (arguments.length === 0) {
+          return Object.keys(dataCollection).map(function(k) {
+            var data = dataCollection[k];
+            return data.glDerivation || data;
+          });
+        }
+        return null;
       },
 
       /**

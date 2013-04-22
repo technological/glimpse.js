@@ -35,6 +35,17 @@ define([
         expect(dataCollection.get('test')).toBe(data);
       });
 
+      it('returns null on invalid data ids', function() {
+        var data1 = {id: 'test1', data: 'nice' },
+            data2 = {id: 'test2', data: 'nice' };
+        dataCollection.add(data1);
+        dataCollection.add(data2);
+        expect(dataCollection.get()).toEqual([data1, data2]);
+        expect(dataCollection.get('pqr')).toBe(null);
+        expect(dataCollection.get('xyz')).toBe(null);
+      });
+
+
       it('returns dataset as array - when added individually', function() {
         var data1 = {id: 'test1', data: 'nice' },
             data2 = {id: 'test2', data: 'nice' };
