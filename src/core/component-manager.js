@@ -129,7 +129,7 @@ function(obj, array, string, func, components) {
     return obj.extend({
 
       /**
-       * Gets all compnents.
+       * Gets all components.
        * Optionally filters by cids.
        *
        * @param {Array|string|undefined} cids An array of cids.
