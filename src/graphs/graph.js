@@ -208,7 +208,6 @@ function(obj, config, array, assetLoader, componentManager, string, components,
           sources: dataIds.join(','),
           compute: 'interval',
           args: {
-            isTimeScale: d3util.isTimeScale(config_.xScale),
             unit: config_.domainIntervalUnit,
             period: config_.domainIntervalPeriod
           },
