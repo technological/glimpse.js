@@ -11,6 +11,10 @@ define([
 ], function (obj, array, set, selection) {
   'use strict';
 
+  /**
+   * Computes the derivation by calling the
+   * derivation function with the sources it needs.
+   */
   function applyDerivation(dc, data) {
     var dataSelections, derivedData;
     dataSelections = array.getArray(data.sources).map(function(d) {
@@ -24,6 +28,10 @@ define([
     return derivedData;
   }
 
+  /**
+   * A data config is determined to derived config if
+   * it contains a sources or derivation field.
+   */
   function isDerivedDataConfig(data) {
     if (data) {
       return  obj.isDef(data.sources) ||
@@ -298,6 +306,10 @@ define([
   }
 
   return {
+
+    /**
+     * Creates a new collection.
+     */
     create: function() {
       return collection();
     }
