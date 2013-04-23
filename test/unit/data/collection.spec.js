@@ -689,6 +689,128 @@ define([
 
     });
 
+    describe('tags', function() {
+
+      var newDc;
+
+      beforeEach(function() {
+        newDc = dc.create();
+        newDc.add({
+          id: 'test',
+          title: 'test',
+          tags: [],
+          data: {'key': 'test'}
+        });
+      });
+
+      describe('getTags/setTags()', function() {
+
+        it('adds an element to the set', function() {
+          newDc.addTags('test', 'hello');
+          expect(newDc.getTags('test')).toEqual(['hello']);
+        });
+
+        it('adds elements to the set', function() {
+          newDc.addTags('test', ['hello', 'bye']);
+          expect(newDc.getTags('test')).toEqual(['hello', 'bye']);
+        });
+
+        it('duplicate elements are not added to the set', function() {
+          newDc.addTags('test', ['hello', 'bye']);
+          newDc.addTags('test', ['bye', 'zebra']);
+          expect(newDc.getTags('test')).toEqual(['hello', 'bye', 'zebra']);
+        });
+
+      });
+
+
+      describe('addTags()', function() {
+
+        it('adds an element to the set', function() {
+          newDc.addTags('test', 'hello');
+          expect(newDc.getTags('test')).toEqual(['hello']);
+        });
+
+        it('adds elements to the set', function() {
+          newDc.addTags('test', ['hello', 'bye']);
+          expect(newDc.getTags('test')).toEqual(['hello', 'bye']);
+        });
+
+        it('duplicate elements are not added to the set', function() {
+          newDc.addTags('test', ['hello', 'bye']);
+          newDc.addTags('test', ['bye', 'zebra']);
+          expect(newDc.getTags('test')).toEqual(['hello', 'bye', 'zebra']);
+        });
+
+      });
+
+      describe('removeTags()', function() {
+
+        beforeEach(function() {
+          newDc.addTags('test', ['abc', 'def', 'ghi']);
+        });
+
+        it('removes an element from the set', function() {
+          newDc.removeTags('test', 'def');
+          expect(newDc.getTags('test')).toEqual(['abc', 'ghi']);
+          newDc.removeTags('test', 'ghi');
+          expect(newDc.getTags('test')).toEqual(['abc']);
+          newDc.removeTags('test', 'abc');
+          expect(newDc.getTags('test')).toEqual([]);
+        });
+
+        it('removes elements from the set', function() {
+          newDc.removeTags('test', ['abc', 'ghi']);
+          expect(newDc.getTags('test')).toEqual(['def']);
+        });
+
+        it('no-op on removing non-existent elements', function() {
+          newDc.removeTags('test', ['hello', 'bye']);
+          expect(newDc.getTags('test')).toEqual(['abc', 'def', 'ghi']);
+        });
+
+      });
+
+      describe('toggleTags()', function() {
+
+        beforeEach(function() {
+          newDc.addTags('test', ['USA', 'Canada', 'Mexico']);
+        });
+
+        it('toggles one element resulting in removal', function() {
+          newDc.toggleTags('test', 'USA');
+          expect(newDc.getTags('test')).toEqual(['Canada', 'Mexico']);
+        });
+
+        it('toggles multiple elements resulting in removal', function() {
+          newDc.toggleTags('test', ['USA', 'Mexico']);
+          expect(newDc.getTags('test')).toEqual(['Canada']);
+        });
+
+        it('toggles one element resulting in addition', function() {
+          newDc.toggleTags('test', 'Zambia');
+          expect(newDc.getTags('test'))
+            .toEqual(['USA', 'Canada', 'Mexico', 'Zambia']);
+        });
+
+        it('toggles multiple elements resulting in additon', function() {
+          newDc.toggleTags('test', ['Spain', 'Zambia']);
+          expect(newDc.getTags('test'))
+            .toEqual(['USA', 'Canada', 'Mexico', 'Spain', 'Zambia']);
+        });
+
+        it('toggles multiple elements resulting in addition & removal',
+           function() {
+            newDc.toggleTags('test', ['USA', 'Spain']);
+            expect(newDc.getTags('test'))
+              .toEqual(['Canada', 'Mexico', 'Spain']);
+           }
+        );
+
+      });
+
+    });
+
     describe('isEmpty', function() {
       it('returns true if dataCollection is empty', function(){
         expect(dataCollection.isEmpty()).toBe(true);

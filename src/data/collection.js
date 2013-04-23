@@ -5,9 +5,10 @@
 define([
   'core/object',
   'core/array',
+  'core/set',
   'data/selection/selection',
   'data/selection/diff-quotient'
-], function (obj, array, selection) {
+], function (obj, array, set, selection) {
   'use strict';
 
   function applyDerivation(dc, data) {
@@ -174,6 +175,63 @@ define([
             dataSource.data.push(dataToAppend);
           }
         }
+      },
+
+      /**
+       * Returns the tag(s) of the datasource speciifed by its id.
+       */
+      getTags: function(id) {
+        if (this.isDerived(id)) {
+          return obj.get(dataCollection, [id, 'glDerive', 'tags']);
+        }
+        return obj.get(dataCollection, [id, 'tags']);
+
+      },
+
+      /**
+       * Sets the tag(s) of the datasource speciifed by its id.
+       */
+      setTags: function(id, tags) {
+        tags = set.create(tags).toArray();
+        if (this.isDerived(id)) {
+          dataCollection[id].glDerive.tags = tags;
+        }
+        dataCollection[id].tags = tags;
+      },
+
+
+      /**
+       * Adds tag(s) to a datasource by id.
+       * If tag is already present, no operation is performed.
+       */
+      addTags: function(id, tags) {
+        var tagSet = set.create(this.getTags(id));
+        tagSet.add(tags);
+        this.setTags(id, tagSet.toArray());
+      },
+
+      /**
+       * Removes tag(s) from a datasource by id.
+       * If tag isn't present, no operation is performed.
+       */
+      removeTags: function(id, tags) {
+        var tagSet = set.create(this.getTags(id));
+        tagSet.remove(tags);
+        this.setTags(id, tagSet.toArray());
+      },
+
+      /**
+       * Togggles the presence the of the given tags with the
+       * datasource with the associated id.
+       * In other words,
+       * Adds a tag if it isn't present.
+       * Removes a tag if it is present.
+       */
+      toggleTags: function(id, tags) {
+        var tagSet = set.create(this.getTags(id));
+        tags = array.getArray(tags);
+        tagSet.toggle(tags);
+        this.setTags(id, tagSet.toArray());
       },
 
       /**
