@@ -705,19 +705,28 @@ define([
 
       describe('getTags/setTags()', function() {
 
-        it('adds an element to the set', function() {
+        it('gets correct tag from the set', function() {
           newDc.addTags('test', 'hello');
           expect(newDc.getTags('test')).toEqual(['hello']);
         });
 
-        it('adds elements to the set', function() {
+        it('gets correct tags from the set', function() {
           newDc.addTags('test', ['hello', 'bye']);
           expect(newDc.getTags('test')).toEqual(['hello', 'bye']);
         });
 
-        it('duplicate elements are not added to the set', function() {
-          newDc.addTags('test', ['hello', 'bye']);
-          newDc.addTags('test', ['bye', 'zebra']);
+        it('sets a tag', function() {
+          newDc.setTags('test', 'hello');
+          expect(newDc.getTags('test')).toEqual(['hello']);
+        });
+
+        it('sets multiple tags', function() {
+          newDc.setTags('test', ['hello', 'bye']);
+          expect(newDc.getTags('test')).toEqual(['hello', 'bye']);
+        });
+
+        it('duplicate tags are not added using setTags', function() {
+          newDc.setTags('test', ['hello', 'bye', 'bye', 'zebra']);
           expect(newDc.getTags('test')).toEqual(['hello', 'bye', 'zebra']);
         });
 
