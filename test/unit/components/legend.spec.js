@@ -17,8 +17,12 @@ function(legend) {
 
     beforeEach(function() {
       testLegend = legend();
-      key1 = { color: 'blue', label: 'blue label' };
-      key2 = { color: function() { return 'green'; }, label: 'green label' };
+      key1 = { dataId: 'key1', color: 'blue', label: 'blue label' };
+      key2 = {
+        dataId: 'key2',
+        color: function() { return 'green'; },
+        label: 'green label'
+      };
       keys = [key1, key2];
       testLegend.keys(keys);
       svgNode = jasmine.svgFixture().node();
