@@ -640,6 +640,13 @@ function(obj, config, array, assetLoader, componentManager, string, components,
       graph.dispatch.destroy.call(this);
     };
 
+    /**
+     * Domain configuration setter.
+     */
+    graph.domain = function(domainConfig) {
+      domain.addDomainDerivation(domainConfig, dataCollection_);
+    };
+
      /**
      * Returns the root_
      * @return {d3.selection}
