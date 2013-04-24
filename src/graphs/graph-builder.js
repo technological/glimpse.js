@@ -59,14 +59,6 @@ function(obj, array, string, format, d3util, graph) {
         }
         return result;
       }
-    },{
-      id: 'gl-domain-range',
-      sources: ['*', '$domain'],
-      derivation: function(sources, domain) {
-        return {
-          domain: domain.get()
-        };
-      }
     }];
 
     /**
@@ -84,9 +76,9 @@ function(obj, array, string, format, d3util, graph) {
         hiddenStates: ['empty', 'loading', 'error']
       },
       {
-        cid: 'gl-domain-range',
+        cid: 'gl-domain-label',
         type: 'label',
-        dataId: 'gl-domain-range',
+        dataId: '$domain',
         position: 'center-right',
         target: 'gl-footer',
         hiddenStates: ['empty',  'loading', 'error']
@@ -228,8 +220,8 @@ function(obj, array, string, format, d3util, graph) {
                '    Min: ' +  values.min + unit +
                '    Max: ' + values.max + unit;
       });
-      g.component('gl-domain-range').text(function(d) {
-        var domain = d.domain;
+      g.component('gl-domain-label').text(function(d) {
+        var domain = this.data();
         if (domain) {
           return format.timeDomainUTC(domain.x, 'UTC');
         }
