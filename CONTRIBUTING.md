@@ -7,6 +7,7 @@
 - Install [Bower](https://github.com/twitter/bower) `npm install -g bower`
 - Install other build dependencies `npm install`
 - Install bower dependencies `bower install`
+- Run Grunt: `grunt`
 - Setup the pre-commit hook by running `ln -s ../../pre-commit.js .git/hooks/pre-commit` from the repo root.
 
 **Writing Unit Tests**
