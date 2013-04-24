@@ -14,7 +14,6 @@ module.exports = function(grunt) {
 
     options = this.options({});
 
-
     verRegEx = /version: '(?:(\d+)\.)?(?:(\d+)\.)?(\*|\d+)'/;
     currCore = grunt.file.read(options.file);
     newCore = currCore.replace(
