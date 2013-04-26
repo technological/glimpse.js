@@ -168,7 +168,7 @@ function(obj, config, string, d3util, mixins) {
         return legend;
       }
       if (!dataCollection_) {
-        return;
+        return null;
       }
       return dataCollection_;
     };
