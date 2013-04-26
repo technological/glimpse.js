@@ -9,10 +9,12 @@ define([
   'core/string',
   'd3-ext/util',
   'mixins/mixins',
-  'data/functions'
+  'data/functions',
+  'events/pubsub'
 ],
-function(array, config, obj, string, d3util, mixins, dataFns) {
+function(array, config, obj, string, d3util, mixins, dataFns, pubsub) {
   'use strict';
+
 
   return function() {
 
@@ -20,7 +22,8 @@ function(array, config, obj, string, d3util, mixins, dataFns) {
     var config_ = {},
       defaults_,
       dataCollection_,
-      root_;
+      root_,
+      globalPubsub = pubsub.getSingleton();
 
     defaults_ = {
       type: 'line',
@@ -34,9 +37,22 @@ function(array, config, obj, string, d3util, mixins, dataFns) {
       xScale: null,
       yScale: null,
       opacity: 1,
-      hiddenStates: null,
-      rootId: null
+      show: true,
+      hiddenStates: null
     };
+
+    globalPubsub.sub('data-toggle', function (args) {
+
+      if (args === config_.dataId) {
+        if(config_.show) {
+          line.hide.call(line);
+          config_.show = false;
+        } else {
+          line.show.call(line);
+          config_.show = true;
+        }
+      }
+    });
 
     /**
      * Updates the line component
@@ -97,8 +113,7 @@ function(array, config, obj, string, d3util, mixins, dataFns) {
         'xScale',
         'yScale',
         'lineGenerator',
-        'color',
-        'rootId'
+        'color'
       ),
       mixins.lifecycle,
       mixins.toggle);

@@ -7,10 +7,12 @@ define([
   'core/object',
   'core/config',
   'core/string',
+  'core/array',
   'd3-ext/util',
-  'mixins/mixins'
+  'mixins/mixins',
+  'events/pubsub'
 ],
-function(obj, config, string, d3util, mixins) {
+function(obj, config, string, array, d3util, mixins, pubsub) {
   'use strict';
 
   return function() {
@@ -23,7 +25,9 @@ function(obj, config, string, d3util, mixins) {
       enter_,
       update_,
       remove_,
-      dataCollection_;
+      dataCollection_,
+      globalPubsub;
+
 
     config_ = {};
 
@@ -40,11 +44,14 @@ function(obj, config, string, d3util, mixins) {
       fontWeight: 'bold',
       fontSize: 13,
       layout: 'horizontal',
+      inactiveColor: 'grey',
       gap: 20,
       keys: [],
       hiddenStates: ['loading'],
       rootId: null
     };
+
+    globalPubsub = pubsub.getSingleton();
 
     /**
      * Inserts new keys.
@@ -57,7 +64,8 @@ function(obj, config, string, d3util, mixins) {
         .enter()
           .append('g')
           .attr({
-            'class': 'gl-legend-key'
+            'class': 'gl-legend-key active',
+            'gl-dataId': function(d) { return d.dataId; }
           });
 
       // Add new key indicator.
@@ -78,6 +86,25 @@ function(obj, config, string, d3util, mixins) {
           'text-anchor': 'start',
           'stroke': 'none'
         });
+
+        //Handle click event- make data inactive
+      enterSelection.on('click', function(d) {
+        var sel = d3.select(this),
+          inactive = config_.inactiveColor,
+          fontColor = config_.fontColor;
+
+        if (sel.classed('active')) {
+          sel.select('text').attr('fill', inactive);
+          sel.select('rect').attr('fill', inactive);
+          sel.classed('active', false);
+          globalPubsub.pub('data-toggle', d.dataId);
+        } else {
+          sel.select('text').attr('fill', fontColor);
+          sel.select('rect').attr('fill', d.color);
+          sel.classed('active', true);
+          globalPubsub.pub('data-toggle', d.dataId);
+        }
+      });
     };
 
     /**
@@ -88,7 +115,6 @@ function(obj, config, string, d3util, mixins) {
       // The outer <g> element for each key.
       selection
         .attr({
-          'class': 'gl-legend-key',
           'font-family': config_.fontFamily,
           'font-size': config_.fontSize,
           'font-weight': config_.fontWeight
