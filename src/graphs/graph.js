@@ -231,7 +231,7 @@ function(obj, config, array, assetLoader, componentManager, string, components,
 
       dataCollection_.updateDerivations();
       graphDomain = dataCollection_.get('$domain');
-      if (dataCollection_.select(domainSources).dataSources_.length > 0) {
+      if (dataCollection_.select(domainSources).length() > 0) {
         config_.xScale.rangeRound([0, getPrimaryContainerSize()[0]])
           .domain(graphDomain.x);
 
