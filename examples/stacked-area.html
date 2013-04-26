@@ -43,6 +43,7 @@
           },
           {
             "id": "cpu-stolen",
+            "title": "stolen",
             "data": [
               { "x": 1317279600000, "y": 1 },
               { "x": 1317695968421, "y": 1 },
@@ -54,6 +55,7 @@
           },
           {
             "id": "cpu-wait",
+            "title": "wait",
             "data": [
               { "x": 1317279600000, "y": 9 },
               { "x": 1317695968421, "y": 9 },
@@ -65,6 +67,7 @@
           },
           {
             "id": "cpu-idle",
+            "title": "idle",
             "data": [
               { "x": 1317279600000, "y": 40 },
               { "x": 1317695968421, "y": 40 },
@@ -76,70 +79,10 @@
           }
         ];
 
-        function getById(arr, id) {
-          return arr.filter(function(item) {
-            return item.id === id;
-          })[0];
-        }
-
-        var derivedDataConfig = [
-          // ****************************************************
-          // TODO: automate this config in graphBuilder
-          // ****************************************************
+        var areaGraph = glimpse.graphBuilder().create('stacked-area',
           {
-            id: 'stacks',
-            sources: '*',
-            derivation: function(sources) {
-              var stackedData = sources.stack();
-              return stackedData.all();
-            }
-          },
-
-          // ****************************************************
-          // TODO: automate this config in graphBuilder
-          // ****************************************************
-          {
-            id: 'cpu-sys-stack',
-            sources: 'stacks',
-            derivation: function(sources) {
-              var val = getById(sources.get(), 'cpu-sys-stack');
-              return val;
-            }
-          },
-          {
-            id: 'cpu-user-stack',
-            sources: 'stacks',
-            derivation: function(sources) {
-              return getById(sources.get(), 'cpu-user-stack');
-            }
-          },
-          {
-            id: 'cpu-idle-stack',
-            sources: 'stacks',
-            derivation: function(sources) {
-              return getById(sources.get(), 'cpu-idle-stack');
-            }
-          },
-          {
-            id: 'cpu-wait-stack',
-            sources: 'stacks',
-            derivation: function(sources) {
-              return getById(sources.get(), 'cpu-wait-stack');
-            }
-          },
-          {
-            id: 'cpu-stolen-stack',
-            sources: 'stacks',
-            derivation: function(sources) {
-              return getById(sources.get(), 'cpu-stolen-stack');
-            }
-          }
-        ];
-
-        sampleData.push(derivedDataConfig);
-
-
-        var areaGraph = glimpse.graph() //graphBuilder.create('stacked-area')
+            'stackedDataIds': ['cpu-sys', 'cpu-user', 'cpu-stolen', 'cpu-wait', 'cpu-idle']
+          })
           .config({
             'forceY': [0, 100],
             'yDomainModifier': 1

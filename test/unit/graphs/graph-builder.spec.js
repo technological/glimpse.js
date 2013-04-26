@@ -51,7 +51,7 @@ function(graphBuilder, graph) {
       });
 
       it('reports the available buildable types', function() {
-        expect(graphBuilder.types()).toEqual(['line', 'area']);
+        expect(graphBuilder.types()).toEqual(['line', 'area', 'stacked-area']);
       });
 
       it('creates a graph', function() {

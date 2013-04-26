@@ -193,6 +193,29 @@ function(obj, array, string, format, d3util, graph) {
     }
 
     /**
+     * TODO: Add capability to derivation to create sources.
+     */
+    function addStackedData(g, stackedDataIds) {
+      var dataSources = [{
+        id: 'stacks',
+        sources: '*',
+        derivation: function(sources) {
+          return sources.stack().all();
+        }
+      }];
+      stackedDataIds.forEach(function(d) {
+        dataSources.push({
+          id: d + '-stack',
+          sources: 'stacks',
+          derivation: function(sources) {
+            return sources.getByField('id', d + '-stack');
+          }
+        });
+      });
+      g.data().add(dataSources);
+    }
+
+    /**
      * Adds all pre-configured internal components to the graph.
      *
      * @private
@@ -272,16 +295,20 @@ function(obj, array, string, format, d3util, graph) {
      * Build and return a new graph of the specified type.
      *
      * @param {String} type A valid pre-configured graph type.
-     * @param {layout.layouts} layout The layout to use.
+     * @param {Object?} options Options for the pre-configured graph type.
      * @return {graphs.graph}
      */
-    graphBuilder.create = function(type, optLayout) {
-      var g;
+    graphBuilder.create = function(type, options) {
+      var g, layout, stackedDataIds;
+
+      options = options || {};
+      layout = options.layout || 'default';
+      stackedDataIds = options.stackedDataIds || [];
 
       g = graph()
         .config({
           forceY: [0],
-          layout: optLayout || 'default',
+          layout: layout,
           yAxisUnit: 'ms'
         });
       g.dispatch.on('update', updateStatsLabel);
@@ -295,6 +322,7 @@ function(obj, array, string, format, d3util, graph) {
           overrideAddDataFn(type, g);
           break;
         case 'stacked-area':
+          addStackedData(g, stackedDataIds);
           break;
       }
       return g;

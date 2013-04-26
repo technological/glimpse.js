@@ -73,6 +73,12 @@ define([
     return this.dataSources_[i];
   };
 
+  Selection.prototype.getByField = function(field, val) {
+    return array.find(this.dataSources_[0], function(d) {
+      return obj.get(d, field) === val;
+    });
+  };
+
   Selection.prototype.dim = function(dim) {
     return this.dimMap(function(dataSource) {
       return dataSource.data.map(dataFns.dimension(dataSource, dim));
