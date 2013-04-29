@@ -865,6 +865,21 @@ define([
               .toEqual(['Canada', 'Mexico', 'Spain']);
            }
         );
+      });
+
+      describe('containsTag', function() {
+
+        beforeEach(function() {
+          newDc.addTags('test', ['USA', 'Canada', 'Mexico']);
+        });
+
+        it('returns true when it contains a tag', function() {
+          expect(newDc.containsTag('test', 'USA')).toBe(true);
+        });
+
+        it('returns false when a tag is not present', function() {
+          expect(newDc.containsTag('test', 'India')).toBe(false);
+        });
 
       });
 

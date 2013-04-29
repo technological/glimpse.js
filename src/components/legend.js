@@ -87,25 +87,24 @@ function(obj, config, string, array, d3util, mixins, pubsub) {
           'stroke': 'none'
         });
 
-        //Handle click event- make data inactive
-      enterSelection.on('click', function(d) {
-        var sel = d3.select(this),
-          inactive = config_.inactiveColor,
-          fontColor = config_.fontColor;
+      // Handle click event- toggle data inactive
+      enterSelection
+        .on('click', function(d) {
+          var sel = d3.select(this),
+            inactive = config_.inactiveColor,
+            fontColor = config_.fontColor;
 
-        if (sel.classed('active')) {
-          sel.select('text').attr('fill', inactive);
-          sel.select('rect').attr('fill', inactive);
-          sel.classed('active', false);
-          globalPubsub.pub('data-toggle', d.dataId);
-        } else {
-          sel.select('text').attr('fill', fontColor);
-          sel.select('rect').attr('fill', d.color);
-          sel.classed('active', true);
-          globalPubsub.pub('data-toggle', d.dataId);
-        }
-      });
-    };
+          if (dataCollection_.containsTag(d.dataId, 'inactive')) {
+            sel.select('text').attr('fill', fontColor);
+            sel.select('rect').attr('fill', d.color);
+          } else {
+            sel.select('text').attr('fill', inactive);
+            sel.select('rect').attr('fill', inactive);
+          }
+          // toggles data's tag on the data collection
+          dataCollection_.toggleTags(d.dataId, 'inactive', config_.rootId);
+        });
+      };
 
     /**
      * Apply updates to the update selection.

@@ -23,7 +23,7 @@ function(array, config, obj, string, d3util, mixins, dataFns, pubsub) {
       defaults_,
       dataCollection_,
       root_,
-      globalPubsub = pubsub.getSingleton();
+      globalPubsub = pubsub.getSingleton(); //add scope
 
     defaults_ = {
       type: 'line',
@@ -37,22 +37,25 @@ function(array, config, obj, string, d3util, mixins, dataFns, pubsub) {
       xScale: null,
       yScale: null,
       opacity: 1,
-      show: true,
-      hiddenStates: null
+      hiddenStates: null,
+      rootId: null
     };
 
-    globalPubsub.sub('data-toggle', function (args) {
-
-      if (args === config_.dataId) {
-        if(config_.show) {
+    /**
+     * Handles the sub of data-toggle event
+     * and checks presence of inactive tag
+     * to show/hide the line component
+     */
+     function handleDataToggle(args) {
+      var id = config_.dataId;
+      if (args === id) {
+        if (dataCollection_.containsTag(id, 'inactive')) {
           line.hide.call(line);
-          config_.show = false;
         } else {
           line.show.call(line);
-          config_.show = true;
         }
       }
-    });
+    }
 
     /**
      * Updates the line component
@@ -113,7 +116,8 @@ function(array, config, obj, string, d3util, mixins, dataFns, pubsub) {
         'xScale',
         'yScale',
         'lineGenerator',
-        'color'
+        'color',
+        'rootId'
       ),
       mixins.lifecycle,
       mixins.toggle);
@@ -197,6 +201,7 @@ function(array, config, obj, string, d3util, mixins, dataFns, pubsub) {
           return root;
         });
       }
+      globalPubsub.sub(config_.rootId+':data-toggle', handleDataToggle);
       line.update();
       line.dispatch.render.call(this);
       return line;
