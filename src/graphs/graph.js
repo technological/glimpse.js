@@ -642,17 +642,6 @@ function(obj, config, array, assetLoader, componentManager, string, components,
       graph.dispatch.destroy.call(this);
     };
 
-    /**
-     * Domain configuration setter.
-     */
-    graph.domain = function(domainConfig) {
-      if (obj.isDef(domainConfig)) {
-        config_.domainConfig = domainConfig;
-        return graph;
-      }
-      return config_.domainConfig;
-    };
-
      /**
      * Returns the root_
      * @return {d3.selection}
