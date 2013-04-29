@@ -129,6 +129,69 @@ function(graphBuilder, graph) {
 
       });
 
+      describe('create("stacked-area")', function() {
+
+        var cpuUser, cpuSys;
+
+        function setupTest(sources) {
+          cpuSys = {
+            'id' : 'cpu-sys',
+            'title' : 'sys',
+            'data': [
+              { 'x': 1317279600000, 'y': 30 },
+              { 'x': 1317695968421, 'y': 31 },
+              { 'x': 1318112336842, 'y': 30 },
+              { 'x': 1318528705263, 'y': 30 },
+              { 'x': 1318945073684, 'y': 40 },
+              { 'x': 1319361442105, 'y': 30 }
+            ]
+          };
+          cpuUser = {
+            'id': 'cpu-user',
+            'title': 'user',
+            'data': [
+              { 'x': 1317279600000, 'y': 20 },
+              { 'x': 1317695968421, 'y': 19 },
+              { 'x': 1318112336842, 'y': 21 },
+              { 'x': 1318528705263, 'y': 21 },
+              { 'x': 1318945073684, 'y': 21 },
+              { 'x': 1319361442105, 'y': 21 }
+            ]
+          };
+          testGraph = graphBuilder.create('stacked-area', sources);
+          testGraph.data([cpuSys, cpuUser]);
+        }
+
+        it('adds a single stacked-area derived data source', function() {
+          setupTest({ stackedDataIds: ['cpu-user'] });
+          expect(testGraph.data().get('cpu-user-stack'))
+            .toBe('gl-error-not-computed');
+          expect(testGraph.data().get('cpu-sys-stack')).toBe(null);
+        });
+
+        it('adds multiple stacked-area derived data sources', function() {
+          setupTest({ stackedDataIds: ['cpu-user', 'cpu-sys'] });
+          expect(testGraph.data().get('cpu-user-stack'))
+            .toBe('gl-error-not-computed');
+          expect(testGraph.data().get('cpu-sys-stack'))
+            .toBe('gl-error-not-computed');
+        });
+
+        it('computes stack data correctly for cpu-user', function() {
+          var renderTarget = jasmine.htmlFixture();
+          setupTest({ stackedDataIds: ['cpu-user'] });
+          testGraph.render(renderTarget);
+          expect(testGraph.data().get('cpu-user-stack').data).toEqual([
+            { x : 1317279600000, y : 20, y0 : 30 },
+            { x : 1317695968421, y : 19, y0 : 31 },
+            { x : 1318112336842, y : 21, y0 : 30 },
+            { x : 1318528705263, y : 21, y0 : 30 },
+            { x : 1318945073684, y : 21, y0 : 40 },
+            { x : 1319361442105, y : 21, y0 : 30 }]);
+        });
+
+      });
+
     });
 
   });
