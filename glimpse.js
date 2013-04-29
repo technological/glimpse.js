@@ -13879,7 +13879,7 @@ function(graph, graphBuilder, component, collection, assets, pubsub) {
   
 
   var core = {
-    version: '0.0.4',
+    version: '0.0.5',
     graphBuilder: graphBuilder,
     graph: graph,
     components: component,
