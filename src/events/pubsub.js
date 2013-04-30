@@ -124,7 +124,7 @@ function(array) {
     },
 
     scope: function() {
-      var scope =  array.convertArgs(arguments)[0];
+      var scope =  arguments[0];
       return function() {
         var newArgs = array.convertArgs(arguments);
         newArgs.unshift(scope + ':' + newArgs.shift());
