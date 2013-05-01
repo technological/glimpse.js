@@ -230,6 +230,15 @@ define([
         this.setTags(id, tagSet.toArray());
       },
 
+     /**
+       * Checks if tag(s) belong to a datasource by id.
+       */
+      hasTags: function(id, tags) {
+        return array.getArray(tags).every(function(tag) {
+          return array.contains(this.getTags(id), tag);
+        }, this);
+      },
+
       /**
        * Togggles the presence the of the given tags with the
        * datasource with the associated id.

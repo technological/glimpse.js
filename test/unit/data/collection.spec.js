@@ -763,6 +763,46 @@ define([
 
       });
 
+      describe('hasTags()', function() {
+
+        it('returns true for a single tag', function() {
+          newDc.addTags('test', 'hello');
+          expect(newDc.hasTags('test', 'hello')).toBe(true);
+        });
+
+       it('returns false if data source does not have tag', function() {
+          newDc.addTags('test', 'hello');
+          expect(newDc.hasTags('test', 'bye')).toBe(false);
+        });
+
+        it('returns true if data source the correct tags', function() {
+          newDc.addTags('test', ['hello', 'bye']);
+          expect(newDc.hasTags('test', ['hello', 'bye'])).toBe(true);
+        });
+
+        it('returns true if data src the correct subset of tags', function() {
+          newDc.addTags('test', ['hello', 'bye', 'good', 'bad']);
+          expect(newDc.hasTags('test', ['hello', 'bye'])).toBe(true);
+          expect(newDc.hasTags('test', ['bye', 'good'])).toBe(true);
+          expect(newDc.hasTags('test', ['bad', 'good'])).toBe(true);
+          expect(newDc.hasTags('test', 'bad')).toBe(true);
+        });
+
+        it('returns false even if one tag is not valid', function() {
+          newDc.addTags('test', ['hello', 'bye', 'good', 'bad']);
+          expect(newDc.hasTags('test', ['hello', 'bye1'])).toBe(false);
+          expect(newDc.hasTags('test', ['bye', 'good2'])).toBe(false);
+          expect(newDc.hasTags('test', ['bad2', 'good'])).toBe(false);
+          expect(newDc.hasTags('test', 'blog')).toBe(false);
+        });
+
+        it('duplicate elements are not added to the set', function() {
+          newDc.addTags('test', ['bye']);
+          expect(newDc.hasTags('test', ['bye'])).toBe(true);
+        });
+
+      });
+
       describe('removeTags()', function() {
 
         beforeEach(function() {
