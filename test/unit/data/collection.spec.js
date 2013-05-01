@@ -896,6 +896,21 @@ define([
         }]);
       }
 
+      function addTaggedData() {
+        dataCollection.add([{
+          id: 'E',
+          sources: '',
+          tags: 'tag123',
+          derivation: function() {}
+        }]);
+        dataCollection.add([{
+          id: 'D',
+          sources: '',
+          tags: 'tag123',
+          derivation: function() {}
+        }]);
+      }
+
 
       it('returns true if dataCollection is empty', function(){
         expect(dataCollection.isEmpty()).toBe(true);
@@ -916,12 +931,20 @@ define([
         expect(dataCollection.isEmpty('+')).toBe(false);
       });
 
-      it('returns false if * is not empty and + is', function(){
+      it('* is empty and + is not if only derived sources exist', function(){
         addDerivedData();
         expect(dataCollection.isEmpty('*')).toBe(true);
         expect(dataCollection.isEmpty('+')).toBe(false);
       });
 
+      it('selection of non-existent tag name is empty', function() {
+        expect(dataCollection.isEmpty('tag123')).toBe(true);
+      });
+
+      it('selection of valid tag name is not empty', function() {
+        addTaggedData();
+        expect(dataCollection.isEmpty('tag123')).toBe(false);
+      });
 
     });
 
