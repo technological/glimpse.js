@@ -871,17 +871,57 @@ define([
     });
 
     describe('isEmpty', function() {
+
+      function addDefaultData() {
+        dataCollection.add([{
+          id: 'A',
+          data: 'A'
+        }]);
+        dataCollection.add([{
+          id: 'B',
+          data: 'B'
+        }]);
+      }
+
+      function addDerivedData() {
+        dataCollection.add([{
+          id: 'C',
+          sources: '',
+          derivation: function() {}
+        }]);
+        dataCollection.add([{
+          id: 'D',
+          sources: '',
+          derivation: function() {}
+        }]);
+      }
+
+
       it('returns true if dataCollection is empty', function(){
         expect(dataCollection.isEmpty()).toBe(true);
       });
 
-      it('returns false if dataCollection is not empty', function(){
-        dataCollection.add([{
-          id: 'A',
-          sources: 'B'
-        }]);
-        expect(dataCollection.isEmpty()).toBe(false);
+      it('returns true if * is empty', function(){
+        expect(dataCollection.isEmpty('*')).toBe(true);
       });
+
+      it('returns true if + is empty', function(){
+        expect(dataCollection.isEmpty('+')).toBe(true);
+      });
+
+      it('returns false if dataCollection selection is not empty', function(){
+        addDefaultData();
+        expect(dataCollection.isEmpty()).toBe(false);
+        expect(dataCollection.isEmpty('*')).toBe(false);
+        expect(dataCollection.isEmpty('+')).toBe(false);
+      });
+
+      it('returns false if * is not empty and + is', function(){
+        addDerivedData();
+        expect(dataCollection.isEmpty('*')).toBe(true);
+        expect(dataCollection.isEmpty('+')).toBe(false);
+      });
+
 
     });
 

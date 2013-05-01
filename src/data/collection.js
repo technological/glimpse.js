@@ -290,13 +290,7 @@ define([
             dataList.push(this.get(id));
           } else {
             Object.keys(dataCollection).forEach(function(k) {
-              var data;
-              if(this.isDerived(k)) {
-                data = dataCollection[k].glDerive;
-              } else {
-                data = dataCollection[k];
-              }
-              if(array.contains(data.tags, id)) {
+              if(this.hasTags(k, id)) {
                 dataList.push(this.get(k));
               }
             }, this);
@@ -310,7 +304,10 @@ define([
        * Checks whether dataCollection is empty
        * @return {Boolean}
        */
-      isEmpty: function() {
+      isEmpty: function(optSel) {
+        if (optSel) {
+          return this.select(optSel).length() === 0;
+        }
         return Object.keys(dataCollection).length === 0;
       }
     };
