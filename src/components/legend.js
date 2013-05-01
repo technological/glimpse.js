@@ -26,6 +26,7 @@ function(obj, config, string, array, d3util, mixins, pubsub) {
       update_,
       remove_,
       dataCollection_,
+      onClickHandler,
       globalPubsub;
 
 
@@ -54,6 +55,25 @@ function(obj, config, string, array, d3util, mixins, pubsub) {
     globalPubsub = pubsub.getSingleton();
 
     /**
+     * Handles the click event on legend.
+     */
+    onClickHandler = function(d) {
+      var sel = d3.select(this),
+      inactive = config_.inactiveColor,
+      fontColor = config_.fontColor;
+
+      if (dataCollection_.containsTag(d.dataId, 'inactive')) {
+        sel.select('text').attr('fill', fontColor);
+        sel.select('rect').attr('fill', d.color);
+      } else {
+        sel.select('text').attr('fill', inactive);
+        sel.select('rect').attr('fill', inactive);
+      }
+      // toggles data's tag on the data collection
+      dataCollection_.toggleTags(d.dataId, 'inactive', config_.rootId);
+    };
+
+    /**
      * Inserts new keys.
      * @param {d3.selection} selection
      */
@@ -64,7 +84,7 @@ function(obj, config, string, array, d3util, mixins, pubsub) {
         .enter()
           .append('g')
           .attr({
-            'class': 'gl-legend-key active',
+            'class': 'gl-legend-key',
             'gl-dataId': function(d) { return d.dataId; }
           });
 
@@ -89,21 +109,7 @@ function(obj, config, string, array, d3util, mixins, pubsub) {
 
       // Handle click event- toggle data inactive
       enterSelection
-        .on('click', function(d) {
-          var sel = d3.select(this),
-            inactive = config_.inactiveColor,
-            fontColor = config_.fontColor;
-
-          if (dataCollection_.containsTag(d.dataId, 'inactive')) {
-            sel.select('text').attr('fill', fontColor);
-            sel.select('rect').attr('fill', d.color);
-          } else {
-            sel.select('text').attr('fill', inactive);
-            sel.select('rect').attr('fill', inactive);
-          }
-          // toggles data's tag on the data collection
-          dataCollection_.toggleTags(d.dataId, 'inactive', config_.rootId);
-        });
+        .on('click', onClickHandler);
       };
 
     /**

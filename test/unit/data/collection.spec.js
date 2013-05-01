@@ -1,18 +1,21 @@
 define([
   'data/collection',
   'data/selection/selection',
-  'core/array'
-], function (dc, sel, array) {
+  'core/array',
+  'events/pubsub'
+], function (dc, sel, array, pubsubModule) {
   'use strict';
 
   describe('data collection', function () {
 
     var dataCollection,
-        handlerSpy;
+        handlerSpy,
+        pubsub;
 
     beforeEach(function() {
       dataCollection = dc.create();
       handlerSpy = jasmine.createSpy();
+      pubsub = pubsubModule.getSingleton();
     });
 
     describe('.create()', function() {
@@ -831,9 +834,12 @@ define([
       });
 
       describe('toggleTags()', function() {
+        var fooHandler;
 
         beforeEach(function() {
           newDc.addTags('test', ['USA', 'Canada', 'Mexico']);
+          fooHandler = jasmine.createSpy();
+          pubsub.sub('foo:data-toggle', fooHandler);
         });
 
         it('toggles one element resulting in removal', function() {
@@ -864,6 +870,13 @@ define([
             expect(newDc.getTags('test'))
               .toEqual(['Canada', 'Mexico', 'Spain']);
            }
+        );
+
+        it('publishes the event with foo(scope) after toggling the data tag',
+          function() {
+           newDc.toggleTags('test', 'USA', 'foo');
+           expect(fooHandler).toHaveBeenCalledOnce();
+          }
         );
       });
 

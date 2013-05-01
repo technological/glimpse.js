@@ -23,7 +23,7 @@ function(array, config, obj, string, d3util, mixins, dataFns, pubsub) {
       defaults_,
       dataCollection_,
       root_,
-      globalPubsub = pubsub.getSingleton(); //add scope
+      globalPubsub = pubsub.getSingleton();
 
     defaults_ = {
       type: 'line',
@@ -40,22 +40,6 @@ function(array, config, obj, string, d3util, mixins, dataFns, pubsub) {
       hiddenStates: null,
       rootId: null
     };
-
-    /**
-     * Handles the sub of data-toggle event
-     * and checks presence of inactive tag
-     * to show/hide the line component
-     */
-     function handleDataToggle(args) {
-      var id = config_.dataId;
-      if (args === id) {
-        if (dataCollection_.containsTag(id, 'inactive')) {
-          line.hide.call(line);
-        } else {
-          line.show.call(line);
-        }
-      }
-    }
 
     /**
      * Updates the line component
@@ -182,6 +166,23 @@ function(array, config, obj, string, d3util, mixins, dataFns, pubsub) {
     };
 
     /**
+     * Handles the sub of data-toggle event.
+     * Checks presence of inactive tag
+     * to show/hide the line component
+     * @param  {string} dataId
+     */
+     line.handleDataToggle = function (args) {
+      var id = config_.dataId;
+      if (args === id) {
+        if (dataCollection_.containsTag(id, 'inactive')) {
+          line.hide();
+        } else {
+          line.show();
+        }
+      }
+    };
+
+    /**
      * Renders the line component
      * @param  {d3.selection|Node|string} selection
      * @return {components.line}
@@ -201,7 +202,7 @@ function(array, config, obj, string, d3util, mixins, dataFns, pubsub) {
           return root;
         });
       }
-      globalPubsub.sub(config_.rootId+':data-toggle', handleDataToggle);
+      globalPubsub.sub(config_.rootId+':data-toggle', line.handleDataToggle);
       line.update();
       line.dispatch.render.call(this);
       return line;
@@ -223,6 +224,7 @@ function(array, config, obj, string, d3util, mixins, dataFns, pubsub) {
       if (root_) {
         root_.remove();
       }
+      globalPubsub.unsub(config_.rootId+':data-toggle', line.handleDataToggle);
       root_ = null;
       config_ = null;
       defaults_ = null;
