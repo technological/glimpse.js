@@ -189,11 +189,13 @@ define([
        * Returns the tag(s) of the datasource speciifed by its id.
        */
       getTags: function(id) {
+        var tags;
         if (this.isDerived(id)) {
-          return obj.get(dataCollection, [id, 'glDerive', 'tags']);
+          tags = obj.get(dataCollection, [id, 'glDerive', 'tags']);
+        } else {
+          tags = obj.get(dataCollection, [id, 'tags']);
         }
-        return obj.get(dataCollection, [id, 'tags']);
-
+        return array.getArray(tags);
       },
 
       /**

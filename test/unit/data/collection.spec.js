@@ -730,6 +730,16 @@ define([
           expect(newDc.getTags('test')).toEqual(['hello', 'bye', 'zebra']);
         });
 
+        it('returns array even if tags is specified as a string', function() {
+          newDc.add({
+            id: 'abc',
+            title: 'test',
+            tags: 'testtag',
+            data: {'key': 'test'}
+          });
+          expect(newDc.getTags('abc')).toEqual(['testtag']);
+        });
+
       });
 
 
