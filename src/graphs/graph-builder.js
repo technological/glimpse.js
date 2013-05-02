@@ -127,14 +127,20 @@ function(obj, array, string, format, d3util, graph) {
      * @param {String} componentType
      * @param {graphs.graph} g
      */
-    function addComponentsForDataSources(dataSources, componentType, g) {
+    function addComponentsForDataSources(dataSources, componentType,
+          g, isStacked) {
+      var id;
       array.getArray(dataSources).forEach(function(dataSource) {
+        id = dataSource.id;
+        if (isStacked) {
+          id += '-stack';
+        }
         if (!isInternalData(dataSource.id) &&
             !componentExists(dataSource.id, g)) {
           g.component({
             type: componentType,
-            dataId: dataSource.id,
-            cid: dataSource.id,
+            dataId: id,
+            cid: id,
             color: dataSource.color || null
           });
         }
@@ -169,13 +175,25 @@ function(obj, array, string, format, d3util, graph) {
      * @param {String} componentType
      * @param {graphs.graph} g
      */
-    function overrideAddDataFn(componentType, g) {
+    function overrideAddDataFn(componentType, g, isStacked) {
       var dataCollection = g.data();
+      isStacked = isStacked || false;
       obj.override(dataCollection, 'add', function(supr, data) {
         var args, retVal;
         args = array.convertArgs(arguments, 1);
         retVal = supr.apply(dataCollection, args);
-        addComponentsForDataSources(data, componentType, g);
+        if (isStacked) {
+          array.getArray(data).forEach(function(ds) {
+            supr.apply(dataCollection, [{
+              id: ds.id + '-stack',
+              sources: 'stacks',
+              derivation: function(sources) {
+                return sources.getByField('id', ds.id + '-stack');
+              }
+            }]);
+          });
+        }
+        addComponentsForDataSources(data, componentType, g, isStacked);
         return retVal;
       });
     }
@@ -195,7 +213,7 @@ function(obj, array, string, format, d3util, graph) {
     /**
      * TODO: Add capability to derivation to create sources.
      */
-    function addStackedData(g, stackedDataIds) {
+    function addStackedData(g) {
       var dataSources = [{
         id: 'stacks',
         sources: '*',
@@ -203,15 +221,6 @@ function(obj, array, string, format, d3util, graph) {
           return sources.stack().all();
         }
       }];
-      stackedDataIds.forEach(function(d) {
-        dataSources.push({
-          id: d + '-stack',
-          sources: 'stacks',
-          derivation: function(sources) {
-            return sources.getByField('id', d + '-stack');
-          }
-        });
-      });
       g.data().add(dataSources);
     }
 
@@ -299,11 +308,10 @@ function(obj, array, string, format, d3util, graph) {
      * @return {graphs.graph}
      */
     graphBuilder.create = function(type, options) {
-      var g, layout, stackedDataIds;
+      var g, layout;
 
       options = options || {};
       layout = options.layout || 'default';
-      stackedDataIds = options.stackedDataIds || [];
 
       g = graph()
         .config({
@@ -322,7 +330,9 @@ function(obj, array, string, format, d3util, graph) {
           overrideAddDataFn(type, g);
           break;
         case 'stacked-area':
-          addStackedData(g, stackedDataIds);
+          addStackedData(g);
+          overrideRemoveDataFn(g);
+          overrideAddDataFn('area', g, true);
           break;
       }
       return g;

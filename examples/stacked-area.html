@@ -79,22 +79,12 @@
           }
         ];
 
-        var areaGraph = glimpse.graphBuilder().create('stacked-area',
-          {
-            'stackedDataIds': ['cpu-sys', 'cpu-user', 'cpu-stolen', 'cpu-wait', 'cpu-idle']
-          })
+        var areaGraph = glimpse.graphBuilder().create('stacked-area')
           .config({
             'forceY': [0, 100],
             'yDomainModifier': 1
           })
           .data(sampleData)
-          .component([
-            { cid: 'idle', type: 'area', dataId: 'cpu-idle-stack' },
-            { cid: 'user', type: 'area', dataId: 'cpu-user-stack' },
-            { cid: 'sys', type: 'area', dataId: 'cpu-sys-stack' },
-            { cid: 'wait', type: 'area', dataId: 'cpu-wait-stack' },
-            { cid: 'stolen', type: 'area', dataId: 'cpu-stolen-stack' }
-          ])
           .render('#container');
 
 
