@@ -160,18 +160,18 @@ function(d3, object, line, dc) {
 
       it('toggles the line to hide after checking data tag', function() {
         dataCollection.addTags('fakeData', 'inactive');
-        testLine.handleDataToggle('fakeData');
+        testLine.handleDataToggle_('fakeData');
         expect(testLine.root().node()).toHaveAttr('display', 'none');
       });
 
       it('does not hide the line when the dataId is incorrect', function() {
-        testLine.handleDataToggle('Data');
+        testLine.handleDataToggle_('Data');
         expect(testLine.root().node()).not.toHaveAttr('display');
       });
 
       it('toggles the line to show after checking data tag', function() {
         dataCollection.removeTags('fakeData', 'inactive');
-        testLine.handleDataToggle('fakeData');
+        testLine.handleDataToggle_('fakeData');
         expect(testLine.root().node()).not.toHaveAttr('display', 'none');
       });
 

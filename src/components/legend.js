@@ -62,7 +62,7 @@ function(obj, config, string, array, d3util, mixins, pubsub) {
       inactive = config_.inactiveColor,
       fontColor = config_.fontColor;
 
-      if (dataCollection_.containsTag(d.dataId, 'inactive')) {
+      if (dataCollection_.hasTags(d.dataId, 'inactive')) {
         sel.select('text').attr('fill', fontColor);
         sel.select('rect').attr('fill', d.color);
       } else {

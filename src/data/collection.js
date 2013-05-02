@@ -259,14 +259,6 @@ define([
       },
 
       /**
-       * Presence of a tag checked from datasource by id.
-       * @return {Boolean}
-       */
-      containsTag: function(id, tag) {
-        return array.contains(this.getTags(id), tag);
-      },
-
-      /**
        * Get data source by id.
        */
       get: function(id) {

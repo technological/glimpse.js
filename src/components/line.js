@@ -171,10 +171,10 @@ function(array, config, obj, string, d3util, mixins, dataFns, pubsub) {
      * to show/hide the line component
      * @param  {string} dataId
      */
-     line.handleDataToggle = function (args) {
+     line.handleDataToggle_ = function (args) {
       var id = config_.dataId;
       if (args === id) {
-        if (dataCollection_.containsTag(id, 'inactive')) {
+        if (dataCollection_.hasTags(id, 'inactive')) {
           line.hide();
         } else {
           line.show();
@@ -202,7 +202,7 @@ function(array, config, obj, string, d3util, mixins, dataFns, pubsub) {
           return root;
         });
       }
-      globalPubsub.sub(config_.rootId+':data-toggle', line.handleDataToggle);
+      globalPubsub.sub(config_.rootId+':data-toggle', line.handleDataToggle_);
       line.update();
       line.dispatch.render.call(this);
       return line;
@@ -224,7 +224,7 @@ function(array, config, obj, string, d3util, mixins, dataFns, pubsub) {
       if (root_) {
         root_.remove();
       }
-      globalPubsub.unsub(config_.rootId+':data-toggle', line.handleDataToggle);
+      globalPubsub.unsub(config_.rootId+':data-toggle', line.handleDataToggle_);
       root_ = null;
       config_ = null;
       defaults_ = null;
