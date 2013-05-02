@@ -188,7 +188,9 @@ function(obj, array, string, format, d3util, graph) {
               id: ds.id + '-stack',
               sources: 'stacks',
               derivation: function(sources) {
-                return sources.getByField('id', ds.id + '-stack');
+                return sources.get().filter(function(source) {
+                  return source.id === ds.id + '-stack';
+                })[0];
               }
             }]);
           });
