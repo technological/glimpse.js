@@ -48,6 +48,8 @@ function(legend, dc) {
       };
       keys = [key1, key2];
       testLegend.keys(keys);
+      dataCollection.add(data);
+      testLegend.data(dataCollection);
       svgNode = jasmine.svgFixture().node();
       spyOn(testLegend, 'update').andCallThrough();
       spyOn(dataCollection, 'toggleTags').andCallThrough();
@@ -112,8 +114,6 @@ function(legend, dc) {
         selectorInd, indicatorNode;
 
         beforeEach(function () {
-          dataCollection.add(data);
-          testLegend.data(dataCollection);
           legendNode = select('.gl-legend-key').node();
           //indicator and label for checking colors
           selectorLabel = '.gl-legend .gl-legend-key .gl-legend-key-label';
@@ -140,6 +140,8 @@ function(legend, dc) {
         it('calls the dataToggle method when onClick', function() {
           fireClickEvent(legendNode);
           expect(dataCollection.toggleTags).toHaveBeenCalledOnce();
+          //make legend active again for other tests below
+          fireClickEvent(legendNode);
         });
 
       });
@@ -202,7 +204,6 @@ function(legend, dc) {
     });
 
     describe('data()', function() {
-
       it('gets/sets data and datacollection available in Legend', function() {
         testLegend.data(dataCollection);
         expect(testLegend.data()).toBe(dataCollection);
