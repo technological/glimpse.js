@@ -139,13 +139,11 @@ function(array, config, obj, string, d3util, mixins, dataFns, pubsub) {
       if (config_.cid) {
         root_.attr('gl-cid', config_.cid);
       }
-
       dataConfig = line.data();
       // Return early if there's no data.
       if (!dataConfig || !dataConfig.data) {
         return line;
       }
-
       // Configure the lineGenerator function
       config_.lineGenerator
         .x(function(d, i) {

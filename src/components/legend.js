@@ -117,7 +117,7 @@ function(obj, config, string, array, d3util, mixins, pubsub) {
      * @param {d3.selection} selection
      */
     update_ = function(selection) {
-      var inactive;
+      var inactive, color;
 
       // The outer <g> element for each key.
       selection
@@ -134,8 +134,8 @@ function(obj, config, string, array, d3util, mixins, pubsub) {
           'height': config_.indicatorHeight,
           'fill': function(d) {
             inactive = dataCollection_.hasTags(d.dataId, 'inactive');
-            var color = (inactive) ? config_.inactiveColor : d.color;
-            return d3.functor(color)();
+            color = inactive ? config_.inactiveColor : d3.functor(d.color)();
+            return color;
           }
         });
 
@@ -145,7 +145,7 @@ function(obj, config, string, array, d3util, mixins, pubsub) {
         .attr({
           'x': config_.indicatorWidth + config_.indicatorSpacing,
           'y': config_.indicatorHeight,
-          'fill': (inactive) ? config_.inactiveColor : config_.fontColor
+          'fill': inactive ? config_.inactiveColor : config_.fontColor
         });
     };
 

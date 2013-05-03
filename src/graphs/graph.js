@@ -420,7 +420,7 @@ function(obj, config, array, assetLoader, componentManager, string, components,
         var hiddenStates = c.config('hiddenStates'),
             dataId = c.config('dataId');
         if (array.contains(hiddenStates, config_.state) ||
-                dataCollection_.hasTags(dataId, 'inactive')) {
+              (dataId && dataCollection_.hasTags(dataId, 'inactive'))) {
           c.hide();
         } else {
           c.show();
