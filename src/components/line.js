@@ -220,6 +220,7 @@ function(array, config, obj, string, d3util, mixins, dataFns, pubsub) {
     };
 
     /** Defines the rootId for line */
+    //TODO create a mixin for scope
     line.scope = function() {
       if (!scope_) {
         scope_ = pubsub.scope(config_.rootId);
