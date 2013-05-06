@@ -222,6 +222,46 @@ function(graphBuilder, graph) {
 
       });
 
+      describe('show/hide state', function () {
+          var selection,legendNode, selectorLabel, labelNode,
+            selectorInd, indicatorNode;
+
+          function select(selector) {
+            return selection.select(selector);
+          }
+
+          beforeEach(function() {
+            selection = jasmine.htmlFixture();
+            testGraph.render(selection);
+            legendNode = select('.gl-legend-key').node();
+            //indicator and label for checking colors
+            selectorLabel = '.gl-legend .gl-legend-key .gl-legend-key-label';
+            selectorInd = '.gl-legend .gl-legend-key .gl-legend-key-indicator';
+            indicatorNode = select(selectorInd)[0];
+            labelNode = select(selectorLabel)[0];
+          });
+
+          function fireClickEvent(elem) {
+            var evt = document.createEvent('MouseEvents');
+            evt.initMouseEvent('click', true, true, window,
+              0, 0, 0, 0, 0, false, false, false, false, 0, null);
+            elem.dispatchEvent(evt);
+          }
+
+          it('doesnt show hidden components when new data added', function () {
+            //click event hides
+            fireClickEvent(legendNode);
+            //add new data and update
+            testGraph.data().add(testData1);
+            testGraph.update();
+
+            var lineComponent = filterComponents(testGraph, 'line')[0];
+            expect(lineComponent.root().node()).toHaveAttr('display', 'none');
+            expect(indicatorNode[0]).toHaveAttr('fill', 'grey');
+          });
+
+      });
+
     });
 
   });
