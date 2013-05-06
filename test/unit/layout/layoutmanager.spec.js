@@ -110,10 +110,10 @@ function (lm) {
           children: [{'class': 'someotherclass'}]
         });
         expect(fixture).toHaveXML(xmlString([
-          '<g gl-width="200" gl-height="200" class="someclass">',
-          '<rect class="gl-layout" fill="none" width="200" height="200"/>',
-            '<g gl-width="200" gl-height="200" class="someotherclass">',
-              '<rect class="gl-layout" fill="none" width="200" height="200"/>',
+          '<g class="someclass" gl-height="200" gl-width="200">',
+            '<rect class="gl-layout" fill="none" height="200" width="200"/>',
+            '<g class="someotherclass" gl-height="200" gl-width="200">',
+              '<rect class="gl-layout" fill="none" height="200" width="200"/>',
             '</g>',
           '</g>'
         ]));
@@ -131,15 +131,16 @@ function (lm) {
           }]
         });
         expect(fixture).toHaveXML(xmlString([
-          '<g gl-width="200" gl-height="200" gl-container-name="gl-vgroup" gl-split="50,50" class="someclass">',
-            '<rect class="gl-layout" fill="none" width="200" height="200"/>',
-            '<g gl-width="200" gl-height="100" class="box1" transform="translate(0,0)">',
-              '<rect class="gl-layout" fill="none" width="200" height="100"/>',
+          '<g class="someclass" gl-container-name="gl-vgroup" gl-height="200" gl-split="50,50" gl-width="200">',
+            '<rect class="gl-layout" fill="none" height="200" width="200"/>',
+            '<g class="box1" gl-height="100" gl-width="200" transform="translate(0,0)">',
+              '<rect class="gl-layout" fill="none" height="100" width="200"/>',
             '</g>',
-            '<g gl-width="200" gl-height="100" class="box2" transform="translate(0,100)">',
-              '<rect class="gl-layout" fill="none" width="200" height="100"/>',
+            '<g class="box2" gl-height="100" gl-width="200" transform="translate(0,100)">',
+              '<rect class="gl-layout" fill="none" height="100" width="200"/>',
             '</g>',
-          '</g>']));
+          '</g>'
+        ]));
       });
 
       it('renders layout 4 - hgroup', function() {
@@ -154,15 +155,16 @@ function (lm) {
           }]
         });
         expect(fixture).toHaveXML(xmlString([
-          '<g gl-width="200" gl-height="200" gl-container-name="gl-hgroup" gl-split="50,50" class="someclass">',
-            '<rect class="gl-layout" fill="none" width="200" height="200"/>',
-            '<g gl-width="100" gl-height="200" class="box1" transform="translate(0,0)">',
-              '<rect class="gl-layout" fill="none" width="100" height="200"/>',
+          '<g class="someclass" gl-container-name="gl-hgroup" gl-height="200" gl-split="50,50" gl-width="200">',
+            '<rect class="gl-layout" fill="none" height="200" width="200"/>',
+            '<g class="box1" gl-height="200" gl-width="100" transform="translate(0,0)">',
+              '<rect class="gl-layout" fill="none" height="200" width="100"/>',
             '</g>',
-            '<g gl-width="100" gl-height="200" class="box2" transform="translate(100,0)">',
-              '<rect class="gl-layout" fill="none" width="100" height="200"/>',
+            '<g class="box2" gl-height="200" gl-width="100" transform="translate(100,0)">',
+              '<rect class="gl-layout" fill="none" height="200" width="100"/>',
             '</g>',
-          '</g>']));
+          '</g>'
+          ]));
       });
 
     });
@@ -183,21 +185,21 @@ function (lm) {
           }]
         });
         expect(fixture).toHaveXML(xmlString([
-          '<g gl-width="200" gl-height="200" gl-container-name="gl-hgroup" gl-split="50,50" class="someclass">',
-            '<rect class="gl-layout" fill="none" width="200" height="200"/>',
-            '<g gl-width="100" gl-height="200" transform="translate(0,0)">',
-              '<rect class="gl-layout" fill="none" width="100" height="200"/>',
-              '<g gl-padding="2" gl-width="96" gl-height="192" transform="translate(2,4)" class="box1">',
-                '<rect class="gl-layout" fill="none" width="96" height="192"/>',
+            '<g class="someclass" gl-container-name="gl-hgroup" gl-height="200" gl-split="50,50" gl-width="200">',
+              '<rect class="gl-layout" fill="none" height="200" width="200"/>',
+              '<g gl-height="200" gl-width="100" transform="translate(0,0)">',
+                '<rect class="gl-layout" fill="none" height="200" width="100"/>',
+                '<g class="box1" gl-height="192" gl-padding="2" gl-width="96" transform="translate(2,4)">',
+                  '<rect class="gl-layout" fill="none" height="192" width="96"/>',
+                '</g>',
               '</g>',
-            '</g>',
-            '<g gl-width="100" gl-height="200" transform="translate(100,0)">',
-              '<rect class="gl-layout" fill="none" width="100" height="200"/>',
-              '<g gl-padding="4" gl-width="92" gl-height="184" transform="translate(4,8)" class="box2">',
-                '<rect class="gl-layout" fill="none" width="92" height="184"/>',
+              '<g gl-height="200" gl-width="100" transform="translate(100,0)">',
+                '<rect class="gl-layout" fill="none" height="200" width="100"/>',
+                '<g class="box2" gl-height="184" gl-padding="4" gl-width="92" transform="translate(4,8)">',
+                  '<rect class="gl-layout" fill="none" height="184" width="92"/>',
+                '</g>',
               '</g>',
-            '</g>',
-          '</g>'
+            '</g>'
           ]));
       });
 
@@ -215,21 +217,21 @@ function (lm) {
           }]
         });
         expect(fixture).toHaveXML(xmlString([
-          '<g gl-width="200" gl-height="200" gl-container-name="gl-vgroup" gl-split="50,50" class="someclass">',
-            '<rect class="gl-layout" fill="none" width="200" height="200"/>',
-            '<g gl-width="200" gl-height="100" transform="translate(0,0)">',
-              '<rect class="gl-layout" fill="none" width="200" height="100"/>',
-              '<g gl-padding="2" gl-width="192" gl-height="96" transform="translate(4,2)" gl-container-name="box1">',
-                '<rect class="gl-layout" fill="none" width="192" height="96"/>',
+          '<g class="someclass" gl-container-name="gl-vgroup" gl-height="200" gl-split="50,50" gl-width="200">',
+            '<rect class="gl-layout" fill="none" height="200" width="200"/>',
+            '<g gl-height="100" gl-width="200" transform="translate(0,0)">',
+              '<rect class="gl-layout" fill="none" height="100" width="200"/>',
+              '<g gl-container-name="box1" gl-height="96" gl-padding="2" gl-width="192" transform="translate(4,2)">',
+                '<rect class="gl-layout" fill="none" height="96" width="192"/>',
               '</g>',
             '</g>',
-            '<g gl-width="200" gl-height="100" transform="translate(0,100)">',
-              '<rect class="gl-layout" fill="none" width="200" height="100"/>',
-                '<g gl-padding="4" gl-width="184" gl-height="92" transform="translate(8,4)" gl-container-name="box2">',
-                  '<rect class="gl-layout" fill="none" width="184" height="92"/>',
-                '</g>',
+            '<g gl-height="100" gl-width="200" transform="translate(0,100)">',
+              '<rect class="gl-layout" fill="none" height="100" width="200"/>',
+              '<g gl-container-name="box2" gl-height="92" gl-padding="4" gl-width="184" transform="translate(8,4)">',
+                '<rect class="gl-layout" fill="none" height="92" width="184"/>',
               '</g>',
-            '</g>'
+            '</g>',
+          '</g>'
           ]));
       });
 
