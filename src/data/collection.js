@@ -262,6 +262,7 @@ define([
         tags = array.getArray(tags);
         tagSet.toggle(tags);
         this.setTags(id, tagSet.toArray());
+        this.updateDerivations();
         globalPubsub.pub(scopeFn('data-toggle'), id);
       },
 

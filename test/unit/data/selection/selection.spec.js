@@ -222,6 +222,41 @@ function (selection) {
 
     });
 
+    describe('.filterByTags()', function() {
+
+      beforeEach(function() {
+        sel.add({
+          id: 'chicagoSales',
+          data: [
+            { year: 1991, carSales: 240 },
+            { year: 1992, carSales: 300 },
+            { year: 1993, carSales: 400 },
+            { year: 1994, carSales: 320 },
+            { year: 1995, carSales: 360 }],
+          tags: ['*', '+']
+        });
+        sel.add({
+          id: 'bostonSales',
+          data: [
+            { year: 1993, carSales: 620 },
+            { year: 1994, carSales: 520 },
+            { year: 1995, carSales: 400 },
+            { year: 1996, carSales: 480 },
+            { year: 1997, carSales: 540 }],
+          tags: ['*', '+', 'inactive']
+        });
+      });
+
+      describe('filter by Tags', function() {
+        it('filters selection by tag', function() {
+          var tmp = sel.filterByTags('inactive');
+          expect(tmp.all().length).toEqual(1);
+        });
+      });
+
+    });
+
+
   });
 
 });

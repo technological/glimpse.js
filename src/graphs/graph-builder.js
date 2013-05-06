@@ -11,13 +11,15 @@ define([
   'core/string',
   'core/format',
   'd3-ext/util',
-  'graphs/graph'
+  'graphs/graph',
+  'events/pubsub'
 ],
-function(obj, array, string, format, d3util, graph) {
+function(obj, array, string, format, d3util, graph, pubsub) {
   'use strict';
 
     var defaults,
       config,
+      globalPubsub,
       INTERNAL_DATA_CONFIG,
       INTERNAL_COMPONENTS_CONFIG,
       GRAPH_TYPES;
@@ -27,6 +29,8 @@ function(obj, array, string, format, d3util, graph) {
     };
 
     config = {};
+
+    globalPubsub = pubsub.getSingleton();
 
     /**
      * The supported types of pre-configured graphs.
@@ -47,6 +51,7 @@ function(obj, array, string, format, d3util, graph) {
           max: 0,
           avg: 0
         };
+        sources = sources.filterByTags('inactive');
         if (sources.all().length) {
           xDomain = domain.get().x;
           points = sources.filter('x', xDomain).dim('y').concat();
@@ -272,6 +277,7 @@ function(obj, array, string, format, d3util, graph) {
       graph = this;
       componentManager = graph.component();
       statsLabel =  componentManager.first('gl-stats');
+
       if (statsLabel) {
         statsLabel.config({
           unit: graph.config().yAxisUnit
@@ -310,10 +316,11 @@ function(obj, array, string, format, d3util, graph) {
      * @return {graphs.graph}
      */
     graphBuilder.create = function(type, options) {
-      var g, layout;
+      var g, layout, scopeFn;
 
       options = options || {};
       layout = options.layout || 'default';
+
 
       g = graph()
         .config({
@@ -322,6 +329,10 @@ function(obj, array, string, format, d3util, graph) {
           yAxisUnit: 'ms'
         });
       g.dispatch.on('update', updateStatsLabel);
+
+      scopeFn = pubsub.scope(g.config('id'));
+      globalPubsub.sub(scopeFn('data-toggle'), updateStatsLabel.bind(g));
+
       addInternalData(g);
       addInternalComponents(g);
 
