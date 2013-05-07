@@ -145,7 +145,11 @@ function(obj, config, string, array, d3util, mixins, pubsub) {
         .attr({
           'x': config_.indicatorWidth + config_.indicatorSpacing,
           'y': config_.indicatorHeight,
-          'fill': inactive ? config_.inactiveColor : config_.fontColor
+          'fill': function(d) {
+            inactive = dataCollection_.hasTags(d.dataId, 'inactive');
+            color = inactive ? config_.inactiveColor : config_.fontColor;
+            return color;
+          }
         });
     };
 
