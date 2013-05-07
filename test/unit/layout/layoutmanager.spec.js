@@ -5,16 +5,18 @@ function (lm) {
   /*jshint maxlen: 150 */
   'use strict';
 
+  /*
   function xmlString(strArr) {
     return '<svg id="svg-fixture">' + strArr.join('') + '</svg>';
-  }
+  }*/
 
   describe('layoutmanager', function () {
 
-    var fixture;
+    var fixture, selection;
 
     function applyLayout(layout) {
-      lm.setLayout(layout, jasmine.svgFixture(), 200, 200);
+      selection = jasmine.svgFixture();
+      lm.setLayout(layout, selection, 200, 200);
       fixture = jasmine.svgFixture().node();
     }
 
@@ -59,6 +61,16 @@ function (lm) {
           //'</g>'
         //]));
       //});
+      //
+
+    it('adds a gl-clip attribute', function() {
+      applyLayout({
+        'class': 'someclass',
+        clip: true,
+      });
+      expect(jasmine.svgFixture().select('.someclass').node())
+        .toHaveAttr('gl-clip', 'true');
+    });
 
     describe('render simple layout', function () {
       var gNode, rectNode;
@@ -104,144 +116,232 @@ function (lm) {
 
     describe('renders complex layouts', function() {
 
-      it('renders layout 2', function () {
-        applyLayout({
-          'class': 'someclass',
-          children: [{'class': 'someotherclass'}]
+      describe('renders layout 2', function() {
+        var someclassBox, someotherclassBox;
+
+        beforeEach(function() {
+          applyLayout({
+            'class': 'someclass',
+            children: [{'class': 'someotherclass'}]
+          });
+          someclassBox = selection.selectAttr('class', 'someclass');
+          someotherclassBox = selection.selectAttr('class', 'someotherclass');
         });
-        expect(fixture).toHaveXML(xmlString([
-          '<g class="someclass" gl-height="200" gl-width="200">',
-            '<rect class="gl-layout" fill="none" height="200" width="200"/>',
-            '<g class="someotherclass" gl-height="200" gl-width="200">',
-              '<rect class="gl-layout" fill="none" height="200" width="200"/>',
-            '</g>',
-          '</g>'
-        ]));
+
+        it('sets the correct height and width on someclassBox', function() {
+          expect(someclassBox.node()).toHaveAttr({
+            'gl-height': 200,
+            'gl-width': 200
+          });
+        });
+
+        it('sets the correct height and width on someotherclassBox', function() {
+          expect(someotherclassBox.node()).toHaveAttr({
+            'gl-height': 200,
+            'gl-width': 200
+          });
+        });
+
+        it('sizes someclassBox', function() {
+          expect(someclassBox.size()).toEqual([200, 200]);
+        });
+
+        it('sizes someotherclassBox', function() {
+          expect(someotherclassBox.size()).toEqual([200, 200]);
+        });
+
       });
 
-      it('renders layout 3 - vgroup', function() {
-        applyLayout({
-          name: 'gl-vgroup',
-          'class': 'someclass',
-          'split': [50, 50],
-          children: [{
-            'class': 'box1'
-          },{
-            'class': 'box2'
-          }]
+      describe('renders layout 3 - vgroup', function() {
+        var box1, box2;
+        beforeEach(function() {
+          applyLayout({
+            name: 'gl-vgroup',
+            'class': 'someclass',
+            'split': [50, 50],
+            children: [{
+              'class': 'box1'
+            },{
+              'class': 'box2'
+            }]
+          });
+          box1 = selection.selectAttr('class', 'box1');
+          box2 = selection.selectAttr('class', 'box2');
         });
-        expect(fixture).toHaveXML(xmlString([
-          '<g class="someclass" gl-container-name="gl-vgroup" gl-height="200" gl-split="50,50" gl-width="200">',
-            '<rect class="gl-layout" fill="none" height="200" width="200"/>',
-            '<g class="box1" gl-height="100" gl-width="200" transform="translate(0,0)">',
-              '<rect class="gl-layout" fill="none" height="100" width="200"/>',
-            '</g>',
-            '<g class="box2" gl-height="100" gl-width="200" transform="translate(0,100)">',
-              '<rect class="gl-layout" fill="none" height="100" width="200"/>',
-            '</g>',
-          '</g>'
-        ]));
+
+        it('sets the correct height and width on box1', function() {
+          expect(box1.node()).toHaveAttr({
+            'gl-height': 100,
+            'gl-width': 200
+          });
+        });
+
+        it('sets the correct height and width on box2', function() {
+          expect(box2.node()).toHaveAttr({
+            'gl-height': 100,
+            'gl-width': 200
+          });
+        });
+
+        it('sizes box1', function() {
+          expect(box1.size()).toEqual([200, 100]);
+        });
+
+        it('sizes box2', function() {
+          expect(box2.size()).toEqual([200, 100]);
+        });
+
+        it('sets translate on box1', function() {
+          expect(box1.node()).toHaveTranslate(0, 0);
+        });
+
+        it('sets translate on box2', function() {
+          expect(box2.node()).toHaveTranslate(0, 100);
+        });
+
       });
 
-      it('renders layout 4 - hgroup', function() {
-        applyLayout({
-          'class': 'someclass',
-          name: 'gl-hgroup',
-          split: [50, 50],
-          children: [{
-            'class': 'box1'
-          },{
-            'class': 'box2'
-          }]
+      describe('renders layout 4 - hgroup', function() {
+        var box1, box2;
+        beforeEach(function() {
+          applyLayout({
+            'class': 'someclass',
+            name: 'gl-hgroup',
+            split: [50, 50],
+            children: [{
+              'class': 'box1'
+            },{
+              'class': 'box2'
+            }]
+          });
+          box1 = selection.selectAttr('class', 'box1');
+          box2 = selection.selectAttr('class', 'box2');
         });
-        expect(fixture).toHaveXML(xmlString([
-          '<g class="someclass" gl-container-name="gl-hgroup" gl-height="200" gl-split="50,50" gl-width="200">',
-            '<rect class="gl-layout" fill="none" height="200" width="200"/>',
-            '<g class="box1" gl-height="200" gl-width="100" transform="translate(0,0)">',
-              '<rect class="gl-layout" fill="none" height="200" width="100"/>',
-            '</g>',
-            '<g class="box2" gl-height="200" gl-width="100" transform="translate(100,0)">',
-              '<rect class="gl-layout" fill="none" height="200" width="100"/>',
-            '</g>',
-          '</g>'
-          ]));
+
+        it('sets the correct height and width on box1', function() {
+          expect(box1.node()).toHaveAttr({
+            'gl-height': 200,
+            'gl-width': 100
+          });
+        });
+
+        it('sets the correct height and width on box2', function() {
+          expect(box2.node()).toHaveAttr({
+            'gl-height': 200,
+            'gl-width': 100
+          });
+        });
+
+        it('sizes box1', function() {
+          expect(box1.size()).toEqual([100, 200]);
+        });
+
+        it('sizes box2', function() {
+          expect(box2.size()).toEqual([100, 200]);
+        });
+
+        it('sets translate on box1', function() {
+          expect(box1.node()).toHaveTranslate(0, 0);
+        });
+
+        it('sets translate on box2', function() {
+          expect(box2.node()).toHaveTranslate(100, 0);
+        });
+
       });
 
     });
 
     describe('padding', function() {
 
-      it('hgroup - padding', function() {
-        applyLayout({
-          name: 'gl-hgroup',
-          'class': 'someclass',
-          'split': [50, 50],
-          children: [{
-            padding: 2,
-            'class': 'box1'
-          },{
-            padding: 4,
-            'class': 'box2'
-          }]
+      describe('hgroup - padding', function() {
+        var box1, box2;
+        beforeEach(function() {
+          applyLayout({
+            name: 'gl-hgroup',
+            'class': 'someclass',
+            'split': [50, 50],
+            children: [{
+              padding: 2,
+              'class': 'box1'
+            },{
+              padding: 4,
+              'class': 'box2'
+            }]
+          });
+          box1 = selection.selectAttr('class', 'box1');
+          box2 = selection.selectAttr('class', 'box2');
         });
-        expect(fixture).toHaveXML(xmlString([
-            '<g class="someclass" gl-container-name="gl-hgroup" gl-height="200" gl-split="50,50" gl-width="200">',
-              '<rect class="gl-layout" fill="none" height="200" width="200"/>',
-              '<g gl-height="200" gl-width="100" transform="translate(0,0)">',
-                '<rect class="gl-layout" fill="none" height="200" width="100"/>',
-                '<g class="box1" gl-height="192" gl-padding="2" gl-width="96" transform="translate(2,4)">',
-                  '<rect class="gl-layout" fill="none" height="192" width="96"/>',
-                '</g>',
-              '</g>',
-              '<g gl-height="200" gl-width="100" transform="translate(100,0)">',
-                '<rect class="gl-layout" fill="none" height="200" width="100"/>',
-                '<g class="box2" gl-height="184" gl-padding="4" gl-width="92" transform="translate(4,8)">',
-                  '<rect class="gl-layout" fill="none" height="184" width="92"/>',
-                '</g>',
-              '</g>',
-            '</g>'
-          ]));
+
+        it('sets padding on box1', function() {
+          expect(box1.node()).toHaveAttr({
+            'gl-padding': 2,
+            'gl-height': 192,
+            'gl-width': 96
+          });
+        });
+
+        it('sets padding on box2', function() {
+          expect(box2.node()).toHaveAttr({
+            'gl-padding': 4,
+            'gl-height': 184,
+            'gl-width': 92
+          });
+        });
+
+        it('sizes box1', function() {
+          expect(box1.size()).toEqual([96, 192]);
+        });
+
+        it('sizes box2', function() {
+          expect(box2.size()).toEqual([92, 184]);
+        });
+
       });
 
-      it('vgroup - padding', function() {
-        applyLayout({
-          'class': 'someclass',
-          name: 'gl-vgroup',
-          'split': [50, 50],
-          children: [{
-            padding: 2,
-            name: 'box1'
-          },{
-            padding: 4,
-            name: 'box2'
-          }]
+      describe('vgroup - padding', function() {
+        var box1, box2;
+        beforeEach(function() {
+          applyLayout({
+            'class': 'someclass',
+            name: 'gl-vgroup',
+            'split': [50, 50],
+            children: [{
+              padding: 2,
+              name: 'box1'
+            },{
+              padding: 4,
+              name: 'box2'
+            }]
+          });
+          box1 = selection.selectAttr('gl-container-name', 'box1');
+          box2 = selection.selectAttr('gl-container-name', 'box2');
         });
-        expect(fixture).toHaveXML(xmlString([
-          '<g class="someclass" gl-container-name="gl-vgroup" gl-height="200" gl-split="50,50" gl-width="200">',
-            '<rect class="gl-layout" fill="none" height="200" width="200"/>',
-            '<g gl-height="100" gl-width="200" transform="translate(0,0)">',
-              '<rect class="gl-layout" fill="none" height="100" width="200"/>',
-              '<g gl-container-name="box1" gl-height="96" gl-padding="2" gl-width="192" transform="translate(4,2)">',
-                '<rect class="gl-layout" fill="none" height="96" width="192"/>',
-              '</g>',
-            '</g>',
-            '<g gl-height="100" gl-width="200" transform="translate(0,100)">',
-              '<rect class="gl-layout" fill="none" height="100" width="200"/>',
-              '<g gl-container-name="box2" gl-height="92" gl-padding="4" gl-width="184" transform="translate(8,4)">',
-                '<rect class="gl-layout" fill="none" height="92" width="184"/>',
-              '</g>',
-            '</g>',
-          '</g>'
-          ]));
-      });
 
-      it('adds a gl-clip attribute', function() {
-        applyLayout({
-          'class': 'someclass',
-          clip: true,
+        it('sets padding on box1', function() {
+          expect(box1.node()).toHaveAttr({
+            'gl-padding': 2,
+            'gl-height': 96,
+            'gl-width': 192
+          });
         });
-        expect(jasmine.svgFixture().select('.someclass').node())
-          .toHaveAttr('gl-clip', 'true');
+
+        it('sets padding on box2', function() {
+          expect(box2.node()).toHaveAttr({
+            'gl-padding': 4,
+            'gl-height': 92,
+            'gl-width': 184
+          });
+        });
+
+        it('sizes box1', function() {
+          expect(box1.size()).toEqual([192, 96]);
+        });
+
+        it('sizes box2', function() {
+          expect(box2.size()).toEqual([184, 92]);
+        });
+
       });
 
     });
