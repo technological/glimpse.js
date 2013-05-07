@@ -233,7 +233,7 @@ function (selection) {
             { year: 1993, carSales: 400 },
             { year: 1994, carSales: 320 },
             { year: 1995, carSales: 360 }],
-          tags: ['*', '+']
+          tags: ['*', '+', 'testtag']
         });
         sel.add({
           id: 'bostonSales',
@@ -247,15 +247,27 @@ function (selection) {
         });
       });
 
-      describe('filter by Tags', function() {
-        it('filters selection by tag', function() {
-          var tmp = sel.filterByTags('inactive');
-          expect(tmp.all().length).toEqual(1);
-        });
+      it('filters data sources by tag', function() {
+        var tmp = sel.filterByTags('inactive');
+        expect(tmp.all().length).toEqual(1);
+      });
+
+      it('filters data sources by array of tags ', function() {
+        var tmp = sel.filterByTags(['testtag', 'inactive']);
+        expect(tmp.all().length).toEqual(0);
+      });
+
+      it('does not filter data sources with out tag ', function() {
+        var tmp = sel.filterByTags(['notthere']);
+        expect(tmp.all().length).toEqual(2);
+      });
+
+      it('filters all sources which has same tag ', function() {
+        var tmp = sel.filterByTags(['*']);
+        expect(tmp.all().length).toEqual(0);
       });
 
     });
-
 
   });
 

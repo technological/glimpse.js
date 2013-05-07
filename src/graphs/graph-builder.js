@@ -277,7 +277,6 @@ function(obj, array, string, format, d3util, graph, pubsub) {
       graph = this;
       componentManager = graph.component();
       statsLabel =  componentManager.first('gl-stats');
-
       if (statsLabel) {
         statsLabel.config({
           unit: graph.config().yAxisUnit
@@ -329,7 +328,7 @@ function(obj, array, string, format, d3util, graph, pubsub) {
           yAxisUnit: 'ms'
         });
       g.dispatch.on('update', updateStatsLabel);
-
+      // subscribe to toggle event and update stats
       scopeFn = pubsub.scope(g.config('id'));
       globalPubsub.sub(scopeFn('data-toggle'), updateStatsLabel.bind(g));
 
