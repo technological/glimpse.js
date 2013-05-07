@@ -18,6 +18,9 @@ define([
    * TODO: Move after creation of a constants file.
    */
   TIME_INTERVAL = {
+    SECOND: 1000,
+    MINUTE: 1000 * 60,
+    HOUR: 1000 * 60 * 60,
     DAY: 1000 * 60 * 60 * 24
   };
 
@@ -25,10 +28,16 @@ define([
    * Calculates the difference quotient on the data
    * TODO: Should accept axis on which to work on.
    *       Time interval to calculate rate by.
+   * @param {Object} options
    */
-  selectionPrototype.diffQuotient = function () {
-    var data, mutatedData,
+  selectionPrototype.diffQuotient = function (options) {
+    var data, mutatedData, interval,
         prevX, prevY, curX, curY, slope;
+    options = options || {};
+    if (obj.isDefAndNotNull(options.interval)) {
+      interval = TIME_INTERVAL[options.interval.toUpperCase()];
+    }
+    interval = interval || TIME_INTERVAL.SECOND;
     return this.map(function(source) {
       var r = {};
       data = source.data;
@@ -40,7 +49,7 @@ define([
           slope = (curY - prevY) / (curX - prevX);
           mutatedData.push({
             x: curX,
-            y: slope * TIME_INTERVAL.DAY
+            y: slope * interval
           });
         }
         prevX = curX;
