@@ -133,7 +133,7 @@ function(obj, array, string, format, d3util, graph, pubsub) {
      * @param {graphs.graph} g
      */
     function addComponentsForDataSources(dataSources, componentType,
-          g, isStacked) {
+          g, sources, isStacked) {
       var id;
       array.getArray(dataSources).forEach(function(dataSource) {
         id = dataSource.id;
@@ -142,12 +142,16 @@ function(obj, array, string, format, d3util, graph, pubsub) {
         }
         if (!isInternalData(dataSource.id) &&
             !componentExists(dataSource.id, g)) {
-          g.component({
-            type: componentType,
-            dataId: id,
-            cid: id,
-            color: dataSource.color || null
-          });
+          // If no sources are specified, add all data ids
+          // else add the specified ones.
+          if(sources.length === 0 || array.contains(sources, dataSource.id)) {
+            g.component({
+              type: componentType,
+              dataId: id,
+              cid: id,
+              color: dataSource.color || null
+            });
+          }
         }
       });
     }
@@ -180,7 +184,7 @@ function(obj, array, string, format, d3util, graph, pubsub) {
      * @param {String} componentType
      * @param {graphs.graph} g
      */
-    function overrideAddDataFn(componentType, g, isStacked) {
+    function overrideAddDataFn(componentType, g, sources, isStacked) {
       var dataCollection = g.data();
       isStacked = isStacked || false;
       obj.override(dataCollection, 'add', function(supr, data) {
@@ -200,7 +204,7 @@ function(obj, array, string, format, d3util, graph, pubsub) {
             }]);
           });
         }
-        addComponentsForDataSources(data, componentType, g, isStacked);
+        addComponentsForDataSources(data, componentType, g, sources, isStacked);
         return retVal;
       });
     }
@@ -315,16 +319,18 @@ function(obj, array, string, format, d3util, graph, pubsub) {
      * @return {graphs.graph}
      */
     graphBuilder.create = function(type, options) {
-      var g, layout, scopeFn;
+      var g, layout, sources, scopeFn;
 
       options = options || {};
       layout = options.layout || 'default';
+      sources = array.getArray(options.sources);
 
       g = graph()
         .config({
           forceY: [0],
           layout: layout,
-          yAxisUnit: 'ms'
+          yAxisUnit: 'ms',
+          domainSources: sources.join(',') || null
         });
 
       g.dispatch.on('update', updateStatsLabel);
@@ -341,12 +347,12 @@ function(obj, array, string, format, d3util, graph, pubsub) {
         case 'line':
         case 'area':
           overrideRemoveDataFn(g);
-          overrideAddDataFn(type, g);
+          overrideAddDataFn(type, g, sources, false);
           break;
         case 'stacked-area':
           addStackedData(g);
           overrideRemoveDataFn(g);
-          overrideAddDataFn('area', g, true);
+          overrideAddDataFn('area', g, sources, true);
           break;
       }
       return g;

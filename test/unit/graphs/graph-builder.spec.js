@@ -99,6 +99,84 @@ function(graphBuilder, graph) {
         expect(lineComponents.length).toBe(0);
       });
 
+      describe('accepts a sources option', function() {
+
+        var derivedData;
+
+        function createWithSources(sources) {
+          testGraph = graphBuilder.create('line', { sources: sources });
+          testGraph.config({
+            'xScale': d3.scale.linear(),
+            'yAxisUnit': 'GB'
+          });
+        }
+
+        beforeEach(function() {
+          derivedData = {
+            id: 'derived-data',
+            sources: '',
+            derivation: function() {
+              return [{ x: 1, y: 1 }, { x: 2, y: 50 }, { x: 3, y: 100 }];
+            }
+          };
+        });
+
+        it('adds testdata line comp if sources is not specified', function() {
+          var lineComponents;
+          createWithSources();
+          testGraph.data(testData);
+          lineComponents = filterComponents(testGraph, 'line');
+          expect(lineComponents.length).toBe(1);
+          expect(lineComponents[0].cid()).toBe('test-data');
+        });
+
+        it('doesnt add testdata line comp if not in sources', function() {
+          var lineComponents;
+          createWithSources(['xyz', 'data2']);
+          testGraph.data(testData);
+          lineComponents = filterComponents(testGraph, 'line');
+          expect(lineComponents.length).toBe(0);
+        });
+
+        it('add testdata line comp if it is in sources', function() {
+          var lineComponents;
+          createWithSources(['xyz', 'test-data']);
+          testGraph.data(testData);
+          lineComponents = filterComponents(testGraph, 'line');
+          expect(lineComponents.length).toBe(1);
+          expect(lineComponents[0].cid()).toBe('test-data');
+        });
+
+        it('doesnt add derived data line comp if not in sources', function() {
+          var lineComponents;
+          createWithSources(['xyz', 'data2']);
+          testGraph.data(derivedData);
+          lineComponents = filterComponents(testGraph, 'line');
+          expect(lineComponents.length).toBe(0);
+        });
+
+        it('add derived data line comp if it is in sources', function() {
+          var lineComponents;
+          createWithSources(['xyz', 'derived-data']);
+          testGraph.data(derivedData);
+          lineComponents = filterComponents(testGraph, 'line');
+          expect(lineComponents.length).toBe(1);
+          expect(lineComponents[0].cid()).toBe('derived-data');
+        });
+
+        it('add derived & std data line comp if in sources', function() {
+          var lineComponents;
+          createWithSources(['test-data', 'derived-data']);
+          testGraph.data(derivedData);
+          testGraph.data(testData);
+          lineComponents = filterComponents(testGraph, 'line');
+          expect(lineComponents.length).toBe(2);
+          expect(lineComponents[0].cid()).toBe('derived-data');
+          expect(lineComponents[1].cid()).toBe('test-data');
+        });
+
+      });
+
       describe('create("line")', function() {
 
         it('adds a single line component for a single data source', function() {
