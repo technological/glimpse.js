@@ -36,7 +36,7 @@
               title: 'Rate of Change (DFW)',
               sources: 'latencyDfw',
               derivation: function(sources) {
-                return sources.diffQuotient()
+                return sources.diffQuotient( { interval: 'second' })
                               // Filter negative values
                               .filter('y', [0, Infinity])
                               .get();
