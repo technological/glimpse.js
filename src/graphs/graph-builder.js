@@ -316,6 +316,8 @@ function(obj, array, string, format, d3util, graph, pubsub) {
      *
      * @param {String} type A valid pre-configured graph type.
      * @param {Object?} options Options for the pre-configured graph type.
+     * @param {(Array.<string>|string)?} options.sources Definite list of
+     *   sources that have corresponding graph components.
      * @return {graphs.graph}
      */
     graphBuilder.create = function(type, options) {
