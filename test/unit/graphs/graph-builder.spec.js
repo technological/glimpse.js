@@ -101,7 +101,7 @@ function(graphBuilder, graph) {
 
       describe('accepts a sources option', function() {
 
-        var derivedData;
+        var derivedData, newData;
 
         function createWithSources(sources) {
           testGraph = graphBuilder.create('line', { sources: sources });
@@ -117,6 +117,14 @@ function(graphBuilder, graph) {
             sources: '',
             derivation: function() {
               return [{ x: 1, y: 1 }, { x: 2, y: 50 }, { x: 3, y: 100 }];
+            }
+          };
+          newData = {
+            id: 'new-data',
+            data: [{ x: 1, y: 1 }, { x: 2, y: 150 }, { x: 3, y: 300 }],
+            dimensions: {
+              x: 'x',
+              y: 'y'
             }
           };
         });
@@ -173,6 +181,32 @@ function(graphBuilder, graph) {
           expect(lineComponents.length).toBe(2);
           expect(lineComponents[0].cid()).toBe('derived-data');
           expect(lineComponents[1].cid()).toBe('test-data');
+        });
+
+        it('calculates stats data from all added data', function() {
+          var renderTarget = jasmine.htmlFixture(),
+              stats;
+          createWithSources();
+          testGraph.data(testData);
+          testGraph.data(newData);
+          testGraph.render(renderTarget);
+          stats = testGraph.data().get('gl-stats');
+          expect(stats.min).toBe(1);
+          expect(stats.max).toBe(300);
+          expect(stats.avg).toBe(100);
+        });
+
+        it('calculates stats data from data specified in sources', function() {
+          var renderTarget = jasmine.htmlFixture(),
+              stats;
+          createWithSources(['test-data']);
+          testGraph.data(testData);
+          testGraph.data(newData);
+          testGraph.render(renderTarget);
+          stats = testGraph.data().get('gl-stats');
+          expect(stats.min).toBe(1);
+          expect(stats.max).toBe(100);
+          expect(stats.avg).toBe(50);
         });
 
       });
