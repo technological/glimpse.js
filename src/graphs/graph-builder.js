@@ -320,17 +320,19 @@ function(obj, array, string, format, d3util, graph, pubsub) {
       options = options || {};
       layout = options.layout || 'default';
 
-
       g = graph()
         .config({
           forceY: [0],
           layout: layout,
           yAxisUnit: 'ms'
         });
+
       g.dispatch.on('update', updateStatsLabel);
-      // subscribe to toggle event and update stats
-      scopeFn = pubsub.scope(g.config('id'));
-      globalPubsub.sub(scopeFn('data-toggle'), updateStatsLabel.bind(g));
+      g.dispatch.on('render', function() {
+        // subscribe to toggle event and update stats
+        scopeFn = pubsub.scope(g.config('id'));
+        globalPubsub.sub(scopeFn('data-toggle'), updateStatsLabel.bind(g));
+      });
 
       addInternalData(g);
       addInternalComponents(g);

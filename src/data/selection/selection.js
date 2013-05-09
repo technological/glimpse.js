@@ -53,7 +53,8 @@ define([
   };
 
   /**
-   * Filters the datasources on the tags provided.
+   * Filters the datasources by tags.
+   * returns datasources which do not contain tags.
    * @param  {array|string} tags
    */
   Selection.prototype.filterByTags = function (tags) {
