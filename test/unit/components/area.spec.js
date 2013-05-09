@@ -174,6 +174,34 @@ function(area, dc) {
 
     });
 
+    describe('handleDataToggle()', function() {
+      var selection;
+
+      beforeEach(function() {
+        selection = jasmine.svgFixture();
+        setData();
+        testArea.render('#svg-fixture');
+      });
+
+      it('toggles the area to hide after checking data tag', function() {
+        dataCollection.addTags('fakeData', 'inactive');
+        testArea.handleDataToggle_('fakeData');
+        expect(testArea.root().node()).toHaveAttr('display', 'none');
+      });
+
+      it('does not hide the area when the dataId is incorrect', function() {
+        testArea.handleDataToggle_('Data');
+        expect(testArea.root().node()).not.toHaveAttr('display');
+      });
+
+      it('toggles the area to show after checking data tag', function() {
+        dataCollection.removeTags('fakeData', 'inactive');
+        testArea.handleDataToggle_('fakeData');
+        expect(testArea.root().node()).not.toHaveAttr('display', 'none');
+      });
+
+    });
+
     describe('render()', function() {
 
       beforeEach(function() {
