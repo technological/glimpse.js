@@ -22,7 +22,6 @@ function(array, config, obj, string, d3util, mixins, dataFns, pubsub) {
       defaults_,
       dataCollection_,
       root_,
-      scope_ = null,
       globalPubsub;
 
     defaults_ = {
@@ -95,6 +94,24 @@ function(array, config, obj, string, d3util, mixins, dataFns, pubsub) {
     }
 
     /**
+     * Handles the sub of data-toggle event.
+     * Checks presence of inactive tag
+     * to show/hide the area component
+     * @param  {string} dataId
+     */
+     //TODO: same as line so extract it out
+     function handleDataToggle(args) {
+      var id = config_.dataId;
+      if (args === id) {
+        if (dataCollection_.hasTags(id, 'inactive')) {
+          area.hide();
+        } else {
+          area.show();
+        }
+      }
+    }
+
+    /**
      * Main function for area component
      * @return {components.area}
      */
@@ -163,24 +180,6 @@ function(array, config, obj, string, d3util, mixins, dataFns, pubsub) {
     };
 
     /**
-     * Handles the sub of data-toggle event.
-     * Checks presence of inactive tag
-     * to show/hide the area component
-     * @param  {string} dataId
-     */
-     //TODO: same as line so extract it out
-     area.handleDataToggle_ = function (args) {
-      var id = config_.dataId;
-      if (args === id) {
-        if (dataCollection_.hasTags(id, 'inactive')) {
-          area.hide();
-        } else {
-          area.show();
-        }
-      }
-    };
-
-    /**
      * Renders the area component
      * @param  {d3.selection|Node|string} selection
      * @return {components.area}
@@ -200,8 +199,8 @@ function(array, config, obj, string, d3util, mixins, dataFns, pubsub) {
           return root;
         });
       }
-      scope = area.scope(config_.rootId);
-      globalPubsub.sub(scope('data-toggle'), area.handleDataToggle_);
+      scope = area.scope();
+      globalPubsub.sub(scope('data-toggle'), handleDataToggle);
       area.update();
       area.dispatch.render.call(this);
       return area;
@@ -218,21 +217,19 @@ function(array, config, obj, string, d3util, mixins, dataFns, pubsub) {
     /** Scope for the area component */
     //TODO create a mixin for scope
     area.scope = function() {
-      if (!scope_) {
-        scope_ = pubsub.scope(config_.rootId);
-      }
-      return scope_;
+      return pubsub.scope(config_.rootId);
     };
 
     /**
      * Destroys the area and removes everything from the DOM.
      */
     area.destroy = function() {
+      var scope;
       if(root_) {
         root_.remove();
       }
-      var scope = area.scope(config_.rootId);
-      globalPubsub.unsub(scope('data-toggle'), area.handleDataToggle_);
+      scope = area.scope();
+      globalPubsub.unsub(scope('data-toggle'), handleDataToggle);
       root_ = null;
       config_ = null;
       defaults_ = null;

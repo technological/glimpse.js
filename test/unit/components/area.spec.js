@@ -183,20 +183,14 @@ function(area, dc) {
         testArea.render('#svg-fixture');
       });
 
-      it('toggles the area to hide after checking data tag', function() {
-        dataCollection.addTags('fakeData', 'inactive');
-        testArea.handleDataToggle_('fakeData');
+      it('toggles the line to hide in data tag is inactive', function() {
+        dataCollection.toggleTags('fakeData', 'inactive');
         expect(testArea.root().node()).toHaveAttr('display', 'none');
       });
 
-      it('does not hide the area when the dataId is incorrect', function() {
-        testArea.handleDataToggle_('Data');
-        expect(testArea.root().node()).not.toHaveAttr('display');
-      });
-
-      it('toggles the area to show after checking data tag', function() {
-        dataCollection.removeTags('fakeData', 'inactive');
-        testArea.handleDataToggle_('fakeData');
+      it('toggles the line to show after checking data tag', function() {
+        dataCollection.addTags('fakeData', 'inactive');
+        dataCollection.toggleTags('fakeData', 'inactive');
         expect(testArea.root().node()).not.toHaveAttr('display', 'none');
       });
 
