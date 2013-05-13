@@ -39,7 +39,7 @@ function(legend, dc) {
 
     beforeEach(function() {
       dataCollection = dc.create();
-      testLegend = legend();
+      testLegend = legend().config({'toggleSeries': true});
       key1 = { dataId: 'key1', color: 'blue', label: 'blue label' };
       key2 = {
         dataId: 'key2',
@@ -74,6 +74,55 @@ function(legend, dc) {
             'hide',
             'rootId'
           );
+      });
+
+
+      describe('config toggleSeries', function() {
+
+        var defaultLegend, legendNode, selectorLabel, labelNode,
+        selectorInd, indicatorNode;
+
+        beforeEach(function(){
+            defaultLegend = legend();
+            key1 = { dataId: 'key1', color: 'blue', label: 'blue label' };
+            key2 = {
+              dataId: 'key2',
+              color: function() { return 'green'; },
+              label: 'green label'
+            };
+            keys = [key1, key2];
+            defaultLegend.keys(keys);
+            dataCollection.add(data);
+            defaultLegend.data(dataCollection);
+            inactiveColor = testLegend.config('inactiveColor');
+            defaultLegend.render('#svg-fixture');
+
+            legendNode = select('.gl-legend-key').node();
+            //indicator and label for checking colors
+            selectorLabel = '.gl-legend .gl-legend-key .gl-legend-key-label';
+            selectorInd = '.gl-legend .gl-legend-key .gl-legend-key-indicator';
+            indicatorNode = select(selectorInd)[0];
+            labelNode = select(selectorLabel)[0];
+        });
+
+        it('default config option for toggleSeries is false',
+           function() {
+            expect(defaultLegend.config('toggleSeries')).toBe(false);
+        });
+
+        it('doesnt hide legend if toggleSeries is turned off by default',
+           function() {
+            fireClickEvent(legendNode);
+            expect(indicatorNode[0]).not.toHaveAttr('fill', inactiveColor);
+            expect(labelNode[0]).not.toHaveAttr('fill', inactiveColor);
+        });
+
+        it('doesnt call toggleTags if toggleSeries is turned off by default',
+           function() {
+            fireClickEvent(legendNode);
+            expect(dataCollection.toggleTags).not.toHaveBeenCalledOnce();
+        });
+
       });
 
     });
