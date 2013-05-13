@@ -49,7 +49,8 @@ function(obj, config, string, array, d3util, mixins, pubsub) {
       gap: 20,
       keys: [],
       hiddenStates: ['loading'],
-      rootId: null
+      rootId: null,
+      toggleSeries: false
     };
 
     globalPubsub = pubsub.getSingleton();
@@ -110,9 +111,11 @@ function(obj, config, string, array, d3util, mixins, pubsub) {
         });
 
       // Handle click event- toggle data inactive
-      enterSelection
-        .on('click', onClickHandler);
-      };
+      if(config_.toggleSeries) {
+        enterSelection
+          .on('click', onClickHandler);
+      }
+    };
 
     /**
      * Apply updates to the update selection.
