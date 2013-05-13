@@ -50,7 +50,7 @@ function(obj, config, string, array, d3util, mixins, pubsub) {
       keys: [],
       hiddenStates: ['loading'],
       rootId: null,
-      toggleSeries: false
+      hideOnClick: true
     };
 
     globalPubsub = pubsub.getSingleton();
@@ -110,11 +110,6 @@ function(obj, config, string, array, d3util, mixins, pubsub) {
           'stroke': 'none'
         });
 
-      // Handle click event- toggle data inactive
-      if(config_.toggleSeries) {
-        enterSelection
-          .on('click', onClickHandler);
-      }
     };
 
     /**
@@ -123,6 +118,15 @@ function(obj, config, string, array, d3util, mixins, pubsub) {
      */
     update_ = function(selection) {
       var inactive, color;
+
+      // Handle click event- toggle data inactive
+      if(config_.hideOnClick) {
+        selection
+          .on('click', onClickHandler);
+      } else {
+        selection
+          .on('click', null);
+      }
 
       // The outer <g> element for each key.
       selection

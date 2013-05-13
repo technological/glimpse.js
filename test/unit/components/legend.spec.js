@@ -39,7 +39,7 @@ function(legend, dc) {
 
     beforeEach(function() {
       dataCollection = dc.create();
-      testLegend = legend().config({'toggleSeries': true});
+      testLegend = legend();
       key1 = { dataId: 'key1', color: 'blue', label: 'blue label' };
       key2 = {
         dataId: 'key2',
@@ -77,13 +77,13 @@ function(legend, dc) {
       });
 
 
-      describe('config toggleSeries', function() {
+      describe('config hideOnClick', function() {
 
         var defaultLegend, legendNode, selectorLabel, labelNode,
         selectorInd, indicatorNode;
 
         beforeEach(function(){
-            defaultLegend = legend();
+            defaultLegend = legend().config({'hideOnClick': false});
             key1 = { dataId: 'key1', color: 'blue', label: 'blue label' };
             key2 = {
               dataId: 'key2',
@@ -105,19 +105,19 @@ function(legend, dc) {
             labelNode = select(selectorLabel)[0];
         });
 
-        it('default config option for toggleSeries is false',
+        it('default config option for hideOnClick is false',
            function() {
-            expect(defaultLegend.config('toggleSeries')).toBe(false);
+            expect(defaultLegend.config('hideOnClick')).toBe(false);
         });
 
-        it('doesnt hide legend if toggleSeries is turned off by default',
+        it('doesnt hide legend if hideOnClick is turned off by default',
            function() {
             fireClickEvent(legendNode);
             expect(indicatorNode[0]).not.toHaveAttr('fill', inactiveColor);
             expect(labelNode[0]).not.toHaveAttr('fill', inactiveColor);
         });
 
-        it('doesnt call toggleTags if toggleSeries is turned off by default',
+        it('doesnt call toggleTags if hideOnClick is turned off by default',
            function() {
             fireClickEvent(legendNode);
             expect(dataCollection.toggleTags).not.toHaveBeenCalledOnce();
