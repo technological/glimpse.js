@@ -117,12 +117,6 @@ module.exports = function(grunt) {
                  '--singleRun=true',
         stdout: true
       },
-      testAll: {
-        command: 'karma start test/karma.conf.js ' +
-                 '--browsers="Chrome,Firefox,Safari" ' +
-                 '--singleRun=true',
-        stdout: true
-      },
       testHeadless: {
         command: 'karma start test/karma.conf.js ' +
                  '--browsers="PhantomJS" ' +
