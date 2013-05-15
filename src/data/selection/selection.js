@@ -94,6 +94,28 @@ define([
     });
   };
 
+  /**
+   * Returns a new selection with the specified dimensions
+   * in a flat form.
+   * @param {string|Array.<string>} dims A list of dimensions.
+   */
+  Selection.prototype.flatten = function(dims) {
+    dims = array.getArray(dims);
+    return this.map(function(dataSource) {
+      var newDataSource = {};
+      obj.extend(newDataSource, dataSource);
+      delete newDataSource.dimensions;
+      newDataSource.data = dataSource.data.map(function(d) {
+        var data = {};
+        dims.forEach(function(dim) {
+          data[dim] = dataFns.dimension(dataSource, dim)(d);
+        });
+        return data;
+      });
+      return newDataSource;
+    });
+  };
+
   return {
 
     create: function(optDataSource) {
