@@ -283,24 +283,6 @@ function(obj, config, array, assetLoader, componentManager, string, components,
     }
 
     /**
-     * Inserts/Updates object in data array
-     * @param  {object} data
-     */
-    function extendData(data) {
-      //Set default x and y accessors.
-      if(!data.dimensions) {
-        data.dimensions = {};
-      }
-      if (!data.dimensions.x) {
-        data.dimensions.x = defaultXaccessor_;
-      }
-      if (!data.dimensions.y) {
-        data.dimensions.y = defaultYaccessor_;
-      }
-      dataCollection_.extend(data);
-    }
-
-    /**
      * Displays the empty message over the main container.
      * @private
      */
@@ -533,10 +515,10 @@ function(obj, config, array, assetLoader, componentManager, string, components,
         if (Array.isArray(data)) {
           var i, len = data.length;
           for (i = 0; i < len; i += 1) {
-            extendData(data[i]);
+            dataCollection_.extend(data[i]);
           }
         } else {
-          extendData(data);
+          dataCollection_.extend(data);
         }
         componentManager_.applySharedObject('data');
         return graph;
