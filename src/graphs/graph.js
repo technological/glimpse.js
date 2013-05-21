@@ -512,15 +512,9 @@ function(obj, config, array, assetLoader, componentManager, string, components,
         if (typeof data === 'string') {
           return dataCollection_.get(data);
         }
-        if (Array.isArray(data)) {
-          var i, len = data.length;
-          for (i = 0; i < len; i += 1) {
-            dataCollection_.extend(data[i]);
-          }
-        } else {
-          dataCollection_.extend(data);
-        }
-        componentManager_.applySharedObject('data');
+        array.getArray(data).forEach(function(d) {
+          dataCollection_.extend(d);
+        });
         return graph;
       }
 
@@ -569,6 +563,7 @@ function(obj, config, array, assetLoader, componentManager, string, components,
      * @return {graphs.graph}
      */
     graph.update = function() {
+      componentManager_.applySharedObject('data');
       updateScales();
       updateComponents();
       if (graph.isRendered()) {
