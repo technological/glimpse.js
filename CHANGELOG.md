@@ -1,3 +1,8 @@
+## 0.0.8 (May 22 2013)
+
+- Fixes show/hide bug in Firefox.
+- Fixes legend rendering bug in some cases.
+
 ## 0.0.7 (May 15 2013)
 
 - Stacked Area Fix and bugs.
