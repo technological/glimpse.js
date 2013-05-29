@@ -43,13 +43,13 @@ function(obj, config, array, assetLoader, componentManager, string, components,
      * @enum
      * The possible states a graph can be in.
      */
-    STATES = {
-      NORMAL: 'normal',
-      EMPTY: 'empty',
-      LOADING: 'loading',
-      ERROR: 'error',
-      DESTROYED: 'destroyed'
-    };
+    //STATES = {
+      //NORMAL: 'normal',
+      //EMPTY: 'empty',
+      //LOADING: 'loading',
+      //ERROR: 'error',
+      //DESTROYED: 'destroyed'
+    //};
 
     /**
      * Components that do not require a default color
