@@ -256,28 +256,34 @@ function(obj, config, array, assetLoader, componentManager, string, components,
           });
         }
       });
-      componentManager_.first('gl-legend')
-        .config({ keys: legendKeys })
-        .update();
+      var componentLegend = componentManager_.first('gl-legend');
+      if(componentLegend){
+	 componentLegend.config({ keys: legendKeys })
+       	.update();
+      }
     }
 
     /**
      * Updates all the special components.
      */
     function updateComponents() {
-      componentManager_.first('gl-xaxis')
-        .config({
+      var xaxisComponent = componentManager_.first('gl-xaxis')
+        if(xaxisComponent){
+	  xaxisComponent.config({
           scale: config_.xScale,
           ticks: config_.xTicks,
           unit: config_.xAxisUnit
         });
-      componentManager_.first('gl-yaxis')
-        .config({
+	}
+      var yaxisComponent = componentManager_.first('gl-yaxis')
+	if(yaxisComponent){ 
+        yaxisComponent.config({
           scale: config_.yScale,
           ticks: config_.yTicks,
           unit: config_.yAxisUnit,
           target: config_.primaryContainer
         });
+	}
       componentManager_.update();
       updateLegend();
     }
