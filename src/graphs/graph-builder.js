@@ -356,9 +356,9 @@ function(obj, array, string, format, d3util, graph, pubsub) {
         globalPubsub.sub(scopeFn('data-toggle'), updateStatsLabel.bind(g));
       });
 	
-      if(type != 'sparkline'){
-      	addInternalData(g);
-      	addInternalComponents(g);
+      if(type !== 'sparkline'){
+	addInternalData(g);
+	addInternalComponents(g);
       }
 
       switch (type) {
@@ -370,7 +370,7 @@ function(obj, array, string, format, d3util, graph, pubsub) {
 	case 'sparkline':
 	  overrideRemoveDataFn(g);
           overrideAddDataFn('line', g, sources, false);
-	  sparklineBuilder(g);
+          sparklineBuilder(g);
           break;
         case 'stacked-area':
           g.component().first('gl-legend').config({'hideOnClick': false});
