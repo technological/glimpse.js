@@ -48,6 +48,8 @@ define(function () {
           clip: true,
           border: 1,
           paddingTop: 4,
+          width: 100,
+          height: 100,
           borderColor: '#999',
           backgroundColor: '#fff'
         }

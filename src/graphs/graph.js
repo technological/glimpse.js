@@ -245,8 +245,8 @@ function(obj, config, array, assetLoader, componentManager, string, components,
      * @private
      */
     function updateLegend() {
-      var legendKeys = [];
-      var componentLegend = componentManager_.first('gl-legend');
+      var legendKeys = [],
+        componentLegend;
       componentManager_.get().forEach(function(c) {
         var cData = c.data ? c.data() : null;
         if (c.config('inLegend') && cData) {
@@ -257,9 +257,10 @@ function(obj, config, array, assetLoader, componentManager, string, components,
           });
         }
       });
+      componentLegend = componentManager_.first('gl-legend');
       if(componentLegend){
         componentLegend.config({ keys: legendKeys })
-        .update();
+          .update();
       }
     }
 
@@ -267,8 +268,9 @@ function(obj, config, array, assetLoader, componentManager, string, components,
      * Updates all the special components.
      */
     function updateComponents() {
-      var xaxisComponent = componentManager_.first('gl-xaxis');
-      var yaxisComponent = componentManager_.first('gl-yaxis');
+      var yaxisComponent,
+        xaxisComponent;
+        xaxisComponent = componentManager_.first('gl-xaxis');
         if(xaxisComponent){
           xaxisComponent.config({
           scale: config_.xScale,
@@ -276,6 +278,7 @@ function(obj, config, array, assetLoader, componentManager, string, components,
           unit: config_.xAxisUnit
         });
 	}
+        yaxisComponent = componentManager_.first('gl-yaxis');
 	if(yaxisComponent){
         yaxisComponent.config({
           scale: config_.yScale,

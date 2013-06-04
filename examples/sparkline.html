@@ -9,6 +9,7 @@
     <h1>Sparkline Graph</h1>
     <h3>This example illustrates a simple sparkline graph</h3>
     <div id="container"></div>
+    <div id="container2"></div>
     <script src="../components/requirejs/require.js"></script>
     <script src="../requirejs.conf.js"></script>
     <script>
@@ -40,8 +41,8 @@
 
         // Create and render a line graph.
         var lineGraph = glimpse.graphBuilder().create('sparkline')
-	  //.config({'layout':'sparkline'})
           .data(dataConfig)
+          .config({'width': 400, 'height': 120})
           .render('#container');
 
         // for debugging
