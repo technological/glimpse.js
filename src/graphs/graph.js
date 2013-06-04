@@ -271,24 +271,24 @@ function(obj, config, array, assetLoader, componentManager, string, components,
       var yaxisComponent,
         xaxisComponent;
         xaxisComponent = componentManager_.first('gl-xaxis');
-        if(xaxisComponent){
+        if (xaxisComponent) {
           xaxisComponent.config({
-          scale: config_.xScale,
-          ticks: config_.xTicks,
-          unit: config_.xAxisUnit
-        });
-	}
+            scale: config_.xScale,
+            ticks: config_.xTicks,
+            unit: config_.xAxisUnit
+          });
+	      }
         yaxisComponent = componentManager_.first('gl-yaxis');
-	if(yaxisComponent){
-        yaxisComponent.config({
-          scale: config_.yScale,
-          ticks: config_.yTicks,
-          unit: config_.yAxisUnit,
-          target: config_.primaryContainer
-        });
-	}
-      componentManager_.update();
-      updateLegend();
+	      if (yaxisComponent) {
+          yaxisComponent.config({
+            scale: config_.yScale,
+            ticks: config_.yTicks,
+            unit: config_.yAxisUnit,
+            target: config_.primaryContainer
+          });
+	      }
+        componentManager_.update();
+        updateLegend();
     }
 
     /**
