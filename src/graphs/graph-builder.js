@@ -195,6 +195,7 @@ function(obj, array, string, format, d3util, graph, pubsub) {
         retVal = supr.apply(dataCollection, args);
         if (isStacked) {
           array.getArray(data).forEach(function(ds) {
+            // Don't add stack derivation for $domain.
             if (ds.id[0] !== '$') {
               supr.apply(dataCollection, [{
                 id: ds.id + '-stack',
@@ -236,9 +237,11 @@ function(obj, array, string, format, d3util, graph, pubsub) {
     function addStackedData(g) {
       var dataSources = [{
         id: 'stacks',
-        sources: function(dc) {
-          var star = dc.resolve('*'),
-              inactive = dc.resolve('inactive').map(function(id) {
+        // Compute list of ids denoting * - inactive
+        // in terms of the original and not the derived sources.
+        sources: function(resolve) {
+          var star = resolve('*'),
+              inactive = resolve('inactive').map(function(id) {
                 return id.substring(0, id.length - 6);
               });
           inactive.forEach(function(id) {

@@ -64,6 +64,10 @@ define([
     }
   }
 
+  /**
+   * Takes a list of sources (comma delimited list of ids or tags) and
+   * resolves them to the corresposing array of array of ids.
+   */
   function resolveSources(sources, dc) {
     return array.getArray(d3.functor(sources)(dc.resolve.bind(dc)))
       .map(function(source) {
