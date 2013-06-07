@@ -301,7 +301,9 @@ function(obj, array, string, format, d3util, graph, pubsub) {
         'layout':'sparkline',
         'showlegend': false,
         'width': 400,
-        'height': 120
+        'height': 120,
+        'viewBoxWidth': 400,
+        'viewBoxHeight': 120
       });
       g.component().destroy(['gl-stats', 'gl-xaxis']);
     }
