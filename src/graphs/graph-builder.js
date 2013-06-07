@@ -297,8 +297,8 @@ function(obj, array, string, format, d3util, graph, pubsub) {
      * Also configures the layout
      */
     function sparklineBuilder(g) {
-      g.component().destroy(['gl-legend', 'gl-stats', 'gl-xaxis']);
-      g.config({'layout':'sparkline'});
+      g.config({'layout':'sparkline', 'showlegend': false});
+      g.component().destroy(['gl-stats', 'gl-xaxis']);
     }
 
     /**
