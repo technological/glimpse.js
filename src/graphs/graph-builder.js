@@ -297,7 +297,12 @@ function(obj, array, string, format, d3util, graph, pubsub) {
      * Also configures the layout
      */
     function sparklineBuilder(g) {
-      g.config({'layout':'sparkline', 'showlegend': false});
+      g.config({
+        'layout':'sparkline',
+        'showlegend': false,
+        'width': 400,
+        'height': 120
+      });
       g.component().destroy(['gl-stats', 'gl-xaxis']);
     }
 
