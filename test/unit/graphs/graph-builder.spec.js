@@ -396,6 +396,12 @@ function(graphBuilder, graph) {
           expect(labelComponents.length).toBe(0);
         });
 
+        it('does not add legend to sparkline', function() {
+          var legendComponents;
+          legendComponents = filterComponents(testGraph, 'legend');
+          expect(legendComponents.length).toBe(0);
+        });
+
         it('sets the layout to sparkline', function() {
           expect(testGraph.config('layout')).toBe('sparkline');
         });

@@ -299,13 +299,12 @@ function(obj, array, string, format, d3util, graph, pubsub) {
     function sparklineBuilder(g) {
       g.config({
         'layout':'sparkline',
-        'showlegend': false,
         'width': 400,
         'height': 120,
         'viewBoxWidth': 400,
         'viewBoxHeight': 120
       });
-      g.component().destroy(['gl-stats', 'gl-xaxis']);
+      g.component().destroy(['gl-legend', 'gl-stats', 'gl-xaxis']);
     }
 
     /**
