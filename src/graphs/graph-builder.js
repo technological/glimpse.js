@@ -304,12 +304,10 @@ function(obj, array, string, format, d3util, graph, pubsub) {
     * Render newly added components.
     */
     function renderAddedComponents(g) {
-      var componentManager = g.component();
-      componentManager.cids().forEach(function(cid) {
-        var c = componentManager.first(cid);
-        if (!c.isRendered()) {
-          c.render(g.root());
-        }
+      g.component().filter(function(c) {
+        return !c.isRendered();
+      }).forEach(function(c) {
+        c.render(g.root());
       });
     }
 
