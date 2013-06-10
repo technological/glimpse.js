@@ -390,10 +390,28 @@ function(graphBuilder, graph) {
           expect(axisComponents[0].config('axisType')).not.toBe('x');
         });
 
+        it('does not add legend to sparkline', function() {
+          var legendComponents;
+          legendComponents = filterComponents(testGraph, 'gl-legend');
+          expect(legendComponents.length).toBe(0);
+        });
+
         it('does not add any labels to sparkline', function() {
           var labelComponents;
           labelComponents = filterComponents(testGraph, 'label');
           expect(labelComponents.length).toBe(0);
+        });
+
+        it('does not add stats to sparkline', function() {
+          var statsComponents;
+          statsComponents = filterComponents(testGraph, 'gl-stats');
+          expect(statsComponents.length).toBe(0);
+        });
+
+        it('does not add domains to sparkline', function() {
+          var domainComponents;
+          domainComponents = filterComponents(testGraph, 'gl-domain-label');
+          expect(domainComponents.length).toBe(0);
         });
 
         it('does not add legend to sparkline', function() {
