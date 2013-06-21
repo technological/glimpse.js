@@ -6,8 +6,8 @@
     <link rel="stylesheet" href="common.css">
   </head>
   <body>
-    <h1>Simple Line Graph</h1>
-    <h3>This example illustrates how to render a simple time-series line graph</h3>
+    <h1>Scatter Plot Graph</h1>
+    <h3>This example illustrates how to render a simple scatter plot graph</h3>
     <div id="container"></div>
     <script src="../components/requirejs/require.js"></script>
     <script src="../requirejs.conf.js"></script>
@@ -41,7 +41,11 @@
           {
             id: 'set1',
             title: 'Set 1',
-            data: sampleData1
+            data: sampleData1,
+            // NOTE: optional dimension for radius
+            dimensions: {
+              r: 'y'
+            }
           },
           {
             id: 'set2',
@@ -51,10 +55,7 @@
           {
             id: 'set3',
             title: 'Set 3',
-            data: sampleData3,
-            dimensions: {
-              r: 'y'
-            }
+            data: sampleData3
           }
         ];
 
