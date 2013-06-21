@@ -405,7 +405,7 @@ function(obj, array, string, format, d3util, graph, pubsub) {
         scopeFn = pubsub.scope(g.config('id'));
         globalPubsub.sub(scopeFn('data-toggle'), updateStatsLabel.bind(g));
       });
-	
+
       if(type !== 'sparkline'){
         addInternalData(g);
         addInternalComponents(g);
@@ -413,6 +413,7 @@ function(obj, array, string, format, d3util, graph, pubsub) {
 
       switch (type) {
         case 'line':
+        case 'bar':
         case 'area':
           overrideRemoveDataFn(g);
           overrideAddDataFn(type, g, sources, false);

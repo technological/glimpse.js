@@ -5,9 +5,10 @@ define([
   'components/label',
   'components/overlay',
   'components/asset',
-  'components/area'
+  'components/area',
+  'components/bar'
 ],
-function(line, legend, axis, label, overlay, asset, area) {
+function(line, legend, axis, label, overlay, asset, area, bar) {
   'use strict';
 
   return {
@@ -17,7 +18,8 @@ function(line, legend, axis, label, overlay, asset, area) {
     label: label,
     overlay: overlay,
     asset: asset,
-    area: area
+    area: area,
+    bar: bar
   };
 
 });
