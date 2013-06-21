@@ -52,7 +52,7 @@ function(graphBuilder, graph, d3interaction) {
       });
 
       it('reports the available buildable types', function() {
-        expect(graphBuilder.types()).toEqual(['line', 'area', 'stacked-area']);
+        expect(graphBuilder.types()).toEqual(['line', 'area', 'stacked-area', 'scatter']);
       });
 
       it('creates a graph', function() {
